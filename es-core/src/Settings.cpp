@@ -110,6 +110,10 @@ void Settings::setDefaults()
 	mStringMap["ColorScheme"] = "dark";
 	mStringMap["ScreenSaverBehavior"] = "dim";
 	mStringMap["Scraper"] = "TheGamesDB";
+	mStringMap["DisplayMode"] = "keep-aspect-ratio";
+	mStringMap["DisplayFrame"] = "";
+	mBoolMap["DisplayCrtSmooth"] = false;
+	mBoolMap["DisplayCrtScanlines"] = false;
 	mStringMap["GamelistViewStyle"] = "automatic";
 	mStringMap["SaveGamelistsMode"] = "on exit";
 

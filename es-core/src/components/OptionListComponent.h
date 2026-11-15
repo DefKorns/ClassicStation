@@ -6,6 +6,7 @@
 #include "GuiComponent.h"
 #include "Log.h"
 #include "Window.h"
+#include <functional>
 
 //Used to display a list of options.
 //Can select one or multiple options.
@@ -255,6 +256,8 @@ public:
 		onSelectedChanged();
 	}
 
+	void setSelectedChangedCallback(std::function<void()> callback) { mSelectedChangedCallback = std::move(callback); }
+
 	void selectAll()
 	{
 		for(unsigned int i = 0; i < mEntries.size(); i++)
@@ -319,6 +322,8 @@ private:
 				}
 			}
 		}
+		if(mSelectedChangedCallback)
+			mSelectedChangedCallback();
 	}
 
 	std::vector<HelpPrompt> getHelpPrompts() override
@@ -334,6 +339,7 @@ private:
 	bool mMultiSelect;
 
 	std::string mName;
+	std::function<void()> mSelectedChangedCallback;
 	TextComponent mText;
 	ImageComponent mLeftArrow;
 	ImageComponent mRightArrow;

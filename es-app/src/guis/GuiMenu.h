@@ -50,6 +50,7 @@ private:
 	void openScreensaverOptions();
 	void openSoundSettings();
 	void openUISettings();
+	void openDisplaySettings();
 	void openThemeOptions(GuiComponent* parent);
 
 	static bool sRebuildPending;

@@ -41,6 +41,7 @@ set(ES_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiSuspendPoints.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiToolRunner.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiAbout.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiFramePicker.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiSystemInfo.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiVirtualKeyboard.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiNetworkList.h
@@ -111,6 +112,7 @@ set(ES_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiSuspendPoints.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiToolRunner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiAbout.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiFramePicker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiSystemInfo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiVirtualKeyboard.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiNetworkList.cpp

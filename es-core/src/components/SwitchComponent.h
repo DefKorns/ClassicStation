@@ -23,6 +23,7 @@ public:
 	std::string getValue() const override;
 	void setValue(const std::string& statestring) override;
 	void setChangedCallback(std::function<void(bool)> callback) { mOnChange = std::move(callback); }
+	void setEnabled(bool enabled);
 
 	virtual std::vector<HelpPrompt> getHelpPrompts() override;
 
@@ -31,6 +32,7 @@ private:
 
 	ImageComponent mImage;
 	bool mState;
+	bool mEnabled = true;
 	std::function<void(bool)> mOnChange;
 };
 

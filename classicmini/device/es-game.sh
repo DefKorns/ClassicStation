@@ -18,6 +18,36 @@ export ES_GAME=1
 shim=/tmp/es-shim
 profile=/var/lib/clover/profiles/0
 volatile=/var/cache/clover/volatile
+settings_file=$(dirname "$0")/home/.emulationstation/es_settings.cfg
+
+esSetting() {
+  sed -n "s|^<[a-z]* name=\"$1\" value=\"\([^\"]*\)\" */>.*|\1|p" "$settings_file" 2>/dev/null | head -n 1
+}
+
+displayArgs() {
+  local mode frame smooth scanlines suffix frame_path
+  mode=$(esSetting DisplayMode)
+  frame=$(esSetting DisplayFrame)
+  smooth=$(esSetting DisplayCrtSmooth)
+  scanlines=$(esSetting DisplayCrtScanlines)
+  case $mode in pixel-perfect|crt-filter) ;; *) mode=keep-aspect-ratio ;; esac
+  printf ' --video-mode %s' "$mode"
+  if [ "$mode" = crt-filter ]; then
+    :
+  elif [ "$smooth" = true ] && [ "$scanlines" = true ]; then
+    printf ' --crt-mode'
+  elif [ "$scanlines" = true ]; then
+    printf ' --enable-scanlines'
+  elif [ "$smooth" = true ]; then
+    printf ' --enable-smooth'
+  fi
+  if [ -n "$frame" ]; then
+    suffix=4_3
+    [ "$mode" = pixel-perfect ] && suffix=pixel_perfect
+    frame_path=/usr/share/backgrounds/$frame/${frame}_$suffix
+    [ -f "$frame_path.png" ] && printf ' --decorative-frame-path %s' "$frame_path"
+  fi
+}
 
 desktop=$1
 cmd=$(tr -d '\r' < "$desktop" | sed -n 's/^Exec=//p' | head -n 1)
@@ -48,7 +78,7 @@ if [ -n "$code" ]; then
     cmd="$cmd --save-data-backing-file $profile/$code/cartridge.sram --save-screenshot-on-quit $out/state.png --save-on-quit $out/state"
     [ -n "$resume" ] && cmd="$cmd --load-state-file $suspend_dir/state"
   else
-    cmd="$cmd --save-data-backing-file $profile/$code/cartridge.sram --title-code $code --video-mode keep-aspect-ratio"
+    cmd="$cmd --save-data-backing-file $profile/$code/cartridge.sram --title-code $code$(displayArgs)"
     cmd="$cmd --save-time-path $out/state.time --save-screenshot-on-quit $out/state.png"
     case "$cmd" in
       *kachikachi*)

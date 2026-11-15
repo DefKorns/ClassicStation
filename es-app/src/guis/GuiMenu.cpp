@@ -6,6 +6,7 @@
 #include "components/SwitchComponent.h"
 #include "guis/GuiCollectionSystemsOptions.h"
 #include "guis/GuiDetectDevice.h"
+#include "guis/GuiFramePicker.h"
 #include "guis/GuiGeneralScreensaverOptions.h"
 #include "guis/GuiMsgBox.h"
 #include "guis/GuiScraperStart.h"
@@ -31,6 +32,7 @@
 #include "guis/GuiSystemInfo.h"
 #include "guis/GuiToolRunner.h"
 #include <cstdlib>
+#include "utils/FileSystemUtil.h"
 
 namespace
 {
@@ -91,6 +93,7 @@ void GuiMenu::showCategory(int category)
 	switch (category)
 	{
 	case Display:
+		addEntry("VIDEO MODE AND FRAME", MenuColors::Text, true, [this] { openDisplaySettings(); });
 		addEntry("UI SETTINGS", MenuColors::Text, true, [this] { openUISettings(); });
 		addEntry("SCREENSAVER SETTINGS", MenuColors::Text, true, [this] { openScreensaverOptions(); });
 		if (isFamicomPad())
@@ -458,6 +461,67 @@ void GuiMenu::openThemeOptions(GuiComponent* parent)
 		GuiMenu::requestRebuild();
 		delete parent;
 	});
+
+	mWindow->pushGui(s);
+}
+
+void GuiMenu::openDisplaySettings()
+{
+	auto s = new GuiSettings(mWindow, "VIDEO MODE AND FRAME");
+
+	auto mode = std::make_shared< OptionListComponent<std::string> >(mWindow, "VIDEO MODE", false);
+	const std::string currentMode = Settings::getInstance()->getString("DisplayMode");
+	mode->add("4:3", "keep-aspect-ratio", currentMode == "keep-aspect-ratio");
+	mode->add("PIXEL PERFECT", "pixel-perfect", currentMode == "pixel-perfect");
+	mode->add("CRT FILTER", "crt-filter", currentMode == "crt-filter");
+	s->addWithLabel("VIDEO MODE", mode);
+	s->addSaveFunc([mode] { Settings::getInstance()->setString("DisplayMode", mode->getSelected()); });
+
+	auto frames = Utils::FileSystem::getDirContent("/usr/share/backgrounds");
+	frames.sort();
+	std::vector<std::string> frameNames{ "" };
+	for (const auto& dir : frames)
+		if (Utils::FileSystem::isDirectory(dir))
+			frameNames.push_back(Utils::FileSystem::getFileName(dir));
+
+	auto frame = std::make_shared<std::string>(Settings::getInstance()->getString("DisplayFrame"));
+	auto frameLabel = [](const std::string& name) { return name.empty() ? std::string("NONE") : Utils::String::toUpper(name); };
+	auto frameValue = std::make_shared<TextComponent>(mWindow, frameLabel(*frame), Font::get(FONT_SIZE_MENU), MenuColors::Dim);
+	ComponentListRow frameRow;
+	frameRow.addElement(std::make_shared<TextComponent>(mWindow, "FRAME", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+	frameRow.addElement(frameValue, false);
+	frameRow.addElement(makeArrow(mWindow), false);
+	Window* window = mWindow;
+	frameRow.makeAcceptInputHandler([window, mode, frame, frameValue, frameNames, frameLabel]
+	{
+		const std::string suffix = mode->getSelected() == "pixel-perfect" ? "pixel_perfect" : "4_3";
+		window->pushGui(new GuiFramePicker(window, frameNames, *frame, suffix, [frame, frameValue, frameLabel](const std::string& picked)
+		{
+			*frame = picked;
+			frameValue->setText(frameLabel(picked));
+		}));
+	});
+	s->addRow(frameRow);
+	s->addSaveFunc([frame] { Settings::getInstance()->setString("DisplayFrame", *frame); });
+
+	auto smooth = std::make_shared<SwitchComponent>(mWindow);
+	smooth->setState(Settings::getInstance()->getBool("DisplayCrtSmooth"));
+	s->addWithLabel("SMOOTHING", smooth);
+	s->addSaveFunc([smooth] { Settings::getInstance()->setBool("DisplayCrtSmooth", smooth->getState()); });
+
+	auto scanlines = std::make_shared<SwitchComponent>(mWindow);
+	scanlines->setState(Settings::getInstance()->getBool("DisplayCrtScanlines"));
+	s->addWithLabel("SCANLINES", scanlines);
+	s->addSaveFunc([scanlines] { Settings::getInstance()->setBool("DisplayCrtScanlines", scanlines->getState()); });
+
+	const auto updateEffects = [mode, smooth, scanlines]
+	{
+		const bool enabled = mode->getSelected() != "crt-filter";
+		smooth->setEnabled(enabled);
+		scanlines->setEnabled(enabled);
+	};
+	mode->setSelectedChangedCallback(updateEffects);
+	updateEffects();
 
 	mWindow->pushGui(s);
 }

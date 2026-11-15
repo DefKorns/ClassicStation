@@ -18,7 +18,7 @@ void SwitchComponent::onSizeChanged()
 
 bool SwitchComponent::input(InputConfig* config, Input input)
 {
-	if(config->isMappedTo("a", input) && input.value)
+	if(mEnabled && config->isMappedTo("a", input) && input.value)
 	{
 		mState = !mState;
 		onStateChanged();
@@ -37,6 +37,12 @@ void SwitchComponent::render(const Transform4x4f& parentTrans)
 	mImage.render(trans);
 
 	renderChildren(trans);
+}
+
+void SwitchComponent::setEnabled(bool enabled)
+{
+	mEnabled = enabled;
+	mImage.setOpacity(enabled ? 255 : 90);
 }
 
 bool SwitchComponent::getState() const
