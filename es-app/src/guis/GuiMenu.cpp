@@ -487,9 +487,17 @@ void GuiMenu::openDisplaySettings()
 	auto frame = std::make_shared<std::string>(Settings::getInstance()->getString("DisplayFrame"));
 	auto frameLabel = [](const std::string& name) { return name.empty() ? std::string("NONE") : Utils::String::toUpper(name); };
 	auto frameValue = std::make_shared<TextComponent>(mWindow, frameLabel(*frame), Font::get(FONT_SIZE_MENU), MenuColors::Dim);
+	float frameWidth = 0.0f;
+	for (const auto& name : frameNames)
+		frameWidth = std::max(frameWidth, Font::get(FONT_SIZE_MENU)->sizeText(frameLabel(name)).x());
+	frameValue->setHorizontalAlignment(ALIGN_RIGHT);
+	frameValue->setSize(frameWidth, Font::get(FONT_SIZE_MENU)->getHeight());
 	ComponentListRow frameRow;
 	frameRow.addElement(std::make_shared<TextComponent>(mWindow, "FRAME", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 	frameRow.addElement(frameValue, false);
+	auto frameGap = std::make_shared<GuiComponent>(mWindow);
+	frameGap->setSize(Font::get(FONT_SIZE_MENU)->getLetterHeight() * 0.7f, Font::get(FONT_SIZE_MENU)->getHeight());
+	frameRow.addElement(frameGap, false);
 	frameRow.addElement(makeArrow(mWindow), false);
 	Window* window = mWindow;
 	frameRow.makeAcceptInputHandler([window, mode, frame, frameValue, frameNames, frameLabel]

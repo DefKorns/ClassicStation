@@ -25,7 +25,7 @@ namespace
 GuiFramePicker::GuiFramePicker(Window* window, std::vector<std::string> frames, const std::string& current,
 	std::string previewSuffix, std::function<void(const std::string&)> onPick) : GuiComponent(window),
 	mFrames(std::move(frames)), mPreviewSuffix(std::move(previewSuffix)), mOnPick(std::move(onPick)),
-	mPanel(window, ":/frame.png"), mPreview(window), mName(window), mCounter(window)
+	mPanel(window, ":/frame.png"), mPreview(window), mLeftArrow(window), mRightArrow(window), mName(window), mCounter(window)
 {
 	const auto found = std::find(mFrames.begin(), mFrames.end(), current);
 	if (found != mFrames.end())
@@ -36,8 +36,17 @@ GuiFramePicker::GuiFramePicker(Window* window, std::vector<std::string> frames, 
 	const float width = screenWidth * 0.6f;
 	const float margin = width * 0.05f;
 	const float textWidth = width - 2 * margin;
-	mImageWidth = textWidth;
-	mImageHeight = textWidth * 9.0f / 16.0f;
+	mLeftArrow.setImage(":/option_arrow.svg");
+	mLeftArrow.setFlipX(true);
+	mRightArrow.setImage(":/option_arrow.svg");
+	for (ImageComponent* arrow : { &mLeftArrow, &mRightArrow })
+	{
+		arrow->setResize(0, screenHeight * 0.06f);
+		arrow->setColorShift(MenuColors::Icon);
+	}
+	const float arrowSpace = mLeftArrow.getSize().x() * 1.6f;
+	mImageWidth = textWidth - 2 * arrowSpace;
+	mImageHeight = mImageWidth * 9.0f / 16.0f;
 
 	mPanel.setCenterColor(MenuColors::Panel);
 	mPanel.setEdgeColor(MenuColors::Panel);
@@ -62,11 +71,16 @@ GuiFramePicker::GuiFramePicker(Window* window, std::vector<std::string> frames, 
 	mPanel.fitTo(mSize, Vector3f::Zero(), Vector2f(-32, -32));
 
 	mPreview.setPosition(width / 2.0f, margin);
+	const float arrowY = margin + (mImageHeight - mLeftArrow.getSize().y()) / 2.0f;
+	mLeftArrow.setPosition(margin, arrowY);
+	mRightArrow.setPosition(width - margin - mRightArrow.getSize().x(), arrowY);
 	mName.setPosition(margin, margin + mImageHeight + gap);
 	mCounter.setPosition(margin, margin + mImageHeight + gap + mName.getFont()->getHeight());
 
 	addChild(&mPanel);
 	addChild(&mPreview);
+	addChild(&mLeftArrow);
+	addChild(&mRightArrow);
 	addChild(&mName);
 	addChild(&mCounter);
 	show();

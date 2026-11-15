@@ -40,6 +40,8 @@ private:
 
 	NinePatchComponent mPanel;
 	ImageComponent mPreview;
+	ImageComponent mLeftArrow;
+	ImageComponent mRightArrow;
 	TextComponent mName;
 	TextComponent mCounter;
 };
