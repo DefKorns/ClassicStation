@@ -24,10 +24,19 @@ esSetting() {
   sed -n "s|^<[a-z]* name=\"$1\" value=\"\([^\"]*\)\" */>.*|\1|p" "$settings_file" 2>/dev/null | head -n 1
 }
 
-displayArgs() {
-  local mode frame smooth scanlines suffix frame_path
+framePath() {
+  local mode frame suffix
   mode=$(esSetting DisplayMode)
   frame=$(esSetting DisplayFrame)
+  [ -n "$frame" ] || return 0
+  suffix=4_3
+  [ "$mode" = pixel-perfect ] && suffix=pixel_perfect
+  [ -f "/usr/share/backgrounds/$frame/${frame}_$suffix.png" ] && printf '/usr/share/backgrounds/%s/%s_%s' "$frame" "$frame" "$suffix"
+}
+
+displayArgs() {
+  local mode smooth scanlines frame_path
+  mode=$(esSetting DisplayMode)
   smooth=$(esSetting DisplayCrtSmooth)
   scanlines=$(esSetting DisplayCrtScanlines)
   case $mode in pixel-perfect|crt-filter) ;; *) mode=keep-aspect-ratio ;; esac
@@ -41,11 +50,32 @@ displayArgs() {
   elif [ "$smooth" = true ]; then
     printf ' --enable-smooth'
   fi
-  if [ -n "$frame" ]; then
-    suffix=4_3
-    [ "$mode" = pixel-perfect ] && suffix=pixel_perfect
-    frame_path=/usr/share/backgrounds/$frame/${frame}_$suffix
-    [ -f "$frame_path.png" ] && printf ' --decorative-frame-path %s' "$frame_path"
+  frame_path=$(framePath)
+  [ -n "$frame_path" ] && printf ' --decorative-frame-path %s' "$frame_path"
+}
+
+clearOverlayFrame() {
+  local file="$1" key="$2"
+  grep -q "^$key = \"[^\"]" "$file" 2>/dev/null || return 0
+  sed "s|^$key = .*|$key = \"\"|" "$file" > /tmp/es-overlay.tmp && cat /tmp/es-overlay.tmp > "$file"
+  rm -f /tmp/es-overlay.tmp
+}
+
+clearRetroarchFrame() {
+  [ -z "$(framePath)" ] || return 0
+  clearOverlayFrame /etc/libretro/overlay/border.cfg overlay0_overlay
+  clearOverlayFrame /etc/libretro/overlay/border_with_scanlines.cfg overlay0_desc0_overlay
+}
+
+retroarchArgs() {
+  local mode smooth scanlines
+  mode=$(esSetting DisplayMode)
+  smooth=$(esSetting DisplayCrtSmooth)
+  scanlines=$(esSetting DisplayCrtScanlines)
+  if [ -n "$(framePath)" ]; then
+    printf ' --bezel-mode'
+  elif [ "$mode" != crt-filter ] && { [ "$smooth" = true ] || [ "$scanlines" = true ]; }; then
+    printf ' --bezel-mode'
   fi
 }
 
@@ -93,8 +123,9 @@ if [ -n "$code" ]; then
   fi
 fi
 
+clearRetroarchFrame
 mkdir -p "$shim"
-printf '#!/bin/sh\nexec retroarch-clover-child "$@"\n' > "$shim/retroarch-clover"
+printf '#!/bin/sh\nexec retroarch-clover-child "$@"%s\n' "$(retroarchArgs)" > "$shim/retroarch-clover"
 chmod +x "$shim/retroarch-clover"
 
 PATH="$shim:$PATH" sh -c "$cmd"
