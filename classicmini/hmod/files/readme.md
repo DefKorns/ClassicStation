@@ -4,7 +4,7 @@
 
 EmulationStation 2.12 (RetroPie fork) as the front end of the NES/SNES Classic, driven by the games hakchi syncs.
 
-Needs the RetroArch (S)NESCE hmod for the libretro cores.
+Needs the RetroArch (S)NESCE hmod (v1.22.2-beta.13 or newer) for the libretro cores.
 
 **Alpha build, for testers.** You can always get the stock UI back: hold **Select** while the console boots, or remove the module with "Remove modules" in hakchi. If EmulationStation crashes twice in a row right after starting, the next boot goes to the stock UI by itself.
 
