@@ -67,6 +67,13 @@ clearRetroarchFrame() {
   clearOverlayFrame /etc/libretro/overlay/border_with_scanlines.cfg overlay0_desc0_overlay
 }
 
+noFrameArg() {
+  [ -z "$(framePath)" ] || return 0
+  # shellcheck disable=SC2016 # the pattern is the literal text of the child script
+  grep -q 'n "\$frame"' /bin/retroarch-clover-child 2>/dev/null && return 0
+  printf ' --decorative-frame-path %s' "$(dirname "$0")/resources/frame_none"
+}
+
 retroarchArgs() {
   local mode smooth scanlines
   mode=$(esSetting DisplayMode)
@@ -125,7 +132,7 @@ fi
 
 clearRetroarchFrame
 mkdir -p "$shim"
-printf '#!/bin/sh\nexec retroarch-clover-child "$@"%s\n' "$(retroarchArgs)" > "$shim/retroarch-clover"
+printf '#!/bin/sh\nexec retroarch-clover-child "$@"%s\n' "$(retroarchArgs)$(noFrameArg)" > "$shim/retroarch-clover"
 chmod +x "$shim/retroarch-clover"
 
 PATH="$shim:$PATH" sh -c "$cmd"

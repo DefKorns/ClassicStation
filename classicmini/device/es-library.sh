@@ -54,8 +54,8 @@ chdSystem() {
 
 systemOf() {
   case ${exe#km_} in
-    clover-canoe-shvc*|snes|snes05*|snes9x*|snes10*|mednafen-snes-faust-xtreme) system=snes ;;
-    nestopia|quicknes|fceumm*|kachikachi*|clover-kachikachi*|nes)
+    clover-canoe-shvc*|snes|snes05*|snes9x*|snes10*|mednafen-snes-faust-xtreme|mednafen_snes_faust_xtreme) system=snes ;;
+    nestopia|quicknes|mesen|fceumm*|kachikachi*|clover-kachikachi*|nes)
       if [ "$ext" = fds ]; then system=fds; else system=nes; fi ;;
     gambatte|gearboy|tgbdual|gb|gbc)
       if [ "$ext" = gbc ] || [ "$exe" = gbc ]; then system=gbc; else system=gb; fi ;;
@@ -77,19 +77,19 @@ systemOf() {
         *) system=megadrive ;;
       esac
       ;;
-    mednafen-pce-fast|pce|pcecd|mednafen-supergrafx|sgfx) system=pcengine ;;
+    mednafen-pce-fast|mednafen_pce_fast|pce|pcecd|mednafen-supergrafx|mednafen_supergrafx|sgfx) system=pcengine ;;
     mednafen-pcfx|mednafen_pcfx|pcfx) system=pcfx ;;
-    mednafen-ngp|ngp|ngc) system=ngp ;;
+    mednafen-ngp|mednafen_ngp|ngp|ngc) system=ngp ;;
     mednafen-wswan|mednafen_wswan|ws|wsc) system=wonderswan ;;
     mednafen-vb|mednafen_vb|vb) system=virtualboy ;;
     mednafen-psx|mednafen_psx|pcsx*|psx|neon) system=psx ;;
     neocd|neo) system=neogeo ;;
     fbalpha*|fba*|fbneo*|cps1|cps2|cps3|mame*) system=arcade ;;
-    n64|z64|v64|glupen64*|mupen64*|parallel-n64*|ludicrousn64*) system=n64 ;;
+    n64|z64|v64|glupen64*|mupen64*|parallel-n64*|parallel_n64*|ludicrousn64*) system=n64 ;;
     ppsspp*|psp) system=psp ;;
     yabause*) system=saturn ;;
     morpheuscast*|vemulator|vmu) system=dreamcast ;;
-    opera-xtreme) system=3do ;;
+    opera-xtreme|opera_xtreme) system=3do ;;
     stella|a26) system=atari2600 ;;
     prosystem|a78) system=atari7800 ;;
     a52) system=atari5200 ;;
@@ -114,10 +114,10 @@ systemOf() {
     np2*|nekop2|pc98) system=pc98 ;;
     px68k*|sharp) system=x68000 ;;
     quasi88|d88) system=pc88 ;;
-    x1|x1-millennium) system=x1 ;;
+    x1|x1-millennium|x1_millennium) system=x1 ;;
     tic80|tic) system=tic80 ;;
     openbor*) system=openbor ;;
-    easyrpg|ldb|chai*|lutro|lua|prboom*|wad|nxengine|cavestory|ecwolf|tyrquake|pak|xrick|mrboom|jumpnbump|cannonball|reminiscence|flashback|2048|dinothawr|bk|eighty-one|81|emux*|ch8|uzem|uze|potator) system=ports ;;
+    easyrpg|ldb|chai*|lutro|lua|prboom*|wad|nxengine|cavestory|ecwolf|tyrquake|pak|xrick|mrboom|jumpnbump|cannonball|reminiscence|flashback|2048|dinothawr|bk|eighty-one|eighty_one|dino|81|emux*|ch8|uzem|uze|potator) system=ports ;;
     *) system=other ;;
   esac
   if [ "$system" = other ] && [ "$ext" = chd ]; then chdSystem; fi
