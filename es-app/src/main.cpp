@@ -404,6 +404,12 @@ namespace
 		action.sa_flags = 0;
 		for(const int signal : { SIGTERM, SIGHUP })
 			sigaction(signal, &action, nullptr);
+
+		sigset_t unblock;
+		sigemptyset(&unblock);
+		for(const int signal : { SIGINT, SIGTERM, SIGHUP })
+			sigaddset(&unblock, signal);
+		sigprocmask(SIG_UNBLOCK, &unblock, nullptr);
 	}
 
 	void installCrashLogger()
