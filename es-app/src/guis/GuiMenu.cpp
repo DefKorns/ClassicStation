@@ -94,7 +94,7 @@ void GuiMenu::showCategory(int category)
 	switch (category)
 	{
 	case Display:
-		addEntry("VIDEO MODE AND FRAME", MenuColors::Text, true, [this] { openDisplaySettings(); });
+		addEntry("VIDEO MODE AND BEZEL", MenuColors::Text, true, [this] { openDisplaySettings(); });
 		addEntry("UI SETTINGS", MenuColors::Text, true, [this] { openUISettings(); });
 		addEntry("SCREENSAVER SETTINGS", MenuColors::Text, true, [this] { openScreensaverOptions(); });
 		if (isFamicomPad())
@@ -507,7 +507,7 @@ void GuiMenu::openThemeOptions(GuiComponent* parent)
 
 void GuiMenu::openDisplaySettings()
 {
-	auto s = new GuiSettings(mWindow, "VIDEO MODE AND FRAME");
+	auto s = new GuiSettings(mWindow, "VIDEO MODE AND BEZEL");
 
 	auto mode = std::make_shared< OptionListComponent<std::string> >(mWindow, "VIDEO MODE", false);
 	const std::string currentMode = Settings::getInstance()->getString("DisplayMode");
@@ -524,33 +524,21 @@ void GuiMenu::openDisplaySettings()
 		if (Utils::FileSystem::isDirectory(dir))
 			frameNames.push_back(Utils::FileSystem::getFileName(dir));
 
-	auto frame = std::make_shared<std::string>(Settings::getInstance()->getString("DisplayFrame"));
-	auto frameLabel = [](const std::string& name) { return name.empty() ? std::string("NONE") : Utils::String::toUpper(name); };
-	auto frameValue = std::make_shared<TextComponent>(mWindow, frameLabel(*frame), Font::get(FONT_SIZE_MENU), MenuColors::Dim);
-	float frameWidth = 0.0f;
+	auto bezel = std::make_shared< OptionListComponent<std::string> >(mWindow, "BEZEL", false);
+	const std::string currentBezel = Settings::getInstance()->getString("DisplayFrame");
 	for (const auto& name : frameNames)
-		frameWidth = std::max(frameWidth, Font::get(FONT_SIZE_MENU)->sizeText(frameLabel(name)).x());
-	frameValue->setHorizontalAlignment(ALIGN_RIGHT);
-	frameValue->setSize(frameWidth, Font::get(FONT_SIZE_MENU)->getHeight());
-	ComponentListRow frameRow;
-	frameRow.addElement(std::make_shared<TextComponent>(mWindow, "FRAME", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
-	frameRow.addElement(frameValue, false);
-	auto frameGap = std::make_shared<GuiComponent>(mWindow);
-	frameGap->setSize(Font::get(FONT_SIZE_MENU)->getLetterHeight() * 0.7f, Font::get(FONT_SIZE_MENU)->getHeight());
-	frameRow.addElement(frameGap, false);
-	frameRow.addElement(makeArrow(mWindow), false);
+		bezel->add(name.empty() ? std::string("NONE") : Utils::String::toUpper(name), name, name == currentBezel);
+	s->addWithLabel("BEZEL", bezel);
 	Window* window = mWindow;
-	frameRow.makeAcceptInputHandler([window, mode, frame, frameValue, frameNames, frameLabel]
+	bezel->setOpenHandler([window, mode, bezel, frameNames]
 	{
 		const std::string suffix = mode->getSelected() == "pixel-perfect" ? "pixel_perfect" : "4_3";
-		window->pushGui(new GuiFramePicker(window, frameNames, *frame, suffix, [frame, frameValue, frameLabel](const std::string& picked)
+		window->pushGui(new GuiFramePicker(window, frameNames, bezel->getSelected(), suffix, [bezel](const std::string& picked)
 		{
-			*frame = picked;
-			frameValue->setText(frameLabel(picked));
+			bezel->select(picked);
 		}));
 	});
-	s->addRow(frameRow);
-	s->addSaveFunc([frame] { Settings::getInstance()->setString("DisplayFrame", *frame); });
+	s->addSaveFunc([bezel] { Settings::getInstance()->setString("DisplayFrame", bezel->getSelected()); });
 
 	auto smooth = std::make_shared<SwitchComponent>(mWindow);
 	smooth->setState(Settings::getInstance()->getBool("DisplayCrtSmooth"));

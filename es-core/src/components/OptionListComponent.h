@@ -257,6 +257,14 @@ public:
 	}
 
 	void setSelectedChangedCallback(std::function<void()> callback) { mSelectedChangedCallback = std::move(callback); }
+	void setOpenHandler(std::function<void()> handler) { mOpenHandler = std::move(handler); }
+
+	void select(const T& obj)
+	{
+		for(auto& entry : mEntries)
+			entry.selected = (entry.object == obj);
+		onSelectedChanged();
+	}
 
 	void selectAll()
 	{
@@ -292,6 +300,11 @@ private:
 
 	void open()
 	{
+		if(mOpenHandler)
+		{
+			mOpenHandler();
+			return;
+		}
 		mWindow->pushGui(new OptionListPopup(mWindow, this, mName));
 	}
 
@@ -340,6 +353,7 @@ private:
 
 	std::string mName;
 	std::function<void()> mSelectedChangedCallback;
+	std::function<void()> mOpenHandler;
 	TextComponent mText;
 	ImageComponent mLeftArrow;
 	ImageComponent mRightArrow;
