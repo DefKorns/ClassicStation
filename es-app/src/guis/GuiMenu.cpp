@@ -580,6 +580,7 @@ void GuiMenu::openDisplaySettings()
 		filter->add("HORIZONTAL LINEAR", "hlinear", currentFilter == "hlinear");
 		filter->add("SHARP", "sharp", currentFilter == "sharp");
 		filter->add("COMPOSITE", "composite", currentFilter == "composite");
+		filter->add("PHOSPHOR", "phosphor", currentFilter == "phosphor");
 	}
 	s->addWithLabel("FILTER", filter);
 	if (!famicom)
@@ -589,7 +590,7 @@ void GuiMenu::openDisplaySettings()
 			const bool pixelPerfect = mode->getSelected() == "pixel-perfect";
 			const std::string series = pixelPerfect ? "pp" : "43";
 			struct Entry { const char* value; const char* label; };
-			const std::array<Entry, 5> entries = {{ { "nearest", "NEAREST" }, { "linear", "LINEAR" }, { "hlinear", "HORIZONTAL LINEAR" }, { "sharp", "SHARP" }, { "composite", "COMPOSITE" } }};
+			const std::array<Entry, 6> entries = {{ { "nearest", "NEAREST" }, { "linear", "LINEAR" }, { "hlinear", "HORIZONTAL LINEAR" }, { "sharp", "SHARP" }, { "composite", "COMPOSITE" }, { "phosphor", "PHOSPHOR" } }};
 			std::vector<GuiFramePicker::Item> items;
 			std::vector<std::string> values;
 			size_t current = 0;
@@ -647,7 +648,8 @@ void GuiMenu::openDisplaySettings()
 	const auto updateEffects = [mode, filter, scanlines]
 	{
 		const bool crt = mode->getSelected() == "crt-filter";
-		const bool scanlinesFixed = crt || filter->getSelected() == "composite";
+		const std::string chosen = filter->getSelected();
+		const bool scanlinesFixed = crt || chosen == "composite" || chosen == "phosphor";
 		filter->setEnabled(!crt);
 		filter->setOpacity(crt ? 90 : 255);
 		scanlines->setEnabled(!scanlinesFixed);

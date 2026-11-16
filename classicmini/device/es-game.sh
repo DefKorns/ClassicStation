@@ -44,7 +44,7 @@ scanlineLevel() {
 filterName() {
   local name
   name=$(esSetting DisplayFilter)
-  case $name in nearest|linear|hlinear|sharp|composite) printf '%s' "$name"; return ;; esac
+  case $name in nearest|linear|hlinear|sharp|composite|phosphor) printf '%s' "$name"; return ;; esac
   [ "$(esSetting DisplayMode)" = composite ] && { printf composite; return; }
   case $(esSetting DisplaySmoothness) in 1) printf nearest; return ;; 3) printf linear; return ;; esac
   [ "$(esSetting DisplayCrtSmooth)" = true ] && printf linear
@@ -64,7 +64,7 @@ displayArgs() {
   smooth=$(smoothOn)
   scanlines=$(scanlinesOn)
   case $mode in pixel-perfect|crt-filter) ;; *) mode=keep-aspect-ratio ;; esac
-  [ "$(filterName)" = composite ] && { smooth=false; scanlines=true; }
+  case $(filterName) in composite|phosphor) smooth=false; scanlines=true ;; esac
   printf ' --video-mode %s' "$mode"
   if [ "$mode" = crt-filter ]; then
     :
@@ -106,7 +106,7 @@ retroarchArgs() {
   scanlines=$(scanlinesOn)
   if [ -n "$(framePath)" ]; then
     printf ' --bezel-mode'
-  elif [ "$mode" != crt-filter ] && [ "$(filterName)" != composite ] && { [ "$smooth" = true ] || [ "$scanlines" = true ]; }; then
+  elif [ "$mode" != crt-filter ] && [ "$(filterName)" != composite ] && [ "$(filterName)" != phosphor ] && { [ "$smooth" = true ] || [ "$scanlines" = true ]; }; then
     printf ' --bezel-mode'
   fi
 }
@@ -128,6 +128,18 @@ crtfxDevEnv() {
   if [ -f "$es_dir/crtfx.order" ]; then
     CRTFX_ORDER=$(cat "$es_dir/crtfx.order")
     export CRTFX_ORDER
+  fi
+  if [ -f "$es_dir/crtfx.mask" ]; then
+    CRTFX_MASK=$(cat "$es_dir/crtfx.mask")
+    export CRTFX_MASK
+  fi
+  if [ -f "$es_dir/crtfx.cap" ]; then
+    CRTFX_CAP=$(cat "$es_dir/crtfx.cap")
+    export CRTFX_CAP
+  fi
+  if [ -f "$es_dir/crtfx.slow" ]; then
+    CRTFX_SLOW=$(cat "$es_dir/crtfx.slow")
+    export CRTFX_SLOW
   fi
   if [ -f "$es_dir/crtfx.sweep" ]; then
     CRTFX_SWEEP=$(cat "$es_dir/crtfx.sweep")
@@ -169,14 +181,17 @@ crtfxEnv() {
     return 0
   fi
   [ "$(esSetting DisplayMode)" != crt-filter ] || return 0
-  if [ "$(filterName)" = composite ]; then
-    [ -f "$es_dir/libcrtfx.so" ] || return 0
-    export LD_PRELOAD="$es_dir/libcrtfx.so"
-    gains=$(scanlineGains 3)
-    export CRTFX_GAINS="$gains"
-    export CRTFX_FILTER=1
-    return 0
-  fi
+  case $(filterName) in
+    composite|phosphor)
+      [ -f "$es_dir/libcrtfx.so" ] || return 0
+      export LD_PRELOAD="$es_dir/libcrtfx.so"
+      gains=$(scanlineGains 3)
+      export CRTFX_GAINS="$gains"
+      export CRTFX_FILTER=1
+      [ "$(filterName)" = phosphor ] && export CRTFX_MASK=60
+      return 0
+      ;;
+  esac
   level=$(scanlineLevel)
   [ "$level" -ge 2 ] || return 0
   gains=$(scanlineGains "$level")
