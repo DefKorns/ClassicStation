@@ -66,11 +66,18 @@ edited or added stay. Installing or updating again keeps your edits too.
 | Where | Buttons |
 | --- | --- |
 | Systems | left/right choose, A open, X random game, Start menu |
-| Games | left/right browse, A play, B back to systems, Y sort, down suspend points, up the header menu |
+| Games | left/right browse, A play, B back to systems, X random game, Y favorite, Select options, down suspend points, up the header menu |
 | Suspend points | left/right slot, Start resume, A save (hold to overwrite), down lock, Select delete, B back |
 
 The header icons open the menu: Display, System, Network, Library and Help. UI Settings has the theme, the games view
-style and the screensaver.
+style, the screensaver and the UI mode.
+
+The Select button opens the options of the game: suspend points, add or remove it from the favorites, add or remove it
+from the kid games, a random game, and the sort order. The NES pad has no X or Y, so everything it needs is in that menu.
+
+**Kid mode.** In UI Settings, set UI MODE to Kid to show only the games marked as kid games, and to hide most menu
+options. Mark a game with ADD TO KID GAMES in its Select menu. To leave Kid mode, enter the code shown when you switch
+to it (up, up, down, down, left, right, left, right, B, A by default).
 
 ## Themes
 
