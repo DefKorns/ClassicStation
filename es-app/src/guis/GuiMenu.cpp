@@ -905,7 +905,7 @@ void GuiMenu::openQuitMenu()
 		} else {
 			row.makeAcceptInputHandler(restart_es_fx);
 		}
-		row.addElement(std::make_shared<TextComponent>(window, "RESTART EMULATIONSTATION", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+		row.addElement(std::make_shared<TextComponent>(window, "RESTART CLASSICSTATION", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 		s->addRow(row);
 
 		if(Settings::getInstance()->getBool("ShowExit"))
@@ -923,7 +923,7 @@ void GuiMenu::openQuitMenu()
 			} else {
 				row.makeAcceptInputHandler(quit_es_fx);
 			}
-			row.addElement(std::make_shared<TextComponent>(window, "QUIT EMULATIONSTATION", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+			row.addElement(std::make_shared<TextComponent>(window, "QUIT CLASSICSTATION", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 			s->addRow(row);
 		}
 	}
@@ -974,7 +974,7 @@ void GuiMenu::addVersionInfo()
 
 	mVersion.setFont(Font::get(FONT_SIZE_SMALL));
 	mVersion.setColor(MenuColors::Dim);
-	mVersion.setText("EMULATIONSTATION V" + Utils::String::toUpper(PROGRAM_VERSION_STRING) + buildDate);
+	mVersion.setText("CLASSICSTATION V" + Utils::String::toUpper(PROGRAM_VERSION_STRING) + buildDate);
 	mVersion.setHorizontalAlignment(ALIGN_CENTER);
 	addChild(&mVersion);
 }

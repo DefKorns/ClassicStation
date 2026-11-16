@@ -1,8 +1,8 @@
-# EmulationStation
+# ClassicStation
 
-![ES-PORT](https://raw.githubusercontent.com/DefKorns/es-port/classicmini/classicmini/docs/banner.png)
+![ClassicStation](https://raw.githubusercontent.com/DefKorns/es-port/classicmini/classicmini/docs/banner.png)
 
-EmulationStation 2.12 (RetroPie fork) as the front end of the NES/SNES Classic, driven by the games hakchi syncs.
+ClassicStation, EmulationStation 2.12 (RetroPie fork) as the front end of the NES/SNES Classic, driven by the games hakchi syncs.
 
 Needs the RetroArch (S)NESCE hmod (v1.22.2-beta.13 or newer) for the libretro cores.
 
@@ -20,4 +20,4 @@ Hold Select while the console boots to get the stock UI. After two fast crashes 
 
 Uninstalling removes EmulationStation, its settings and library cache from the NAND but keeps the favourites list. It also mounts the card and removes the theme files you did not change; the ones you changed or added stay.
 
-**Return to EmulationStation tile.** If you end up in the stock menu (after a crash or booting with Select), a tile can start EmulationStation again without rebooting. It is a hakchi game package: add `CLV-Z-ESRET.clvg` (from the `hakchi-app` folder of the es-port repository) with "Add more games" in hakchi and sync. EmulationStation does not list it as a game.
+**Return to ClassicStation tile.** If you end up in the stock menu (after a crash or booting with Select), a tile can start ClassicStation again without rebooting. It is a hakchi game package: add `CLV-Z-ESRET.clvg` (from the `hakchi-app` folder of the es-port repository) with "Add more games" in hakchi and sync. ClassicStation does not list it as a game.

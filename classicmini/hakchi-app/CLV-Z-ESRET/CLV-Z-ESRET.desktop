@@ -2,7 +2,7 @@
 Type=Application
 Exec=/bin/sh /var/lib/hakchi/emulationstation/es-return.sh
 Path=/var/saves/CLV-Z-ESRET
-Name=Return to EmulationStation
+Name=Return to ClassicStation
 CePrefix=
 Icon=/var/games/CLV-Z-ESRET/CLV-Z-ESRET.png
 
@@ -14,9 +14,9 @@ Players=1
 Simultaneous=0
 ReleaseDate=2026-01-01
 SaveCount=0
-SortRawTitle=return to emulationstation
-SortRawPublisher=ES-PORT
-Copyright=ES-PORT
+SortRawTitle=return to classicstation
+SortRawPublisher=ClassicStation
+Copyright=ClassicStation
 
 [m2engage]
 regionTag=

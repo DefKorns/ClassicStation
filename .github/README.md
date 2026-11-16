@@ -1,12 +1,12 @@
-# ES-PORT: EmulationStation for the NES/SNES Classic
+# ClassicStation: EmulationStation for the NES/SNES Classic
 
 [![Build](https://github.com/DefKorns/es-port/actions/workflows/build.yml/badge.svg)](https://github.com/DefKorns/es-port/actions/workflows/build.yml)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../LICENSE.md)
 
-![ES-PORT, the EmulationStation port for the Nintendo Classic Mini](../classicmini/docs/banner.png)
+![ClassicStation, EmulationStation for the Nintendo Classic Mini](../classicmini/docs/banner.png)
 
-ES-PORT replaces Clover-UI, the stock home menu of the NES Classic and SNES Classic, on a hakchi-modded console with
+ClassicStation replaces Clover-UI, the stock home menu of the NES Classic and SNES Classic, on a hakchi-modded console with
 [EmulationStation](https://emulationstation.org) 2.12 (the RetroPie fork). It lists the games you sync with hakchi,
 grouped by system, with covers, descriptions, favorites and themes, and starts them with the console's own RetroArch.
 It ships as the `emulationstation_classicmini` hmod. Branch `classicmini`, based on `stable` (`a31c36a`, v2.12.0

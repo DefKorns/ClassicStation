@@ -43,7 +43,7 @@ GuiAbout::GuiAbout(Window* window) : GuiComponent(window),
 		text.setText(value);
 		text.setSize(textWidth, 0.0f);
 	};
-	style(mVersion, "EMULATIONSTATION V" + Utils::String::toUpper(PROGRAM_VERSION_STRING) + (DebugMode::isEnabled() ? " (DEBUG)" : ""), Font::get(FONT_SIZE_MENU), MenuColors::Title);
+	style(mVersion, "CLASSICSTATION V" + Utils::String::toUpper(PROGRAM_VERSION_STRING) + (DebugMode::isEnabled() ? " (DEBUG)" : ""), Font::get(FONT_SIZE_MENU), MenuColors::Title);
 	style(mCredit, "NES AND SNES CLASSIC PORT BY DEFKORNS", Font::get(FONT_SIZE_SMALL), MenuColors::Dim);
 	style(mControls, "UP: MENU   DOWN: SUSPEND POINT LIST\nA: SELECT   B: GO TO SAVED GAME   Y: SORT", Font::get(FONT_SIZE_SMALL), MenuColors::Text);
 

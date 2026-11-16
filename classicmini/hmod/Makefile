@@ -1,5 +1,5 @@
 MOD_ID       := emulationstation_classicmini
-MOD_NAME     := EmulationStation
+MOD_NAME     := ClassicStation
 MOD_CREATOR  := Alec Lofquist, RetroPie, DefKorns
 MOD_CATEGORY := Frontend
 MOD_DEPS     := mod/usr/share/emulationstation/emulationstation
