@@ -10,7 +10,7 @@ Needs the RetroArch (S)NESCE hmod (v1.22.2-beta.13 or newer) for the libretro co
 
 Select+Down (held for about a second) leaves a game. You can switch it on or off in EmulationStation (Controller, Home combo) and in hakchi (Controller hacks, Use button combination to reset).
 
-Known issues: no video playback; the first boot builds the library, which takes a while on large collections; the interface slows down while the scraper runs; the NES Classic is tested much less than the SNES Classic; games need the RetroArch hmod and its cores (the KMFD RetroArch with fceumm has worked on the Famicom).
+Known issues: no video playback; the first boot builds the library, which takes a while on large collections; the interface slows down while the scraper runs; the NES Classic is tested much less than the SNES Classic; games need the RetroArch hmod and its cores (the KMFD RetroArch with fceumm has worked on the Famicom); NES games with the Nestopia core can look blurry because the core enables its NTSC filter (turn "NTSC Filter" off in the core options, or use FCEUmm).
 
 To report a problem, send `/var/lib/hakchi/emulationstation/home/.emulationstation/es_log.txt` and, after a crash, `/var/lib/hakchi/emulationstation/crash.log` (over ssh as root).
 
