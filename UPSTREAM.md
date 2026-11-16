@@ -44,3 +44,7 @@ resolved once is resolved again automatically. After the merge and a build, `cla
 
 - Renderers: `Renderer_GL14`, `Renderer_GL21` and `Renderer_GLES10`, with the `GL`, `USE_GL21` and `USE_GLES1` build
   options and `FindOpenGLES.cmake`. The Mali on the minis runs GLES2, so the build only has `Renderer_GLES20`.
+- Raspberry Pi, OMX and Vero4K: the `_RPI_`, `_OMX_` and `_VERO4K_` code, `VideoPlayerComponent` (the OMX player), the
+  OMX menu entries, the Broadcom VideoCore parts of `CECInput` and the `RPI`/`OMX` build options with the
+  Broadcom/Vero4K detection in `CMakeLists.txt`. CEC itself stays, because a driver for it could be added to the kernel.
+  The settings keys stay in `Settings.cpp` so an old `es_settings.cfg` loads without warnings.

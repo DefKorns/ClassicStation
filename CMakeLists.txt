@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.5...4.0)
 # Note: Visual Studio 2022 generator requires CMake 3.21 or greater.
 
 option(GLES "Set to ON if targeting Embedded OpenGL" ${GLES})
-option(RPI "Set to ON to enable the Raspberry PI memory and audio options" ${RPI})
-option(OMX "Set to On to enable OMXPlayer for video snapshots" ${OMX})
 option(CEC "Set to ON to enable CEC" ${CEC})
 option(PROFILING "Set to ON to enable profiling" ${PROFILING})
 
@@ -35,25 +33,6 @@ if(GLES)
 # check if the MESA GLES library is requested
 elseif(USE_MESA_GLES)
     set(GLSystem "Embedded OpenGL" CACHE STRING "The OpenGL system to be used")
-
-#check if we're running on Raspberry Pi (legacy drivers)
-elseif(EXISTS "${CMAKE_FIND_ROOT_PATH}/opt/vc/include/bcm_host.h")
-    set(BCMHOST found)
-    set(GLSystem "Embedded OpenGL" CACHE STRING "The OpenGL system to be used")
-    set(HINT_GLES_INCDIR "/opt/vc/include")
-    set(HINT_GLES_LIBDIR "/opt/vc/lib")
-    set(HINT_GLES_LIBNAME brcmGLESv2)
-    set(GLES_EXTRA_LIBRARIES bcm_host)
-
-#check if we're running on OSMC Vero4K[+]
-elseif(EXISTS "${CMAKE_FIND_ROOT_PATH}/opt/vero3/lib/libMali.so")
-    set(VERO4K found)
-    add_definitions(-D_VERO4K_)
-    set(GLSystem "Embedded OpenGL" CACHE STRING "The OpenGL system to be used")
-    set(HINT_GLES_INCDIR "/opt/vero3/include")
-    set(HINT_GLES_LIBDIR "/opt/vero3/lib")
-    set(HINT_GLES_LIBNAME Mali)
-    set(GLES_EXTRA_LIBRARIES EGL)
 
 #check if we're running on olinuxino / odroid / etc
 elseif(
@@ -92,14 +71,6 @@ endif()
 
 #-------------------------------------------------------------------------------
 #set up compiler flags and excutable names
-if(DEFINED BCMHOST OR RPI)
-    add_definitions(-D_RPI_)
-endif()
-
-if(OMX)
-    add_definitions(-D_OMX_)
-endif()
-
 if(DEFINED libCEC_FOUND)
     add_definitions(-DHAVE_LIBCEC)
 endif()
@@ -196,11 +167,6 @@ set(COMMON_LIBRARIES
 
 #add libCEC_LIBRARIES
 if(DEFINED libCEC_FOUND)
-if(DEFINED BCMHOST)
-    LIST(APPEND COMMON_LIBRARIES
-        vchiq_arm
-    )
-endif()
     LIST(APPEND COMMON_LIBRARIES
         dl
         ${libCEC_LIBRARIES}

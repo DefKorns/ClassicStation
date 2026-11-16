@@ -6,9 +6,6 @@
 #include "CollectionSystemManager.h"
 #include "Settings.h"
 #include "SystemData.h"
-#ifdef _OMX_
-#include "components/VideoPlayerComponent.h"
-#endif
 #include "components/VideoVlcComponent.h"
 #include "guis/GuiInfoPopup.h"
 #include "guis/GuiMenu.h"
@@ -39,15 +36,7 @@ GridGameListView::GridGameListView(Window* window, FileData* root) :
 {
 	const float padding = 0.01f;
 
-// Create the correct type of video window
-#ifdef _OMX_
-	if (Settings::getInstance()->getBool("VideoOmxPlayer"))
-		mVideo = new VideoPlayerComponent(window, "");
-	else
-		mVideo = new VideoVlcComponent(window, getTitlePath());
-#else
 	mVideo = new VideoVlcComponent(window, getTitlePath());
-#endif
 
 	mGrid.setPosition(mSize.x() * 0.1f, mSize.y() * 0.1f);
 	mGrid.setDefaultZIndex(20);

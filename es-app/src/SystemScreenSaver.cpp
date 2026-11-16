@@ -1,9 +1,6 @@
 #include "SystemScreenSaver.h"
 #include "components/TextListComponent.h"
 
-#ifdef _OMX_
-#include "components/VideoPlayerComponent.h"
-#endif
 #include "components/VideoVlcComponent.h"
 #include "CollectionSystemManager.h"
 #include "utils/FileSystemUtil.h"
@@ -118,15 +115,7 @@ bool SystemScreenSaver::inputDuringScreensaver(InputConfig* config, Input input)
 
 void SystemScreenSaver::setVideoScreensaver(std::string& path)
 {
-#ifdef _OMX_
-	// Create the correct type of video component
-	if (Settings::getInstance()->getBool("ScreenSaverOmxPlayer"))
-		mVideoScreensaver = new VideoPlayerComponent(mWindow, getTitlePath());
-	else
-		mVideoScreensaver = new VideoVlcComponent(mWindow, getTitlePath());
-#else
 	mVideoScreensaver = new VideoVlcComponent(mWindow, getTitlePath());
-#endif
 
 	mVideoScreensaver->topWindow(true);
 	mVideoScreensaver->setOrigin(0.5f, 0.5f);

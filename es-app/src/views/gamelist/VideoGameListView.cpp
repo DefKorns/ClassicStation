@@ -1,15 +1,9 @@
 #include "views/gamelist/VideoGameListView.h"
 
 #include "animations/LambdaAnimation.h"
-#ifdef _OMX_
-#include "components/VideoPlayerComponent.h"
-#endif
 #include "components/VideoVlcComponent.h"
 #include "utils/FileSystemUtil.h"
 #include "views/ViewController.h"
-#ifdef _OMX_
-#include "Settings.h"
-#endif
 
 VideoGameListView::VideoGameListView(Window* window, FileData* root) :
 	BasicGameListView(window, root),
@@ -29,16 +23,7 @@ VideoGameListView::VideoGameListView(Window* window, FileData* root) :
 {
 	const float padding = 0.01f;
 
-	// Create the correct type of video window
-#ifdef _OMX_
-	Utils::FileSystem::removeFile(getTitlePath());
-	if (Settings::getInstance()->getBool("VideoOmxPlayer"))
-		mVideo = new VideoPlayerComponent(window, "");
-	else
-		mVideo = new VideoVlcComponent(window, getTitlePath());
-#else
 	mVideo = new VideoVlcComponent(window, getTitlePath());
-#endif
 
 	mList.setPosition(mSize.x() * (0.50f + padding), mList.getPosition().y());
 	mList.setSize(mSize.x() * (0.50f - padding), mList.getSize().y());

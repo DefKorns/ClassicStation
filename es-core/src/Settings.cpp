@@ -99,11 +99,7 @@ void Settings::setDefaults()
 	mBoolMap["SystemSleepTimeHintDisplayed"] = false;
 	mIntMap["ScraperResizeWidth"] = 400;
 	mIntMap["ScraperResizeHeight"] = 0;
-	#ifdef _RPI_
-		mIntMap["MaxVRAM"] = 80;
-	#else
-		mIntMap["MaxVRAM"] = 100;
-	#endif
+	mIntMap["MaxVRAM"] = 100;
 
 	mStringMap["TransitionStyle"] = "fade";
 	mStringMap["ThemeSet"] = "";
@@ -135,17 +131,7 @@ void Settings::setDefaults()
 	// This setting only applies to raspberry pi but set it for all platforms so
 	// we don't get a warning if we encounter it on a different platform
 	mBoolMap["VideoOmxPlayer"] = false;
-	#ifdef _OMX_
-		// we're defaulting to OMX Player for full screen video on the Pi
-		mBoolMap["ScreenSaverOmxPlayer"] = true;
-		// use OMX Player defaults
-		mStringMap["SubtitleFont"] = "/usr/share/fonts/truetype/freefont/FreeSans.ttf";
-		mStringMap["SubtitleItalicFont"] = "/usr/share/fonts/truetype/freefont/FreeSansOblique.ttf";
-		mIntMap["SubtitleSize"] = 55;
-		mStringMap["SubtitleAlignment"] = "left";
-	#else
-		mBoolMap["ScreenSaverOmxPlayer"] = false;
-	#endif
+	mBoolMap["ScreenSaverOmxPlayer"] = false;
 
 	mIntMap["ScreenSaverSwapVideoTimeout"] = 30000;
 
@@ -173,11 +159,7 @@ void Settings::setDefaults()
 	mBoolMap["LocalArt"] = false;
 
 	// Audio out device for volume control
-	#ifdef _RPI_
-		mStringMap["AudioDevice"] = "HDMI";
-	#else
-		mStringMap["AudioDevice"] = "Master";
-	#endif
+	mStringMap["AudioDevice"] = "Master";
 
 	mStringMap["AudioCard"] = "default";
 	mStringMap["UIMode"] = "Full";
