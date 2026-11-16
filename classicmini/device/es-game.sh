@@ -41,11 +41,13 @@ scanlineLevel() {
   [ "$(esSetting DisplayCrtScanlines)" = true ] && printf 1 || printf 0
 }
 
-smoothLevel() {
-  local level
-  level=$(esSetting DisplaySmoothness)
-  case $level in 1|3) printf '%s' "$level"; return ;; esac
-  [ "$(esSetting DisplayCrtSmooth)" = true ] && printf 3 || printf 0
+filterName() {
+  local name
+  name=$(esSetting DisplayFilter)
+  case $name in nearest|linear|hlinear|sharp|composite) printf '%s' "$name"; return ;; esac
+  [ "$(esSetting DisplayMode)" = composite ] && { printf composite; return; }
+  case $(esSetting DisplaySmoothness) in 1) printf nearest; return ;; 3) printf linear; return ;; esac
+  [ "$(esSetting DisplayCrtSmooth)" = true ] && printf linear
 }
 
 scanlinesOn() {
@@ -53,7 +55,7 @@ scanlinesOn() {
 }
 
 smoothOn() {
-  [ "$(smoothLevel)" = 3 ] && printf true || printf false
+  case $(filterName) in linear|hlinear) printf true ;; *) printf false ;; esac
 }
 
 displayArgs() {
@@ -61,7 +63,8 @@ displayArgs() {
   mode=$(esSetting DisplayMode)
   smooth=$(smoothOn)
   scanlines=$(scanlinesOn)
-  case $mode in pixel-perfect|crt-filter) ;; composite) mode=keep-aspect-ratio; smooth=false; scanlines=true ;; *) mode=keep-aspect-ratio ;; esac
+  case $mode in pixel-perfect|crt-filter) ;; *) mode=keep-aspect-ratio ;; esac
+  [ "$(filterName)" = composite ] && { smooth=false; scanlines=true; }
   printf ' --video-mode %s' "$mode"
   if [ "$mode" = crt-filter ]; then
     :
@@ -103,7 +106,7 @@ retroarchArgs() {
   scanlines=$(scanlinesOn)
   if [ -n "$(framePath)" ]; then
     printf ' --bezel-mode'
-  elif [ "$mode" != crt-filter ] && [ "$mode" != composite ] && { [ "$smooth" = true ] || [ "$scanlines" = true ]; }; then
+  elif [ "$mode" != crt-filter ] && [ "$(filterName)" != composite ] && { [ "$smooth" = true ] || [ "$scanlines" = true ]; }; then
     printf ' --bezel-mode'
   fi
 }
@@ -141,10 +144,12 @@ scanlineGains() {
 }
 
 canoeMagfilter() {
-  case $(esSetting DisplayMode) in crt-filter|composite) return 0 ;; esac
-  case $(smoothLevel) in
-    1) printf 0 ;;
-    3) printf 1 ;;
+  [ "$(esSetting DisplayMode)" != crt-filter ] || return 0
+  case $(filterName) in
+    nearest) printf 0 ;;
+    linear) printf 1 ;;
+    hlinear) printf 2 ;;
+    sharp) printf 3 ;;
   esac
 }
 
@@ -163,17 +168,15 @@ crtfxEnv() {
     crtfxDevEnv
     return 0
   fi
-  case $(esSetting DisplayMode) in
-    crt-filter) return 0 ;;
-    composite)
-      [ -f "$es_dir/libcrtfx.so" ] || return 0
-      export LD_PRELOAD="$es_dir/libcrtfx.so"
-      gains=$(scanlineGains 3)
-      export CRTFX_GAINS="$gains"
-      export CRTFX_FILTER=1
-      return 0
-      ;;
-  esac
+  [ "$(esSetting DisplayMode)" != crt-filter ] || return 0
+  if [ "$(filterName)" = composite ]; then
+    [ -f "$es_dir/libcrtfx.so" ] || return 0
+    export LD_PRELOAD="$es_dir/libcrtfx.so"
+    gains=$(scanlineGains 3)
+    export CRTFX_GAINS="$gains"
+    export CRTFX_FILTER=1
+    return 0
+  fi
   level=$(scanlineLevel)
   [ "$level" -ge 2 ] || return 0
   gains=$(scanlineGains "$level")

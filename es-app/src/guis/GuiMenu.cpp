@@ -507,6 +507,15 @@ void GuiMenu::openThemeOptions(GuiComponent* parent)
 	mWindow->pushGui(s);
 }
 
+namespace
+{
+	std::string scanlineName(int level)
+	{
+		static const std::array<const char*, 4> names = { "ORIGINAL", "SOFT", "MEDIUM", "STRONG" };
+		return names[static_cast<size_t>(level - 1)];
+	}
+}
+
 void GuiMenu::openDisplaySettings()
 {
 	auto s = new GuiSettings(mWindow, "VIDEO MODE AND BEZEL");
@@ -516,8 +525,6 @@ void GuiMenu::openDisplaySettings()
 	mode->add("4:3", "keep-aspect-ratio", currentMode == "keep-aspect-ratio");
 	mode->add("PIXEL PERFECT", "pixel-perfect", currentMode == "pixel-perfect");
 	mode->add("CRT FILTER", "crt-filter", currentMode == "crt-filter");
-	if (!isFamicomPad())
-		mode->add("COMPOSITE", "composite", currentMode == "composite");
 	s->addWithLabel("VIDEO MODE", mode);
 	s->addSaveFunc([mode] { Settings::getInstance()->setString("DisplayMode", mode->getSelected()); });
 
@@ -546,41 +553,57 @@ void GuiMenu::openDisplaySettings()
 
 	const bool famicom = isFamicomPad();
 
-	int currentSmooth = Settings::getInstance()->getInt("DisplaySmoothness");
-	if (currentSmooth < 1 && Settings::getInstance()->getBool("DisplayCrtSmooth"))
-		currentSmooth = 3;
-	if (famicom && currentSmooth > 0)
-		currentSmooth = 3;
-	auto smooth = std::make_shared< OptionListComponent<int> >(mWindow, "SMOOTHNESS", false);
+	std::string currentFilter = Settings::getInstance()->getString("DisplayFilter");
+	if (currentFilter.empty())
+	{
+		if (currentMode == "composite")
+			currentFilter = "composite";
+		else if (Settings::getInstance()->getInt("DisplaySmoothness") == 1)
+			currentFilter = "nearest";
+		else if (Settings::getInstance()->getInt("DisplaySmoothness") == 3 || Settings::getInstance()->getBool("DisplayCrtSmooth"))
+			currentFilter = "linear";
+		else
+			currentFilter = famicom ? "nearest" : "sharp";
+	}
+	if (famicom && currentFilter != "nearest")
+		currentFilter = "linear";
+	auto filter = std::make_shared< OptionListComponent<std::string> >(mWindow, "FILTER", false);
 	if (famicom)
 	{
-		smooth->add("OFF", 0, currentSmooth == 0);
-		smooth->add("ON", 3, currentSmooth == 3);
+		filter->add("OFF", "nearest", currentFilter == "nearest");
+		filter->add("ON", "linear", currentFilter == "linear");
 	}
 	else
 	{
-		smooth->add("DEFAULT", 0, currentSmooth == 0);
-		smooth->add("NEAREST", 1, currentSmooth == 1);
-		smooth->add("SMOOTH", 3, currentSmooth == 3);
+		filter->add("NEAREST", "nearest", currentFilter == "nearest");
+		filter->add("LINEAR", "linear", currentFilter == "linear");
+		filter->add("HORIZONTAL LINEAR", "hlinear", currentFilter == "hlinear");
+		filter->add("SHARP", "sharp", currentFilter == "sharp");
+		filter->add("COMPOSITE", "composite", currentFilter == "composite");
 	}
-	s->addWithLabel("SMOOTHNESS", smooth);
+	s->addWithLabel("FILTER", filter);
 	if (!famicom)
 	{
-		smooth->setOpenHandler([window, smooth, mode]
+		filter->setOpenHandler([window, filter, mode]
 		{
-			const std::string series = mode->getSelected() == "pixel-perfect" ? "pp" : "43";
-			const std::array<int, 3> values = { 0, 1, 3 };
-			const std::array<const char*, 3> labels = { "DEFAULT", "NEAREST", "SMOOTH" };
+			const bool pixelPerfect = mode->getSelected() == "pixel-perfect";
+			const std::string series = pixelPerfect ? "pp" : "43";
+			struct Entry { const char* value; const char* label; };
+			const std::array<Entry, 5> entries = {{ { "nearest", "NEAREST" }, { "linear", "LINEAR" }, { "hlinear", "HORIZONTAL LINEAR" }, { "sharp", "SHARP" }, { "composite", "COMPOSITE" } }};
 			std::vector<GuiFramePicker::Item> items;
+			std::vector<std::string> values;
 			size_t current = 0;
-			for (size_t i = 0; i < values.size(); ++i)
+			for (const auto& entry : entries)
 			{
-				items.push_back({ labels[i], ":/smoothness/smoothness_" + series + "_" + std::to_string(values[i]) + ".png" });
-				if (values[i] == smooth->getSelected())
-					current = i;
+				if (pixelPerfect && std::string(entry.value) == "sharp")
+					continue;
+				if (entry.value == filter->getSelected() || (pixelPerfect && filter->getSelected() == "sharp" && std::string(entry.value) == "nearest"))
+					current = items.size();
+				items.push_back({ entry.label, ":/filters/filter_" + series + "_" + entry.value + ".png" });
+				values.push_back(entry.value);
 			}
 			window->pushGui(new GuiFramePicker(window, items, current, 480, 270,
-				[smooth, values](size_t index) { smooth->select(values[index]); }));
+				[filter, values](size_t index) { filter->select(values[index]); }));
 		});
 	}
 
@@ -595,7 +618,7 @@ void GuiMenu::openDisplaySettings()
 		scanlines->add("ON", 1, currentLevel == 1);
 	else
 		for (int level = 1; level <= 4; ++level)
-			scanlines->add(std::to_string(level), level, currentLevel == level);
+			scanlines->add(scanlineName(level), level, currentLevel == level);
 	s->addWithLabel("SCANLINES", scanlines);
 	if (!famicom)
 	{
@@ -603,31 +626,32 @@ void GuiMenu::openDisplaySettings()
 		{
 			std::vector<GuiFramePicker::Item> items;
 			for (int level = 0; level <= 4; ++level)
-				items.push_back({ level == 0 ? std::string("OFF") : "LEVEL " + std::to_string(level),
+				items.push_back({ level == 0 ? std::string("OFF") : scanlineName(level),
 					":/scanlines/scanlines_" + std::to_string(level) + ".png" });
 			window->pushGui(new GuiFramePicker(window, items, static_cast<size_t>(scanlines->getSelected()), 480, 270,
 				[scanlines](size_t index) { scanlines->select(static_cast<int>(index)); }));
 		});
 	}
 
-	s->addSaveFunc([smooth, scanlines]
+	s->addSaveFunc([filter, scanlines]
 	{
-		const int smoothness = smooth->getSelected();
+		const std::string chosen = filter->getSelected();
 		const int level = scanlines->getSelected();
-		Settings::getInstance()->setInt("DisplaySmoothness", smoothness);
-		Settings::getInstance()->setBool("DisplayCrtSmooth", smoothness == 3);
+		Settings::getInstance()->setString("DisplayFilter", chosen);
+		Settings::getInstance()->setInt("DisplaySmoothness", chosen == "nearest" ? 1 : (chosen == "linear" ? 3 : 0));
+		Settings::getInstance()->setBool("DisplayCrtSmooth", chosen == "linear" || chosen == "hlinear");
 		Settings::getInstance()->setInt("DisplayScanlineLevel", level);
 		Settings::getInstance()->setBool("DisplayCrtScanlines", level > 0);
 	});
 
-	const auto updateEffects = [mode, smooth, scanlines]
+	const auto updateEffects = [mode, filter, scanlines]
 	{
-		const std::string selected = mode->getSelected();
-		const unsigned char opacity = selected != "crt-filter" && selected != "composite" ? 255 : 90;
-		smooth->setOpacity(opacity);
-		scanlines->setOpacity(opacity);
+		const bool crt = mode->getSelected() == "crt-filter";
+		filter->setOpacity(crt ? 90 : 255);
+		scanlines->setOpacity(crt || filter->getSelected() == "composite" ? 90 : 255);
 	};
 	mode->setSelectedChangedCallback(updateEffects);
+	filter->setSelectedChangedCallback(updateEffects);
 	updateEffects();
 
 	mWindow->pushGui(s);
