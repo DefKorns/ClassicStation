@@ -647,8 +647,11 @@ void GuiMenu::openDisplaySettings()
 	const auto updateEffects = [mode, filter, scanlines]
 	{
 		const bool crt = mode->getSelected() == "crt-filter";
+		const bool scanlinesFixed = crt || filter->getSelected() == "composite";
+		filter->setEnabled(!crt);
 		filter->setOpacity(crt ? 90 : 255);
-		scanlines->setOpacity(crt || filter->getSelected() == "composite" ? 90 : 255);
+		scanlines->setEnabled(!scanlinesFixed);
+		scanlines->setOpacity(scanlinesFixed ? 90 : 255);
 	};
 	mode->setSelectedChangedCallback(updateEffects);
 	filter->setSelectedChangedCallback(updateEffects);

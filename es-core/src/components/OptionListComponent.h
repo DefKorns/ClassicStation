@@ -187,6 +187,9 @@ public:
 
 	bool input(InputConfig* config, Input input) override
 	{
+		if(!mEnabled)
+			return false;
+
 		if(input.value != 0)
 		{
 			if(config->isMappedTo("a", input))
@@ -258,6 +261,7 @@ public:
 
 	void setSelectedChangedCallback(std::function<void()> callback) { mSelectedChangedCallback = std::move(callback); }
 	void setOpenHandler(std::function<void()> handler) { mOpenHandler = std::move(handler); }
+	void setEnabled(bool enabled) { mEnabled = enabled; }
 
 	void select(const T& obj)
 	{
@@ -354,6 +358,7 @@ private:
 	std::string mName;
 	std::function<void()> mSelectedChangedCallback;
 	std::function<void()> mOpenHandler;
+	bool mEnabled = true;
 	TextComponent mText;
 	ImageComponent mLeftArrow;
 	ImageComponent mRightArrow;
