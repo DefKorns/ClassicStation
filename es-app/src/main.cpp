@@ -178,10 +178,6 @@ bool parseArgs(int argc, char* argv[])
 			int maxVRAM = atoi(argv[i + 1]);
 			Settings::getInstance()->setInt("MaxVRAM", maxVRAM);
 		}
-		else if (strcmp(argv[i], "--force-kiosk") == 0)
-		{
-			Settings::getInstance()->setBool("ForceKiosk", true);
-		}
 		else if (strcmp(argv[i], "--force-kid") == 0)
 		{
 			Settings::getInstance()->setBool("ForceKid", true);
@@ -218,7 +214,6 @@ bool parseArgs(int argc, char* argv[])
 				"--force-disable-filters        force the UI to ignore applied filters on\n"
 				"                               gamelist (p)\n"
 				"--force-kid                    force the UI mode to be Kid\n"
-				"--force-kiosk                  force the UI mode to be Kiosk\n"
 				"--no-confirm-quit              omit confirm dialog on actions of quit menu\n"
 				"--no-exit                      don't show the exit option in the menu\n"
 				"--no-splash                    don't show the splash screen\n"
