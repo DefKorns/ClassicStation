@@ -109,7 +109,8 @@ void Settings::setDefaults()
 	mStringMap["ThemeSet"] = "";
 	mStringMap["ColorScheme"] = "dark";
 	mStringMap["ScreenSaverBehavior"] = "dim";
-	mStringMap["Scraper"] = "TheGamesDB";
+	mStringMap["Scraper"] = "ScreenScraper";
+	mStringMap["TheGamesDBApiKey"] = "";
 	mStringMap["DisplayMode"] = "keep-aspect-ratio";
 	mStringMap["DisplayFrame"] = "";
 	mBoolMap["DisplayCrtSmooth"] = false;

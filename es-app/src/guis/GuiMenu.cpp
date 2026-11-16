@@ -10,6 +10,7 @@
 #include "guis/GuiGeneralScreensaverOptions.h"
 #include "guis/GuiMsgBox.h"
 #include "guis/GuiScraperStart.h"
+#include "guis/GuiVirtualKeyboard.h"
 #include "guis/GuiSettings.h"
 #include "views/UIModeController.h"
 #include "views/ViewController.h"
@@ -249,6 +250,37 @@ void GuiMenu::openScraperSettings()
 
 	s->addWithLabel("SCRAPE FROM", scraper_list);
 	s->addSaveFunc([scraper_list] { Settings::getInstance()->setString("Scraper", scraper_list->getSelected()); });
+
+	auto apiKeyLabel = std::make_shared<TextComponent>(mWindow, "THEGAMESDB API KEY", Font::get(FONT_SIZE_MENU), MenuColors::Text);
+	auto apiKeyValue = std::make_shared<TextComponent>(mWindow, "*********", Font::get(FONT_SIZE_MENU), MenuColors::Dim, ALIGN_RIGHT);
+	auto apiKeyArrow = makeArrow(mWindow);
+	ComponentListRow apiKeyRow;
+	apiKeyRow.addElement(apiKeyLabel, true);
+	apiKeyRow.addElement(apiKeyValue, false);
+	auto apiKeyGap = std::make_shared<GuiComponent>(mWindow);
+	apiKeyGap->setSize(Font::get(FONT_SIZE_MENU)->getLetterHeight() * 1.2f, Font::get(FONT_SIZE_MENU)->getHeight());
+	apiKeyRow.addElement(apiKeyGap, false);
+	apiKeyRow.addElement(apiKeyArrow, false);
+	Window* window = mWindow;
+	apiKeyRow.makeAcceptInputHandler([window, scraper_list] {
+		if(scraper_list->getSelected() != "TheGamesDB")
+			return;
+		window->pushGui(new GuiVirtualKeyboard(window, "YOUR THEGAMESDB API KEY (EMPTY: DEFAULT KEY)", "", true,
+			[](const std::string& key) {
+				Settings::getInstance()->setString("TheGamesDBApiKey", key);
+				Settings::getInstance()->saveFile();
+			}));
+	});
+	s->addRow(apiKeyRow);
+
+	const auto updateApiKeyRow = [scraper_list, apiKeyLabel, apiKeyValue, apiKeyArrow] {
+		const unsigned char opacity = scraper_list->getSelected() == "TheGamesDB" ? 255 : 90;
+		apiKeyLabel->setOpacity(opacity);
+		apiKeyValue->setOpacity(opacity);
+		apiKeyArrow->setOpacity(opacity);
+	};
+	scraper_list->setSelectedChangedCallback(updateApiKeyRow);
+	updateApiKeyRow();
 
 	// scrape ratings
 	auto scrape_ratings = std::make_shared<SwitchComponent>(mWindow);
@@ -853,7 +885,6 @@ void GuiMenu::openOtherSettings()
 	framerate->setState(Settings::getInstance()->getBool("DrawFramerate"));
 	s->addWithLabel("SHOW FRAMERATE", framerate);
 	s->addSaveFunc([framerate] { Settings::getInstance()->setBool("DrawFramerate", framerate->getState()); });
-
 
 	mWindow->pushGui(s);
 

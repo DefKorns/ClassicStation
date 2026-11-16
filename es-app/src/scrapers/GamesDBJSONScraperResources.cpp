@@ -4,6 +4,7 @@
 #include <thread>
 
 #include "Log.h"
+#include "Settings.h"
 
 #include "scrapers/GamesDBJSONScraperResources.h"
 #include "utils/FileSystemUtil.h"
@@ -53,7 +54,11 @@ std::string getScrapersResouceDir()
 		Utils::FileSystem::getHomePath() + "/.emulationstation/" + SCRAPER_RESOURCES_DIR);
 }
 
-std::string TheGamesDBJSONRequestResources::getApiKey() const { return GamesDBAPIKey; }
+std::string TheGamesDBJSONRequestResources::getApiKey() const
+{
+	const std::string custom = Settings::getInstance()->getString("TheGamesDBApiKey");
+	return custom.empty() ? std::string(GamesDBAPIKey) : custom;
+}
 
 
 void TheGamesDBJSONRequestResources::prepare()
