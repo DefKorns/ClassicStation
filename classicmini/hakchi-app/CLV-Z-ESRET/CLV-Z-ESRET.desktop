@@ -16,15 +16,15 @@ ReleaseDate=2026-01-01
 SaveCount=0
 SortRawTitle=return to classicstation
 SortRawPublisher=ClassicStation
-Copyright=ClassicStation
+Copyright=ClassicStation ©2026 DefKorns
 
 [m2engage]
 regionTag=
-sortRawGenre=
+sortRawGenre=Simulation
 index=
 demo_time=
 country=
 
 [Description]
 Text =
-Starts EmulationStation again.
+Returns to ClassicStation from the stock menu.
