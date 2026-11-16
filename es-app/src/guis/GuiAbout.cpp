@@ -81,27 +81,29 @@ bool GuiAbout::input(InputConfig* config, Input input)
 
 	if(input.value != 0 && config->isMappedTo("select", input))
 	{
+		if(DebugMode::isUnlocked())
+		{
+			mWindow->setInfoPopup(new GuiInfoPopup(mWindow, "NO NEED, YOU'RE ALREADY A DEVELOPER", 2500));
+			return true;
+		}
+
 		++mDebugPresses;
 		const int remaining = DebugPressesNeeded - mDebugPresses;
 		if(remaining <= 0)
 		{
 			mDebugPresses = 0;
-			if(DebugMode::isUnlocked())
-			{
-				mWindow->setInfoPopup(new GuiInfoPopup(mWindow, "DEVELOPER OPTIONS ARE ALREADY ON", 3000));
-			}
-			else if(DebugMode::unlock())
+			if(DebugMode::unlock())
 			{
 				DebugMode::setEnabled(true);
 				DebugMode::setActive(true);
 				Log::setReportingLevel(LogDebug);
 				GuiMenu::requestRebuild();
-				mWindow->setInfoPopup(new GuiInfoPopup(mWindow, "DEVELOPER OPTIONS AND DEBUG MODE ON, SEE THE HELP MENU", 3000));
+				mWindow->setInfoPopup(new GuiInfoPopup(mWindow, "YOU ARE NOW A DEVELOPER, DEBUG MODE IS IN THE HELP MENU", 3000));
 			}
 		}
 		else if(remaining <= 3)
 		{
-			mWindow->setInfoPopup(new GuiInfoPopup(mWindow, std::to_string(remaining) + " MORE PRESSES TO TURN ON DEVELOPER OPTIONS", 1000));
+			mWindow->setInfoPopup(new GuiInfoPopup(mWindow, std::to_string(remaining) + " MORE PRESSES TO BECOME A DEVELOPER", 1000));
 		}
 	}
 	return true;
