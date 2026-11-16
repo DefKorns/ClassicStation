@@ -251,6 +251,15 @@ void VolumeControl::deinit()
 #endif
 }
 
+bool VolumeControl::isAvailable() const
+{
+#if defined(__linux__)
+	return mixerElem != nullptr;
+#else
+	return true;
+#endif
+}
+
 int VolumeControl::getVolume() const
 {
 	int volume = 0;

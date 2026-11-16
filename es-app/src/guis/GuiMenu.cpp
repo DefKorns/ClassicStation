@@ -292,10 +292,14 @@ void GuiMenu::openSoundSettings()
 	auto s = new GuiSettings(mWindow, "SOUND SETTINGS");
 
 	// volume
-	auto volume = std::make_shared<SliderComponent>(mWindow, 0.f, 100.f, 1.f, "%");
-	volume->setValue((float)VolumeControl::getInstance()->getVolume());
-	s->addWithLabel("SYSTEM VOLUME", volume);
-	s->addSaveFunc([volume] { VolumeControl::getInstance()->setVolume((int)Math::round(volume->getValue())); });
+	const bool hasMixer = VolumeControl::getInstance()->isAvailable();
+	if (hasMixer)
+	{
+		auto volume = std::make_shared<SliderComponent>(mWindow, 0.f, 100.f, 1.f, "%");
+		volume->setValue((float)VolumeControl::getInstance()->getVolume());
+		s->addWithLabel("SYSTEM VOLUME", volume);
+		s->addSaveFunc([volume] { VolumeControl::getInstance()->setVolume((int)Math::round(volume->getValue())); });
+	}
 
 	auto music = std::make_shared<SwitchComponent>(mWindow);
 	music->setState(Settings::getInstance()->getBool("MusicEnabled"));
@@ -316,6 +320,8 @@ void GuiMenu::openSoundSettings()
 	if (UIModeController::getInstance()->isUIModeFull())
 	{
 #if defined(__linux__)
+		if (hasMixer)
+		{
 		// audio card
 		auto audio_card = std::make_shared< OptionListComponent<std::string> >(mWindow, "AUDIO CARD", false);
 		std::vector<std::string> audio_cards;
@@ -362,6 +368,7 @@ void GuiMenu::openSoundSettings()
 			VolumeControl::getInstance()->deinit();
 			VolumeControl::getInstance()->init();
 		});
+		}
 #endif
 
 		// disable sounds
@@ -576,14 +583,6 @@ void GuiMenu::openUISettings()
 			}, "NO",nullptr));
 		}
 	});
-
-	// screensaver
-	ComponentListRow screensaver_row;
-	screensaver_row.elements.clear();
-	screensaver_row.addElement(std::make_shared<TextComponent>(mWindow, "SCREENSAVER SETTINGS", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
-	screensaver_row.addElement(makeArrow(mWindow), false);
-	screensaver_row.makeAcceptInputHandler(std::bind(&GuiMenu::openScreensaverOptions, this));
-	s->addRow(screensaver_row);
 
 	// quick system select (left/right in game list view)
 	auto quick_sys_select = std::make_shared<SwitchComponent>(mWindow);
@@ -836,26 +835,10 @@ void GuiMenu::openOtherSettings()
 		Settings::getInstance()->setString("SaveGamelistsMode", gamelistsSaveMode->getSelected());
 	});
 
-	auto parse_gamelists = std::make_shared<SwitchComponent>(mWindow);
-	parse_gamelists->setState(Settings::getInstance()->getBool("ParseGamelistOnly"));
-	s->addWithLabel("PARSE GAMESLISTS ONLY", parse_gamelists);
-	s->addSaveFunc([parse_gamelists] { Settings::getInstance()->setBool("ParseGamelistOnly", parse_gamelists->getState()); });
-
 	auto async_file_io = std::make_shared<SwitchComponent>(mWindow);
 	async_file_io->setState(Settings::getInstance()->getBool("AsyncFileIO"));
 	s->addWithLabel("ASYNC FILE IO", async_file_io);
 	s->addSaveFunc([async_file_io] { Settings::getInstance()->setBool("AsyncFileIO", async_file_io->getState()); });
-
-	auto local_art = std::make_shared<SwitchComponent>(mWindow);
-	local_art->setState(Settings::getInstance()->getBool("LocalArt"));
-	s->addWithLabel("SEARCH FOR LOCAL ART", local_art);
-	s->addSaveFunc([local_art] { Settings::getInstance()->setBool("LocalArt", local_art->getState()); });
-
-	// hidden files
-	auto hidden_files = std::make_shared<SwitchComponent>(mWindow);
-	hidden_files->setState(Settings::getInstance()->getBool("ShowHiddenFiles"));
-	s->addWithLabel("SHOW HIDDEN FILES", hidden_files);
-	s->addSaveFunc([hidden_files] { Settings::getInstance()->setBool("ShowHiddenFiles", hidden_files->getState()); });
 
 #ifdef _OMX_
 	// Video Player - VideoOmxPlayer
@@ -876,12 +859,6 @@ void GuiMenu::openOtherSettings()
 	});
 
 #endif
-
-	// hidden files
-	auto background_indexing = std::make_shared<SwitchComponent>(mWindow);
-	background_indexing->setState(Settings::getInstance()->getBool("BackgroundIndexing"));
-	s->addWithLabel("INDEX FILES DURING SCREENSAVER", background_indexing);
-	s->addSaveFunc([background_indexing] { Settings::getInstance()->setBool("BackgroundIndexing", background_indexing->getState()); });
 
 	// framerate
 	auto framerate = std::make_shared<SwitchComponent>(mWindow);

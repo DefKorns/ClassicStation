@@ -51,6 +51,7 @@ public:
 	void init();
 	void deinit();
 
+	bool isAvailable() const;
 	int getVolume() const;
 	void setVolume(int volume);
 
