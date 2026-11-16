@@ -10,6 +10,7 @@
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <cstdarg>
 #include <cstdint>
 #include <cstdio>
@@ -51,10 +52,16 @@ std::atomic<std::uint64_t> gFrames{0};
 std::atomic<std::uint64_t> gClaims{0};
 #endif
 #if CRTFX_STAGE >= 5
-constexpr std::uint64_t kFilterCapUs = 1500000;
+std::uint64_t gFilterCapUs = 1500000;
+int gSlowLimit = 2;
 int gFilterLevel = 0;
 std::atomic<std::uint64_t> gFilterNs{0};
 std::atomic<bool> gFilterOff{false};
+#endif
+#if CRTFX_STAGE >= 5
+bool gMaskOn = false;
+std::atomic<bool> gMaskOff{false};
+std::atomic<std::uint64_t> gMaskNs{0};
 #endif
 std::atomic<unsigned> gLoggedGains{0};
 std::atomic<bool> gStop{false};
@@ -207,6 +214,9 @@ void* heartbeat(void*)
 #endif
 #if CRTFX_STAGE >= 5
     std::uint64_t last_filter_ns = 0;
+#if CRTFX_STAGE >= 5
+    std::uint64_t last_mask_ns = 0;
+#endif
     int slow_seconds = 0;
 #endif
     while (!gStop.load()) {
@@ -233,16 +243,32 @@ void* heartbeat(void*)
 #endif
 #if CRTFX_STAGE >= 5
         const std::uint64_t filter_ns = gFilterNs.load();
-        const std::uint64_t spent_us = (filter_ns - last_filter_ns) / 1000;
+        std::uint64_t spent_us = (filter_ns - last_filter_ns) / 1000;
         last_filter_ns = filter_ns;
+#if CRTFX_STAGE >= 5
+        const std::uint64_t mask_ns = gMaskNs.load();
+        const std::uint64_t mask_us = (mask_ns - last_mask_ns) / 1000;
+        last_mask_ns = mask_ns;
+        journal("mask %llu us in the last second", static_cast<unsigned long long>(mask_us));
+        spent_us += mask_us;
+#endif
         journal("filter %llu us in the last second", static_cast<unsigned long long>(spent_us));
         const std::uint64_t frame_step = frames - last_frames;
-        if (gFilterLevel > 0 && !gFilterOff.load()) {
+        const bool mask_running = gMaskOn && !gMaskOff.load();
+        const bool filter_running = gFilterLevel > 0 && !gFilterOff.load();
+        if (mask_running || filter_running) {
             slow_seconds = (frame_step > 0 && frame_step < 50) ? slow_seconds + 1 : 0;
-            if (slow_seconds >= 2 || spent_us > kFilterCapUs) {
-                gFilterOff.store(true);
-                journal("filter off: %llu frames in the last second, %llu us of filtering", static_cast<unsigned long long>(frame_step),
-                        static_cast<unsigned long long>(spent_us));
+            if (slow_seconds >= gSlowLimit || spent_us > gFilterCapUs) {
+                slow_seconds = 0;
+                if (mask_running) {
+                    gMaskOff.store(true);
+                    journal("mask off: %llu frames in the last second, %llu us of filtering", static_cast<unsigned long long>(frame_step),
+                            static_cast<unsigned long long>(spent_us));
+                } else {
+                    gFilterOff.store(true);
+                    journal("filter off: %llu frames in the last second, %llu us of filtering", static_cast<unsigned long long>(frame_step),
+                            static_cast<unsigned long long>(spent_us));
+                }
             }
         }
 #endif
@@ -564,13 +590,53 @@ int clampByte(int value)
     return std::min(std::max(value, 0), 255);
 }
 
+template <int R>
+void blurFixed(const int* padded, int* out, int width, const int* weights)
+{
+    for (int x = 0; x < width; ++x) {
+        int sum = 0;
+        for (int k = -R; k <= R; ++k) {
+            sum += weights[k + R] * padded[x + k];
+        }
+        out[x] = sum >> 10;
+    }
+}
+
 void blur(const int* padded, int* out, int width, const Kernel& kernel)
 {
+    const int* const weights = kernel.weights.data();
+    switch (kernel.radius) {
+    case 0:
+        for (int x = 0; x < width; ++x) {
+            out[x] = padded[x];
+        }
+        return;
+    case 1:
+        blurFixed<1>(padded, out, width, weights);
+        return;
+    case 2:
+        blurFixed<2>(padded, out, width, weights);
+        return;
+    case 3:
+        blurFixed<3>(padded, out, width, weights);
+        return;
+    case 4:
+        blurFixed<4>(padded, out, width, weights);
+        return;
+    case 5:
+        blurFixed<5>(padded, out, width, weights);
+        return;
+    case 6:
+        blurFixed<6>(padded, out, width, weights);
+        return;
+    default:
+        break;
+    }
     const int radius = kernel.radius;
     for (int x = 0; x < width; ++x) {
         int sum = 0;
         for (int k = -radius; k <= radius; ++k) {
-            sum += kernel.weights[static_cast<std::size_t>(k + radius)] * padded[x + k];
+            sum += weights[k + radius] * padded[x + k];
         }
         out[x] = sum >> 10;
     }
@@ -671,6 +737,163 @@ void filterAround(const unsigned char* task, int claimed)
 }
 #endif
 
+#if CRTFX_STAGE >= 5
+constexpr int kMaskMax = 1280;
+int gMaskOffPct = 60;
+int gMaskGainPct = 125;
+int gMaskYoff = 0;
+std::array<std::array<std::array<std::uint8_t, 256>, 3>, 3> gMaskLut;
+std::array<std::uint16_t, kMaskMax> gMapIndex;
+int gMaskCol0 = 0;
+int gMaskWidth = 0;
+int gMaskStride = 5120;
+std::uint32_t gMaskEnd = 0;
+std::uint32_t gMaskBegin = 0;
+std::atomic<bool> gMaskReady{false};
+std::atomic<bool> gGeometryDone{false};
+std::array<int, 3> gMaskMul{{0, 0, 0}};
+thread_local int tMaskLine = -1;
+thread_local const unsigned char* tMaskTask = nullptr;
+
+void maskSelect()
+{
+    const char* pct = std::getenv("CRTFX_MASK");
+    if (pct == nullptr || std::atoi(pct) <= 0) {
+        journal("mask: off");
+        return;
+    }
+    gMaskOffPct = std::min(std::max(std::atoi(pct), 10), 100);
+    const char* gain = std::getenv("CRTFX_MASK_GAIN");
+    if (gain != nullptr && std::atoi(gain) > 0) {
+        gMaskGainPct = std::min(std::max(std::atoi(gain), 100), 300);
+    }
+    const char* slow = std::getenv("CRTFX_SLOW");
+    if (slow != nullptr && std::atoi(slow) > 0) {
+        gSlowLimit = std::atoi(slow);
+    }
+    const char* cap = std::getenv("CRTFX_CAP");
+    if (cap != nullptr && std::atoi(cap) > 0) {
+        gFilterCapUs = static_cast<std::uint64_t>(std::atoi(cap)) * 1000U;
+    }
+    gMaskOn = true;
+    journal("mask: off-channel %d%%, gain %d%%, waiting for the geometry probe", gMaskOffPct, gMaskGainPct);
+}
+
+void maskGeometry(const unsigned char* task)
+{
+    if (gGeometryDone.exchange(true)) {
+        return;
+    }
+    std::uint32_t destination = 0;
+    std::memcpy(&destination, task + 4, sizeof destination);
+    journal("geometry: destination %#x", static_cast<unsigned>(destination));
+    std::FILE* maps = std::fopen("/proc/self/maps", "r");
+    unsigned long begin_saved = 0;
+    if (maps != nullptr) {
+        std::array<char, 256> text;
+        unsigned long end = 0;
+        while (std::fgets(text.data(), static_cast<int>(text.size()), maps) != nullptr) {
+            unsigned long begin = 0;
+            if (std::sscanf(text.data(), "%lx-%lx", &begin, &end) == 2 && destination >= begin && destination < end) {
+                begin_saved = begin;
+                gMaskBegin = static_cast<std::uint32_t>(begin);
+                journal("geometry: mapping %lx-%lx (%lu bytes) %.60s", begin, end, end - begin, text.data() + 20);
+                gMaskEnd = static_cast<std::uint32_t>(end);
+                break;
+            }
+        }
+        std::fclose(maps);
+    }
+    if (gMaskEnd != 0) {
+        const std::uint32_t mapping_begin = static_cast<std::uint32_t>(begin_saved);
+        const std::uint32_t page_bytes = static_cast<std::uint32_t>(gMaskStride) * 720U;
+        const std::uint32_t page = (destination - mapping_begin) / page_bytes;
+        const std::uint32_t page_start = mapping_begin + page * page_bytes;
+        const std::uint32_t inside = destination - page_start;
+        journal("geometry: page %u starts %#x, destination is %u rows and %u bytes in (column %u)", page, static_cast<unsigned>(page_start),
+                inside / static_cast<std::uint32_t>(gMaskStride), inside % static_cast<std::uint32_t>(gMaskStride),
+                (inside % static_cast<std::uint32_t>(gMaskStride)) / 4);
+        gMaskCol0 = static_cast<int>((inside % static_cast<std::uint32_t>(gMaskStride)) / 4);
+        gMaskWidth = kMaskMax - 2 * gMaskCol0;
+    }
+    const std::uint64_t last_row_end = static_cast<std::uint64_t>(destination) + static_cast<std::uint64_t>(gMaskYoff + 3 * 224 + 3) * static_cast<std::uint64_t>(gMaskStride);
+    const bool fits = gMaskEnd != 0 && last_row_end <= gMaskEnd && gMaskStride == kMaskMax * 4 && gMaskWidth >= 256 && gMaskWidth <= kMaskMax;
+    gMaskMul = {{256 * gMaskGainPct / 100, 256 * gMaskOffPct / 100, 256 * gMaskOffPct / 100}};
+    const float linear = gHasGains ? gGains[0] : 195.0F;
+    const float square = gHasGains ? gGains[1] : -95.0F;
+    for (std::size_t phase = 0; phase < 3; ++phase) {
+        for (std::size_t channel = 0; channel < 3; ++channel) {
+            const int multiplier = gMaskMul[(channel + 3 - phase) % 3];
+            for (int value = 0; value < 256; ++value) {
+                const float c = static_cast<float>(value) / 255.0F;
+                const float lit = std::min(std::max((linear * c + square * c * c) / 100.0F, 0.0F), 1.0F);
+                gMaskLut[phase][channel][static_cast<std::size_t>(value)] = static_cast<std::uint8_t>(std::min(lit * 255.0F * static_cast<float>(multiplier) / 256.0F + 0.5F, 255.0F));
+            }
+        }
+    }
+    if (gMaskWidth >= 256 && gMaskWidth <= kMaskMax) {
+        for (int x = 0; x < gMaskWidth; ++x) {
+            const int source = std::min(std::max(static_cast<int>((static_cast<float>(x) + 0.5F) * 256.0F / static_cast<float>(gMaskWidth)), 0), 255);
+            const int phase = (x + gMaskCol0) % 3;
+            gMapIndex[static_cast<std::size_t>(x)] = static_cast<std::uint16_t>(source * 3 + phase);
+        }
+    }
+    gMaskReady.store(gMaskOn && fits);
+    journal("geometry: mask %s (last row ends %#llx, mapping ends %#x)", gMaskReady.load() ? "armed" : "not armed, the rows would leave the mapping",
+            static_cast<unsigned long long>(last_row_end), static_cast<unsigned>(gMaskEnd));
+}
+
+void maskLine(const unsigned char* task, int line)
+{
+    std::uint32_t destination = 0;
+    std::uint32_t source = 0;
+    std::uint32_t width = 0;
+    std::memcpy(&destination, task + 4, sizeof destination);
+    std::memcpy(&source, task + 8, sizeof source);
+    std::memcpy(&width, task + 12, sizeof width);
+    const std::uint64_t row_end = static_cast<std::uint64_t>(destination) + static_cast<std::uint64_t>(gMaskYoff + 3 * line + 1) * static_cast<std::uint64_t>(gMaskStride);
+    if (width != 256 || source < 0x10000 || (source & 3U) != 0 || destination < gMaskBegin || row_end > gMaskEnd) {
+        return;
+    }
+    const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+    std::array<std::uint32_t, 256> in;
+    std::memcpy(in.data(), reinterpret_cast<const std::uint32_t*>(static_cast<std::uintptr_t>(source)) + static_cast<std::size_t>(line) * 256, sizeof in);
+    std::array<std::uint32_t, 256 * 3> lit;
+    for (std::size_t i = 0; i < 256; ++i) {
+        const std::uint32_t pixel = in[i];
+        const std::uint32_t r = pixel & 0xffU;
+        const std::uint32_t g = (pixel >> 8) & 0xffU;
+        const std::uint32_t b = (pixel >> 16) & 0xffU;
+        for (std::size_t phase = 0; phase < 3; ++phase) {
+            const auto& lut = gMaskLut[phase];
+            lit[i * 3 + phase] = (static_cast<std::uint32_t>(lut[0][r]) << 16) | (static_cast<std::uint32_t>(lut[1][g]) << 8) | lut[2][b];
+        }
+    }
+    std::array<std::uint32_t, kMaskMax> out;
+    for (int x = 0; x < gMaskWidth; ++x) {
+        out[static_cast<std::size_t>(x)] = lit[gMapIndex[static_cast<std::size_t>(x)]];
+    }
+    unsigned char* const base = reinterpret_cast<unsigned char*>(static_cast<std::uintptr_t>(destination));
+    std::memcpy(base + static_cast<std::size_t>(gMaskYoff + 3 * line) * static_cast<std::size_t>(gMaskStride), out.data(), static_cast<std::size_t>(gMaskWidth) * sizeof(std::uint32_t));
+    gMaskNs.fetch_add(static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start).count()),
+                      std::memory_order_relaxed);
+}
+
+void maskStep(const unsigned char* task, int claimed, std::uint64_t claims)
+{
+    if (!gGeometryDone.load(std::memory_order_relaxed) && claims >= 1000) {
+        maskGeometry(task);
+    }
+    if (tMaskLine >= 0 && tMaskTask != nullptr && gMaskReady.load(std::memory_order_relaxed) && !gMaskOff.load(std::memory_order_relaxed)) {
+        maskLine(tMaskTask, tMaskLine);
+    }
+    std::uint32_t height = 0;
+    std::memcpy(&height, task + 16, sizeof height);
+    tMaskTask = task;
+    tMaskLine = (claimed >= 0 && claimed < static_cast<int>(height) && height <= 224) ? claimed : -1;
+}
+#endif
+
 }  // namespace
 
 __attribute__((constructor)) static void onLoad()
@@ -702,6 +925,9 @@ __attribute__((constructor)) static void onLoad()
 #endif
 #if CRTFX_STAGE >= 5
     filterSelect();
+#endif
+#if CRTFX_STAGE >= 5
+    maskSelect();
 #endif
 #if CRTFX_STAGE >= 1
     heartbeatStart();
@@ -791,6 +1017,11 @@ CRTFX_EXPORT int SDL_AtomicAdd(void* atomic, int value)
 #if CRTFX_STAGE >= 5
     if (gFilterLevel > 0 && !gFilterOff.load(std::memory_order_relaxed)) {
         filterAround(task, previous);
+    }
+#endif
+#if CRTFX_STAGE >= 5
+    if (gMaskOn) {
+        maskStep(task, previous, claims);
     }
 #endif
     return previous;
