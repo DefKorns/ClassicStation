@@ -6,6 +6,12 @@
 #include "Sound.h"
 #include <SDL.h>
 
+namespace
+{
+	// I build MusicPlayer first so it is destroyed after sInstance, whose destructor still uses it.
+	const bool sMusicPlayerReady = (MusicPlayer::get(), true);
+}
+
 std::vector<std::shared_ptr<Sound>> AudioManager::sSoundVector;
 SDL_AudioSpec AudioManager::sAudioFormat;
 std::shared_ptr<AudioManager> AudioManager::sInstance;
