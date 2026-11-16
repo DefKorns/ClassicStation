@@ -37,18 +37,6 @@ void BasicGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& theme)
 	sortChildren();
 }
 
-void BasicGameListView::onFileChanged(FileData* file, FileChangeType change)
-{
-	if(change == FILE_METADATA_CHANGED)
-	{
-		// might switch to a detailed view
-		ViewController::get()->reloadGameListView(this);
-		return;
-	}
-
-	ISimpleGameListView::onFileChanged(file, change);
-}
-
 void BasicGameListView::populateList(const std::vector<FileData*>& files)
 {
 	mList.clear();
