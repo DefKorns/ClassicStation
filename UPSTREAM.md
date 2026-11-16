@@ -53,3 +53,5 @@ resolved once is resolved again automatically. After the merge and a build, `cla
   `build.yml`.
 - MAME names: `MameNames`, the three `mame*.xml` tables (4.4 MB) and `mameres.py`, with `isArcadeAsset()` and its three
   callers. The library comes from hakchi, which already has each game's name, and the hmod never shipped the tables.
+- Packaging and templates: the `install()` and CPack/Debian block of `es-app/CMakeLists.txt`, which the hmod build does
+  not use. The RetroPie `ISSUE_TEMPLATE.md` is replaced by issue forms for this project.
