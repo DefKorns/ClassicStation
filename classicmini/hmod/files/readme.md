@@ -1,6 +1,6 @@
 # ClassicStation
 
-![ClassicStation](https://raw.githubusercontent.com/DefKorns/ClassicStation/classicstation/classicmini/docs/banner.png)
+![ClassicStation](https://raw.githubusercontent.com/DefKorns/ClassicStation/main/classicmini/docs/banner.png)
 
 ClassicStation, EmulationStation 2.12 (RetroPie fork) as the front end of the NES/SNES Classic, driven by the games hakchi syncs.
 

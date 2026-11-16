@@ -9,8 +9,11 @@
 ClassicStation replaces Clover-UI, the stock home menu of the NES Classic and SNES Classic, on a hakchi-modded console with
 [EmulationStation](https://emulationstation.org) 2.12 (the RetroPie fork). It lists the games you sync with hakchi,
 grouped by system, with covers, descriptions, favorites and themes, and starts them with the console's own RetroArch.
-It ships as the `emulationstation_classicmini` hmod. Branch `classicmini`, based on `stable` (`a31c36a`, v2.12.0
-merge); `upstream` is `RetroPie/EmulationStation`.
+It ships as the `emulationstation_classicmini` hmod.
+
+ClassicStation is a fork of [RetroPie/EmulationStation](https://github.com/RetroPie/EmulationStation), kept up to date
+with its `stable` branch (currently `a31c36a`, v2.12.0). See [`UPSTREAM.md`](../UPSTREAM.md) for the branches and how
+upstream changes are merged.
 
 ## What it does
 
