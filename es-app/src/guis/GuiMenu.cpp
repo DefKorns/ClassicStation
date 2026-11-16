@@ -15,6 +15,8 @@
 #include "views/UIModeController.h"
 #include "views/ViewController.h"
 #include "CollectionSystemManager.h"
+#include "DebugMode.h"
+#include "Log.h"
 #include "EmulationStation.h"
 #include "Scripting.h"
 #include "SystemData.h"
@@ -125,6 +127,19 @@ void GuiMenu::showCategory(int category)
 		addEntry("SYSTEM INFORMATION", MenuColors::Text, false, [this] { openSystemInfo(); });
 		addEntry("SAVE KERNEL LOG TO USB", MenuColors::Text, false, [this] { showToolResult("savelog"); });
 		addEntry("ABOUT", MenuColors::Text, true, [this] { openAbout(); });
+		if (DebugMode::isUnlocked() || DebugMode::isEnabled())
+		{
+			auto debugToggle = std::make_shared<SwitchComponent>(mWindow, DebugMode::isEnabled());
+			debugToggle->setChangedCallback([](bool enabled) {
+				DebugMode::setEnabled(enabled);
+				DebugMode::setActive(enabled);
+				Log::setReportingLevel(enabled ? LogDebug : LogInfo);
+			});
+			ComponentListRow debugRow;
+			debugRow.addElement(std::make_shared<TextComponent>(mWindow, "DEBUG MODE", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+			debugRow.addElement(debugToggle, false);
+			mMenu.addRow(debugRow);
+		}
 		break;
 	}
 

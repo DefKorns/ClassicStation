@@ -9,6 +9,8 @@
 #include "guis/GuiAbout.h"
 
 #include "DebugMode.h"
+#include "Log.h"
+#include "guis/GuiMenu.h"
 #include "MenuColors.h"
 #include "InputConfig.h"
 #include "guis/GuiInfoPopup.h"
@@ -84,12 +86,22 @@ bool GuiAbout::input(InputConfig* config, Input input)
 		if(remaining <= 0)
 		{
 			mDebugPresses = 0;
-			const bool enabled = DebugMode::toggle();
-			mWindow->setInfoPopup(new GuiInfoPopup(mWindow, enabled ? "DEBUG MODE ON, RESTART TO APPLY" : "DEBUG MODE OFF, RESTART TO APPLY", 3000));
+			if(DebugMode::isUnlocked())
+			{
+				mWindow->setInfoPopup(new GuiInfoPopup(mWindow, "DEVELOPER OPTIONS ARE ALREADY ON", 3000));
+			}
+			else if(DebugMode::unlock())
+			{
+				DebugMode::setEnabled(true);
+				DebugMode::setActive(true);
+				Log::setReportingLevel(LogDebug);
+				GuiMenu::requestRebuild();
+				mWindow->setInfoPopup(new GuiInfoPopup(mWindow, "DEVELOPER OPTIONS AND DEBUG MODE ON, SEE THE HELP MENU", 3000));
+			}
 		}
 		else if(remaining <= 3)
 		{
-			mWindow->setInfoPopup(new GuiInfoPopup(mWindow, std::to_string(remaining) + " MORE PRESSES TO TOGGLE DEBUG MODE", 1000));
+			mWindow->setInfoPopup(new GuiInfoPopup(mWindow, std::to_string(remaining) + " MORE PRESSES TO TURN ON DEVELOPER OPTIONS", 1000));
 		}
 	}
 	return true;

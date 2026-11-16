@@ -372,8 +372,6 @@ namespace
 
 namespace
 {
-	volatile sig_atomic_t sCrashDiagnostics = 0;
-
 	void logCrash(int signal, siginfo_t* info, void* context)
 	{
 		const ucontext_t* uc = static_cast<const ucontext_t*>(context);
@@ -384,14 +382,14 @@ namespace
 			int length = snprintf(line, sizeof line, "signal %d fault %p pc %08lx lr %08lx sp %08lx\n", signal, info->si_addr,
 				uc->uc_mcontext.arm_pc, uc->uc_mcontext.arm_lr, uc->uc_mcontext.arm_sp);
 			static_cast<void>(write(fd, line, static_cast<size_t>(length)));
-			if(sCrashDiagnostics)
+			if(DebugMode::isActive())
 			{
 				length = snprintf(line, sizeof line, "pid %d tid %ld\n", getpid(), static_cast<long>(syscall(SYS_gettid)));
 				static_cast<void>(write(fd, line, static_cast<size_t>(length)));
 			}
 
 			const unsigned long* stack = reinterpret_cast<const unsigned long*>(uc->uc_mcontext.arm_sp);
-			const int stackWords = sCrashDiagnostics ? 1024 : 256;
+			const int stackWords = DebugMode::isActive() ? 1024 : 256;
 			for(int word = 0; word < stackWords; ++word)
 			{
 				const unsigned long address = reinterpret_cast<unsigned long>(stack + word);
@@ -404,7 +402,7 @@ namespace
 					static_cast<void>(write(fd, line, static_cast<size_t>(length)));
 				}
 			}
-			if(sCrashDiagnostics)
+			if(DebugMode::isActive())
 			{
 				void* frames[32];
 				const int count = backtrace(frames, 32);
@@ -417,6 +415,9 @@ namespace
 
 	void logTerminate()
 	{
+		if(!DebugMode::isActive())
+			abort();
+
 		const int fd = open("/var/lib/hakchi/emulationstation/crash.log", O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		if(fd >= 0)
 		{
@@ -477,9 +478,8 @@ namespace
 
 	void installCrashLogger(int argc, char* argv[])
 	{
-		sCrashDiagnostics = wantsCrashDiagnostics(argc, argv) ? 1 : 0;
-		if(sCrashDiagnostics)
-			std::set_terminate(logTerminate);
+		DebugMode::setActive(wantsCrashDiagnostics(argc, argv));
+		std::set_terminate(logTerminate);
 		struct sigaction action;
 		action.sa_sigaction = logCrash;
 		sigemptyset(&action.sa_mask);
@@ -541,7 +541,7 @@ int main(int argc, char* argv[])
 
 	//start the logger
 	Log::init();
-	if(DebugMode::isEnabled())
+	if(DebugMode::isActive())
 		Log::setReportingLevel(LogDebug);
 	Log::open();
 	LOG(LogInfo) << "EmulationStation - v" << PROGRAM_VERSION_STRING << ", built " << PROGRAM_BUILT_STRING;

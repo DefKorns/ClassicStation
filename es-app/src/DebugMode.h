@@ -10,6 +10,7 @@
 #ifndef ES_APP_DEBUG_MODE_H
 #define ES_APP_DEBUG_MODE_H
 
+#include <csignal>
 #include <cstdio>
 #include <unistd.h>
 
@@ -17,22 +18,35 @@ namespace DebugMode
 {
 	constexpr const char* markerPath = "/var/lib/hakchi/emulationstation/debug";
 
-	inline bool isEnabled()
+	inline volatile std::sig_atomic_t& activeFlag()
 	{
-		return access(markerPath, F_OK) == 0;
+		static volatile std::sig_atomic_t active = 0;
+		return active;
 	}
 
-	inline bool toggle()
-	{
-		if(isEnabled())
-			return unlink(markerPath) != 0;
+	inline bool isActive() { return activeFlag() != 0; }
+	inline void setActive(bool active) { activeFlag() = active ? 1 : 0; }
 
-		FILE* marker = fopen(markerPath, "w");
+	constexpr const char* developerPath = "/var/lib/hakchi/emulationstation/developer";
+
+	inline bool markerExists(const char* path) { return access(path, F_OK) == 0; }
+
+	inline bool setMarker(const char* path, bool present)
+	{
+		if(!present)
+			return unlink(path) == 0 || !markerExists(path);
+
+		FILE* marker = fopen(path, "w");
 		if(marker == nullptr)
 			return false;
 		fclose(marker);
 		return true;
 	}
+
+	inline bool isEnabled() { return markerExists(markerPath); }
+	inline bool setEnabled(bool enabled) { return setMarker(markerPath, enabled); }
+	inline bool isUnlocked() { return markerExists(developerPath); }
+	inline bool unlock() { return setMarker(developerPath, true); }
 }
 
 #endif // ES_APP_DEBUG_MODE_H
