@@ -8,6 +8,8 @@ Needs the RetroArch (S)NESCE hmod (v1.22.2-beta.13 or newer) for the libretro co
 
 **Alpha build, for testers.** You can always get the stock UI back: hold **Select** while the console boots, or remove the module with "Remove modules" in hakchi. If EmulationStation crashes twice in a row right after starting, the next boot goes to the stock UI by itself.
 
+Select+Down (held for about a second) leaves a game. You can switch it on or off in EmulationStation (Controller, Home combo) and in hakchi (Controller hacks, Use button combination to reset).
+
 Known issues: no video playback; the first boot builds the library, which takes a while on large collections; the interface slows down while the scraper runs; the NES Classic is tested much less than the SNES Classic; games need the RetroArch hmod and its cores (the KMFD RetroArch with fceumm has worked on the Famicom).
 
 To report a problem, send `/var/lib/hakchi/emulationstation/home/.emulationstation/es_log.txt` and, after a crash, `/var/lib/hakchi/emulationstation/crash.log` (over ssh as root).
