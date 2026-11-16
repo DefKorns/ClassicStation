@@ -2,6 +2,7 @@
 #include "GuiGamelistOptions.h"
 
 #include "guis/GuiGamelistFilter.h"
+#include "guis/GuiInfoPopup.h"
 #include "scrapers/Scraper.h"
 #include "views/gamelist/IGameListView.h"
 #include "views/UIModeController.h"
@@ -9,6 +10,7 @@
 #include "CollectionSystemManager.h"
 #include "FileFilterIndex.h"
 #include "FileSorts.h"
+#include "Gamelist.h"
 #include "GuiMetaDataEd.h"
 #include "SystemData.h"
 #include "components/TextListComponent.h"
@@ -39,6 +41,15 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) : Gui
 		row.elements.clear();
 		row.addElement(std::make_shared<TextComponent>(mWindow, favorite ? "REMOVE FROM FAVORITES" : "ADD TO FAVORITES", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 		row.makeAcceptInputHandler(std::bind(&GuiGamelistOptions::toggleFavorite, this));
+		mMenu.addRow(row);
+	}
+
+	if(!mFromPlaceholder && file->getType() == GAME && UIModeController::getInstance()->isUIModeFull() && !CollectionSystemManager::get()->isEditing())
+	{
+		const bool kidGame = file->getSourceFileData()->metadata.get("kidgame") == "true";
+		row.elements.clear();
+		row.addElement(std::make_shared<TextComponent>(mWindow, kidGame ? "REMOVE FROM KID GAMES" : "ADD TO KID GAMES", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+		row.makeAcceptInputHandler(std::bind(&GuiGamelistOptions::toggleKidGame, this));
 		mMenu.addRow(row);
 	}
 
@@ -231,6 +242,18 @@ void GuiGamelistOptions::toggleFavorite()
 	FileData* game = getGamelist()->getCursor();
 	delete this;
 	CollectionSystemManager::get()->toggleGameInCollection(game, false);
+}
+
+void GuiGamelistOptions::toggleKidGame()
+{
+	FileData* game = getGamelist()->getCursor()->getSourceFileData();
+	const bool kidGame = game->metadata.get("kidgame") != "true";
+	game->metadata.set("kidgame", kidGame ? "true" : "false");
+	updateGamelist(game->getSystem());
+
+	Window* window = mWindow;
+	delete this;
+	window->setInfoPopup(new GuiInfoPopup(window, kidGame ? "Added to kid games" : "Removed from kid games", 2000));
 }
 
 bool GuiGamelistOptions::launchSystemScreenSaver()

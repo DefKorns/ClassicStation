@@ -24,6 +24,7 @@ private:
 	void openGamelistFilter();
 	void openSuspendPoints();
 	void toggleFavorite();
+	void toggleKidGame();
 	void pickRandomGame();
 	bool launchSystemScreenSaver();
 	void openMetaDataEd();
