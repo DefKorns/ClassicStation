@@ -1,23 +1,13 @@
-# Following RetroPie/EmulationStation
+# Upstream
 
-ClassicStation is a fork of [RetroPie/EmulationStation](https://github.com/RetroPie/EmulationStation), pruned and
-adapted for the NES and SNES Classic. EmulationStation is by Alec Lofquist and the RetroPie project, under the MIT
-license: `LICENSE.md` and `CREDITS.md` stay as they are. The remote `upstream` is the RetroPie repository and I follow
-its `stable` branch.
-
-Last integrated: `stable` at `a31c36a` (v2.12.0).
+ClassicStation is a fork of [RetroPie/EmulationStation](https://github.com/RetroPie/EmulationStation). I follow its
+`stable` branch, last merged at `a31c36a` (v2.12.0). The license and credits are upstream's and stay as they are.
 
 ## Branches
 
-| Branch | Role |
-| --- | --- |
-| `stable` | Mirror of `upstream/stable`. Fast-forward only, no commits of mine. |
-| `classicstation` | Where I work and remove what the minis do not need. Receives upstream with `git merge stable`. |
-| `main` | The release branch. Gets `classicstation` merged when it is tested; tags come from here. |
-
-```text
-upstream/stable -> stable (ff) -> classicstation -> main -> tag
-```
+- `stable`: a copy of `upstream/stable`. Only fast-forwarded, never committed to.
+- `classicstation`: where I work. It gets upstream with `git merge stable`.
+- `main`: what I release. `classicstation` goes in once it has been tested, and tags are made here.
 
 ## Updating
 
@@ -26,34 +16,27 @@ sh classicmini/tools/sync_upstream.sh
 git merge stable
 ```
 
-The script fast-forwards `stable` to `upstream/stable` and lists what upstream changed in the files I still have and in
-the files I deleted. It does not merge, and it does not push. `git rerere` is enabled in this clone so a conflict
-resolved once is resolved again automatically. After the merge and a build, `classicstation` goes into `main`.
+The script updates `stable` and lists what upstream changed, split between files I still have and files I deleted. It
+doesn't merge or push. `git rerere` is on, so a conflict I already resolved once is resolved the same way next time.
 
 ## Rules
 
-- Merge, never rebase: the branches are published.
-- A file I deleted that upstream changed: keep it deleted (`git rm <file>`).
-- A line I removed from a kept file that upstream changed: resolve by hand and keep only what the minis need.
-- ES source files and classes keep their upstream names. Only my own things carry the ClassicStation name: folder,
-  hmod, scripts and docs. The binary is still `emulationstation`, and the on-console paths and the hmod id
-  (`emulationstation_classicmini`) are unchanged so existing installs upgrade in place.
-- Each removed feature is its own commit, so it can be reverted or re-checked against upstream.
+- Merge, don't rebase. The branches are published.
+- If upstream changed a file I deleted, I keep it deleted.
+- If upstream changed a line I removed from a file I kept, I resolve it by hand.
+- I don't rename upstream's files or classes. The binary is still `emulationstation`, and the on-console paths and the
+  hmod id (`emulationstation_classicmini`) stay, so an existing install updates in place.
+- Every removal is its own commit.
 
-## Removed from upstream
+## Removed
 
-- Renderers: `Renderer_GL14`, `Renderer_GL21` and `Renderer_GLES10`, with the `GL`, `USE_GL21` and `USE_GLES1` build
-  options and `FindOpenGLES.cmake`. The Mali on the minis runs GLES2, so the build only has `Renderer_GLES20`.
-- Raspberry Pi, OMX and Vero4K: the `_RPI_`, `_OMX_` and `_VERO4K_` code, `VideoPlayerComponent` (the OMX player), the
-  OMX menu entries, the Broadcom VideoCore parts of `CECInput` and the `RPI`/`OMX` build options with the
-  Broadcom/Vero4K detection in `CMakeLists.txt`. CEC itself stays, because a driver for it could be added to the kernel.
-  The settings keys stay in `Settings.cpp` so an old `es_settings.cfg` loads without warnings.
-- Windows packaging and CI: `EmulationStation.rc`, `EmulationStation.aps`, `es_icon.ico`, the MSVC blocks of
-  `es-app/CMakeLists.txt` and the manual `ccpp.yml` and `win32.yml` workflows. The build and release workflow is
-  `build.yml`.
-- MAME names: `MameNames`, the three `mame*.xml` tables (4.4 MB) and `mameres.py`, with `isArcadeAsset()` and its three
-  callers. The library comes from hakchi, which already has each game's name, and the hmod never shipped the tables.
-- Packaging and templates: the `install()` and CPack/Debian block of `es-app/CMakeLists.txt`, which the hmod build does
-  not use. The RetroPie `ISSUE_TEMPLATE.md` is replaced by issue forms for this project.
-- Build notes: the RetroPie `README.md` (Debian, Fedora, Windows and Raspberry Pi builds) and the `USE_MESA_GLES`
-  option, which picks the desktop Mesa driver. The project README is `.github/README.md`.
+- The GL 1.4, GL 2.1 and GLES 1.0 renderers, with their build options. The Mali only does GLES 2.0.
+- Raspberry Pi, OMX and Vero4K: the code behind `_RPI_`, `_OMX_` and `_VERO4K_`, the OMX player and its menu entries,
+  and the matching CMake options. CEC stays, since a driver for it could be added to the kernel. The OMX settings keys
+  stay in `Settings.cpp` so an old `es_settings.cfg` loads without warnings.
+- Windows: the `.rc`, `.aps` and `.ico` files, the MSVC blocks in CMake, and the manual `ccpp.yml` and `win32.yml`
+  workflows.
+- `MameNames`, the three `mame*.xml` tables and `mameres.py`, and the arcade BIOS filter that used them. hakchi already
+  has the game names, and the hmod never shipped the tables.
+- The CPack and Debian packaging, the `USE_MESA_GLES` option, RetroPie's `README.md` and its issue template.
+- Kiosk UI mode, with `--force-kiosk`. Kid mode stays.

@@ -12,8 +12,9 @@ grouped by system, with covers, descriptions, favorites and themes, and starts t
 It ships as the `emulationstation_classicmini` hmod.
 
 ClassicStation is a fork of [RetroPie/EmulationStation](https://github.com/RetroPie/EmulationStation), kept up to date
-with its `stable` branch (currently `a31c36a`, v2.12.0). See [`UPSTREAM.md`](../UPSTREAM.md) for the branches and how
-upstream changes are merged.
+with its `stable` branch (currently `a31c36a`, v2.12.0). The work happens on `classicstation`, and `main` is the
+release branch. See [`UPSTREAM.md`](../UPSTREAM.md) for the branches, how upstream changes are merged, and everything
+that was removed.
 
 ## What it does
 
@@ -118,6 +119,16 @@ ships with the program. At run time it needs the console's `libSDL2.so`, `libaso
 `stage.sh` collects the binary, scripts and resources into `mod/`; the hmod lands in `out/`.
 
 ## Changes against `stable`
+
+Removed because the minis cannot use it (the full list is in [`UPSTREAM.md`](../UPSTREAM.md)):
+
+- The desktop GL 1.4, GL 2.1 and GLES 1.0 renderers: the console's Mali runs GLES 2.0.
+- The Raspberry Pi, OMX and Vero4K code, the Mesa GLES option, and the Windows and Debian packaging.
+- The MAME name tables and the arcade BIOS filter: the game names come from hakchi.
+- The Kiosk UI mode. Kid mode stays.
+- The RetroPie README and issue template, replaced by this README and the issue forms.
+
+Changed so it builds and runs on the console:
 
 - libvlc removed: the video component is a stub that shows the snapshot image.
 - `std::put_time` replaced by `strftime` (libstdc++ 4.9 has none).
