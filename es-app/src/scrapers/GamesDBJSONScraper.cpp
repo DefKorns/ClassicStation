@@ -30,7 +30,11 @@ using namespace rapidjson;
 
 namespace
 {
-TheGamesDBJSONRequestResources resources;
+TheGamesDBJSONRequestResources& scraperResources()
+{
+	static TheGamesDBJSONRequestResources instance;
+	return instance;
+}
 }
 
 const std::map<PlatformId, std::string> gamesdb_new_platformid_map{
@@ -115,10 +119,10 @@ const std::map<PlatformId, std::string> gamesdb_new_platformid_map{
 void thegamesdb_generate_json_scraper_requests(const ScraperSearchParams& params,
 	std::queue<std::unique_ptr<ScraperRequest>>& requests, std::vector<ScraperSearchResult>& results)
 {
-	resources.prepare();
+	scraperResources().prepare();
 	std::string path = "https://api.thegamesdb.net/v1";
 	bool usingGameID = false;
-	const std::string apiKey = std::string("apikey=") + resources.getApiKey();
+	const std::string apiKey = std::string("apikey=") + scraperResources().getApiKey();
 	std::string cleanName = params.nameOverride;
 	if (!cleanName.empty() && cleanName.substr(0, 3) == "id:")
 	{
@@ -235,8 +239,8 @@ std::string getDeveloperString(const Value& v)
 	bool first = true;
 	for (int i = 0; i < (int)v.Size(); ++i)
 	{
-		auto mapIt = resources.gamesdb_new_developers_map.find(getIntOrThrow(v[i]));
-		if (mapIt == resources.gamesdb_new_developers_map.cend())
+		auto mapIt = scraperResources().gamesdb_new_developers_map.find(getIntOrThrow(v[i]));
+		if (mapIt == scraperResources().gamesdb_new_developers_map.cend())
 		{
 			continue;
 		}
@@ -260,8 +264,8 @@ std::string getPublisherString(const Value& v)
 	bool first = true;
 	for (int i = 0; i < (int)v.Size(); ++i)
 	{
-		auto mapIt = resources.gamesdb_new_publishers_map.find(getIntOrThrow(v[i]));
-		if (mapIt == resources.gamesdb_new_publishers_map.cend())
+		auto mapIt = scraperResources().gamesdb_new_publishers_map.find(getIntOrThrow(v[i]));
+		if (mapIt == scraperResources().gamesdb_new_publishers_map.cend())
 		{
 			continue;
 		}
@@ -285,8 +289,8 @@ std::string getGenreString(const Value& v)
 	bool first = true;
 	for (int i = 0; i < (int)v.Size(); ++i)
 	{
-		auto mapIt = resources.gamesdb_new_genres_map.find(getIntOrThrow(v[i]));
-		if (mapIt == resources.gamesdb_new_genres_map.cend())
+		auto mapIt = scraperResources().gamesdb_new_genres_map.find(getIntOrThrow(v[i]));
+		if (mapIt == scraperResources().gamesdb_new_genres_map.cend())
 		{
 			continue;
 		}
@@ -391,7 +395,7 @@ void TheGamesDBJSONRequest::process(const std::unique_ptr<HttpReq>& req, std::ve
 		return;
 	}
 
-	resources.ensureResources();
+	scraperResources().ensureResources();
 
 
 	for (int i = 0; i < (int)games.Size(); ++i)
