@@ -111,42 +111,6 @@ retroarchArgs() {
   fi
 }
 
-crtfxDevEnv() {
-  local es_dir stage
-  es_dir=$(dirname "$0")
-  stage=$(cat "$es_dir/crtfx.stage" 2>/dev/null)
-  [ -f "$es_dir/libcrtfx-$stage.so" ] || return 0
-  export LD_PRELOAD="$es_dir/libcrtfx-$stage.so"
-  if [ -f "$es_dir/crtfx.gains" ]; then
-    CRTFX_GAINS=$(cat "$es_dir/crtfx.gains")
-    export CRTFX_GAINS
-  fi
-  if [ -f "$es_dir/crtfx.filter" ]; then
-    CRTFX_FILTER=$(cat "$es_dir/crtfx.filter")
-    export CRTFX_FILTER
-  fi
-  if [ -f "$es_dir/crtfx.order" ]; then
-    CRTFX_ORDER=$(cat "$es_dir/crtfx.order")
-    export CRTFX_ORDER
-  fi
-  if [ -f "$es_dir/crtfx.mask" ]; then
-    CRTFX_MASK=$(cat "$es_dir/crtfx.mask")
-    export CRTFX_MASK
-  fi
-  if [ -f "$es_dir/crtfx.cap" ]; then
-    CRTFX_CAP=$(cat "$es_dir/crtfx.cap")
-    export CRTFX_CAP
-  fi
-  if [ -f "$es_dir/crtfx.slow" ]; then
-    CRTFX_SLOW=$(cat "$es_dir/crtfx.slow")
-    export CRTFX_SLOW
-  fi
-  if [ -f "$es_dir/crtfx.sweep" ]; then
-    CRTFX_SWEEP=$(cat "$es_dir/crtfx.sweep")
-    export CRTFX_SWEEP
-  fi
-}
-
 scanlineGains() {
   case $1 in
     2) printf '155,-55,85,10' ;;
@@ -176,10 +140,6 @@ crtfxEnv() {
   es_dir=$(dirname "$0")
   case "$cmd" in *clover-canoe-shvc*) ;; *) return 0 ;; esac
   crtfxJournalEnv
-  if [ -f "$es_dir/crtfx.stage" ]; then
-    crtfxDevEnv
-    return 0
-  fi
   [ "$(esSetting DisplayMode)" != crt-filter ] || return 0
   case $(filterName) in
     composite|phosphor)
@@ -221,7 +181,7 @@ while [ \$n -gt 0 ]; do
   fi
   set -- "\$@" "\$a"
 done
-exec $real "\$@" -magfilter $magfilter
+exec "$real" "\$@" -magfilter $magfilter
 SHIM
   chmod +x "$shim/canoe-shvc"
 }
