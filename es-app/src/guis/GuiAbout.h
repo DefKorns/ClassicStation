@@ -24,6 +24,9 @@ public:
 	std::vector<HelpPrompt> getHelpPrompts() override;
 
 private:
+	static constexpr int DebugPressesNeeded = 7;
+
+	int mDebugPresses = 0;
 	NinePatchComponent mFrame;
 	ImageComponent mLogo;
 	TextComponent mVersion;

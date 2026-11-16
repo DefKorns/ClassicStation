@@ -8,8 +8,11 @@
   */
 #include "guis/GuiAbout.h"
 
+#include "DebugMode.h"
 #include "MenuColors.h"
 #include "InputConfig.h"
+#include "guis/GuiInfoPopup.h"
+#include "Window.h"
 #include "EmulationStation.h"
 #include "renderers/Renderer.h"
 #include "resources/Font.h"
@@ -38,7 +41,7 @@ GuiAbout::GuiAbout(Window* window) : GuiComponent(window),
 		text.setText(value);
 		text.setSize(textWidth, 0.0f);
 	};
-	style(mVersion, "EMULATIONSTATION V" + Utils::String::toUpper(PROGRAM_VERSION_STRING), Font::get(FONT_SIZE_MENU), MenuColors::Title);
+	style(mVersion, "EMULATIONSTATION V" + Utils::String::toUpper(PROGRAM_VERSION_STRING) + (DebugMode::isEnabled() ? " (DEBUG)" : ""), Font::get(FONT_SIZE_MENU), MenuColors::Title);
 	style(mCredit, "SNES CLASSIC PORT BY DEFKORNS", Font::get(FONT_SIZE_SMALL), MenuColors::Dim);
 	style(mControls, "UP: MENU   DOWN: SUSPEND POINT LIST\nA: SELECT   B: GO TO SAVED GAME   Y: SORT", Font::get(FONT_SIZE_SMALL), MenuColors::Text);
 
@@ -72,6 +75,22 @@ bool GuiAbout::input(InputConfig* config, Input input)
 	{
 		delete this;
 		return true;
+	}
+
+	if(input.value != 0 && config->isMappedTo("select", input))
+	{
+		++mDebugPresses;
+		const int remaining = DebugPressesNeeded - mDebugPresses;
+		if(remaining <= 0)
+		{
+			mDebugPresses = 0;
+			const bool enabled = DebugMode::toggle();
+			mWindow->setInfoPopup(new GuiInfoPopup(mWindow, enabled ? "DEBUG MODE ON, RESTART TO APPLY" : "DEBUG MODE OFF, RESTART TO APPLY", 3000));
+		}
+		else if(remaining <= 3)
+		{
+			mWindow->setInfoPopup(new GuiInfoPopup(mWindow, std::to_string(remaining) + " MORE PRESSES TO TOGGLE DEBUG MODE", 1000));
+		}
 	}
 	return true;
 }

@@ -15,6 +15,7 @@
 #include "Log.h"
 #include "MameNames.h"
 #include "platform.h"
+#include "DebugMode.h"
 #include "PowerSaver.h"
 #include "ScraperCmdLine.h"
 #include "MenuColors.h"
@@ -34,6 +35,11 @@
 #include <vector>
 #include <time.h>
 #include <csignal>
+#include <cxxabi.h>
+#include <exception>
+#include <execinfo.h>
+#include <sys/mman.h>
+#include <sys/syscall.h>
 #include <fcntl.h>
 #include <ucontext.h>
 #include <unistd.h>
@@ -366,6 +372,8 @@ namespace
 
 namespace
 {
+	volatile sig_atomic_t sCrashDiagnostics = 0;
+
 	void logCrash(int signal, siginfo_t* info, void* context)
 	{
 		const ucontext_t* uc = static_cast<const ucontext_t*>(context);
@@ -376,19 +384,64 @@ namespace
 			int length = snprintf(line, sizeof line, "signal %d fault %p pc %08lx lr %08lx sp %08lx\n", signal, info->si_addr,
 				uc->uc_mcontext.arm_pc, uc->uc_mcontext.arm_lr, uc->uc_mcontext.arm_sp);
 			static_cast<void>(write(fd, line, static_cast<size_t>(length)));
+			if(sCrashDiagnostics)
+			{
+				length = snprintf(line, sizeof line, "pid %d tid %ld\n", getpid(), static_cast<long>(syscall(SYS_gettid)));
+				static_cast<void>(write(fd, line, static_cast<size_t>(length)));
+			}
 
 			const unsigned long* stack = reinterpret_cast<const unsigned long*>(uc->uc_mcontext.arm_sp);
-			for(int word = 0; word < 256; ++word)
+			const int stackWords = sCrashDiagnostics ? 1024 : 256;
+			for(int word = 0; word < stackWords; ++word)
 			{
+				const unsigned long address = reinterpret_cast<unsigned long>(stack + word);
+				unsigned char resident;
+				if((word == 0 || (address & 0xFFF) == 0) && mincore(reinterpret_cast<void*>(address & ~0xFFFUL), 4096, &resident) != 0)
+					break;
 				if(stack[word] >= 0x8000 && stack[word] < 0x1000000)
 				{
 					length = snprintf(line, sizeof line, "stack %08lx\n", stack[word]);
 					static_cast<void>(write(fd, line, static_cast<size_t>(length)));
 				}
 			}
+			if(sCrashDiagnostics)
+			{
+				void* frames[32];
+				const int count = backtrace(frames, 32);
+				backtrace_symbols_fd(frames, count, fd);
+			}
 			close(fd);
 		}
 		_exit(128 + signal);
+	}
+
+	void logTerminate()
+	{
+		const int fd = open("/var/lib/hakchi/emulationstation/crash.log", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if(fd >= 0)
+		{
+			char line[320];
+			const std::type_info* type = abi::__cxa_current_exception_type();
+			int length = snprintf(line, sizeof line, "terminate: %s\n", type != nullptr ? type->name() : "no exception");
+			static_cast<void>(write(fd, line, static_cast<size_t>(length)));
+			try
+			{
+				throw;
+			}
+			catch(const std::exception& error)
+			{
+				length = snprintf(line, sizeof line, "what: %s\n", error.what());
+				static_cast<void>(write(fd, line, static_cast<size_t>(length)));
+			}
+			catch(...)
+			{
+			}
+			void* frames[32];
+			const int count = backtrace(frames, 32);
+			backtrace_symbols_fd(frames, count, fd);
+			close(fd);
+		}
+		_exit(134);
 	}
 
 	void exitOnTerminate(int signal)
@@ -412,8 +465,21 @@ namespace
 		sigprocmask(SIG_UNBLOCK, &unblock, nullptr);
 	}
 
-	void installCrashLogger()
+	bool wantsCrashDiagnostics(int argc, char* argv[])
 	{
+		if(std::getenv("ES_DEBUG") != nullptr || DebugMode::isEnabled())
+			return true;
+		for(int i = 1; i < argc; ++i)
+			if(strcmp(argv[i], "--debug") == 0)
+				return true;
+		return false;
+	}
+
+	void installCrashLogger(int argc, char* argv[])
+	{
+		sCrashDiagnostics = wantsCrashDiagnostics(argc, argv) ? 1 : 0;
+		if(sCrashDiagnostics)
+			std::set_terminate(logTerminate);
 		struct sigaction action;
 		action.sa_sigaction = logCrash;
 		sigemptyset(&action.sa_mask);
@@ -425,7 +491,7 @@ namespace
 
 int main(int argc, char* argv[])
 {
-	installCrashLogger();
+	installCrashLogger(argc, argv);
 	std::locale::global(std::locale("C"));
 
 	if(!parseArgs(argc, argv))
@@ -475,6 +541,8 @@ int main(int argc, char* argv[])
 
 	//start the logger
 	Log::init();
+	if(DebugMode::isEnabled())
+		Log::setReportingLevel(LogDebug);
 	Log::open();
 	LOG(LogInfo) << "EmulationStation - v" << PROGRAM_VERSION_STRING << ", built " << PROGRAM_BUILT_STRING;
 
