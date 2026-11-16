@@ -71,7 +71,7 @@ FileData* findOrCreateFile(SystemData* system, const std::string& path, FileType
 			// fs-folders which are marked as <game/> in gamelist. NB:
 			// treeNode's type (=parent) is determined by the element in the
 			// gamelist and not by the fs-type.
-			if(!file->isArcadeAsset() && treeNode->getType() == FOLDER)
+			if(treeNode->getType() == FOLDER)
 			{
 				treeNode->addChild(file);
 			}
@@ -231,7 +231,7 @@ void parseGamelist(SystemData* system)
 				LOG(LogError) << "Error finding/creating FileData for \"" << path << "\", skipping.";
 				continue;
 			}
-			else if(!file->isArcadeAsset())
+			else
 			{
 				std::string defaultName = file->metadata.get("name");
 				file->metadata = MetaDataList::createFromXML(file->getType() == GAME ? GAME_METADATA : FOLDER_METADATA, fileNode, relativeTo);

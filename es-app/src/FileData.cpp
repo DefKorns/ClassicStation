@@ -9,7 +9,6 @@
 #include "FileSorts.h"
 #include "InputManager.h"
 #include "Log.h"
-#include "MameNames.h"
 #include "platform.h"
 #include "Scripting.h"
 #include "SystemData.h"
@@ -40,11 +39,7 @@ FileData::~FileData()
 
 std::string FileData::getDisplayName() const
 {
-	std::string stem = Utils::FileSystem::getStem(mPath);
-	if(mSystem && mSystem->hasPlatformId(PlatformIds::ARCADE) || mSystem->hasPlatformId(PlatformIds::NEOGEO))
-		stem = MameNames::getInstance()->getRealName(stem);
-
-	return stem;
+	return Utils::FileSystem::getStem(mPath);
 }
 
 std::string FileData::getCleanName() const
@@ -198,16 +193,6 @@ std::vector<FileData*> FileData::getFilesRecursive(unsigned int typeMask, bool d
 
 std::string FileData::getKey() {
 	return getFileName();
-}
-
-const bool FileData::isArcadeAsset()
-{
-	const std::string stem = Utils::FileSystem::getStem(mPath);
-	return (
-		(mSystem && (mSystem->hasPlatformId(PlatformIds::ARCADE) || mSystem->hasPlatformId(PlatformIds::NEOGEO)))
-		&&
-		(MameNames::getInstance()->isBios(stem) || MameNames::getInstance()->isDevice(stem))
-	);
 }
 
 FileData* FileData::getSourceFileData()

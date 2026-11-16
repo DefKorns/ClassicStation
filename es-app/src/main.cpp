@@ -13,7 +13,6 @@
 #include "Gamelist.h"
 #include "InputManager.h"
 #include "Log.h"
-#include "MameNames.h"
 #include "platform.h"
 #include "DebugMode.h"
 #include "PowerSaver.h"
@@ -556,7 +555,6 @@ int main(int argc, char* argv[])
 	PowerSaver::init();
 	ViewController::init(&window);
 	CollectionSystemManager::init(&window);
-	MameNames::init();
 	window.pushGui(ViewController::get());
 
 	bool splashScreen = Settings::getInstance()->getBool("SplashScreen");
@@ -769,7 +767,6 @@ int main(int argc, char* argv[])
 	// stopVideo() cleanup tasks are already posted to the queue.
 	VideoVlcComponent::deinit();
 
-	MameNames::deinit();
 	CollectionSystemManager::deinit();
 	waitForGamelistWrites();
 	SystemData::deleteSystems();

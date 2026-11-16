@@ -51,3 +51,5 @@ resolved once is resolved again automatically. After the merge and a build, `cla
 - Windows packaging and CI: `EmulationStation.rc`, `EmulationStation.aps`, `es_icon.ico`, the MSVC blocks of
   `es-app/CMakeLists.txt` and the manual `ccpp.yml` and `win32.yml` workflows. The build and release workflow is
   `build.yml`.
+- MAME names: `MameNames`, the three `mame*.xml` tables (4.4 MB) and `mameres.py`, with `isArcadeAsset()` and its three
+  callers. The library comes from hakchi, which already has each game's name, and the hmod never shipped the tables.

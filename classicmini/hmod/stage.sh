@@ -39,7 +39,7 @@ cp "$classicmini_dir/device/preinit/b8030_es" "$mod_dir/etc/preinit.d/"
 cp "$classicmini_dir/out/emulationstation" "$classicmini_dir/out/libfreetype.so.6" "$classicmini_dir/out/padstate" "$es_payload/"
 cp "$classicmini_dir"/device/es-*.sh "$classicmini_dir/device/es_systems.cfg" "$es_payload/"
 cp -R "$classicmini_dir"/../resources/. "$es_payload/resources/"
-rm -f "$es_payload"/resources/mame*.xml "$es_payload"/resources/*.py "$es_payload"/resources/splash.svg
+rm -f "$es_payload"/resources/*.py "$es_payload"/resources/splash.svg
 cp -R "$classicmini_dir"/device/resources/. "$es_payload/resources/"
 find "$es_payload/resources" -type f \( -name '*.svg' -o -name '*.xml' -o -name '*.txt' \) -exec sed -i 's/\r$//' {} +
 cp -R "$theme_src/." "$es_payload/defaults/themes/simple/"
