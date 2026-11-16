@@ -48,3 +48,6 @@ resolved once is resolved again automatically. After the merge and a build, `cla
   OMX menu entries, the Broadcom VideoCore parts of `CECInput` and the `RPI`/`OMX` build options with the
   Broadcom/Vero4K detection in `CMakeLists.txt`. CEC itself stays, because a driver for it could be added to the kernel.
   The settings keys stay in `Settings.cpp` so an old `es_settings.cfg` loads without warnings.
+- Windows packaging and CI: `EmulationStation.rc`, `EmulationStation.aps`, `es_icon.ico`, the MSVC blocks of
+  `es-app/CMakeLists.txt` and the manual `ccpp.yml` and `win32.yml` workflows. The build and release workflow is
+  `build.yml`.
