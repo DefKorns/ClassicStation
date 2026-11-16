@@ -14,7 +14,6 @@ Last integrated: `stable` at `a31c36a` (v2.12.0).
 | `stable` | Mirror of `upstream/stable`. Fast-forward only, no commits of mine. |
 | `classicstation` | Where I work and remove what the minis do not need. Receives upstream with `git merge stable`. |
 | `main` | The release branch. Gets `classicstation` merged when it is tested; tags come from here. |
-| `master` | Mirror of `upstream/master`, untouched. |
 
 ```text
 upstream/stable -> stable (ff) -> classicstation -> main -> tag
