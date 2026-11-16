@@ -24,6 +24,14 @@
 #include "Window.h"
 #include "Log.h"
 
+namespace
+{
+	bool isEditable(const MetaDataDecl& mdd)
+	{
+		return !mdd.isStatistic && mdd.key != "video";
+	}
+}
+
 GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector<MetaDataDecl>& mdd, ScraperSearchParams scraperParams,
 	const std::string& /*header*/, std::function<void()> saveCallback, std::function<void()> deleteFunc) : GuiComponent(window),
 	mScraperParams(scraperParams),
@@ -59,7 +67,7 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 	for(auto iter = mdd.cbegin(); iter != mdd.cend(); iter++)
 	{
 		// don't add statistics
-		if(iter->isStatistic)
+		if(!isEditable(*iter))
 			continue;
 
 		std::shared_ptr<GuiComponent> ed;
@@ -210,7 +218,7 @@ void GuiMetaDataEd::save()
 	int edIdx = 0;
 	for(auto &mdd : mMetaDataDecl)
 	{
-		if(!mdd.isStatistic) {
+		if(isEditable(mdd)) {
 			mMetaData->set(mdd.key, mEditors.at(edIdx)->getValue());
 			edIdx++;
 		}
@@ -241,7 +249,7 @@ void GuiMetaDataEd::fetchDone(const ScraperSearchResult& result)
 	int edIdx = 0;
 	for(auto &mdd : mMetaDataDecl)
 	{
-		if(mdd.isStatistic)
+		if(!isEditable(mdd))
 			continue;
 
 		if(isScrapedKeyEnabled(mdd.key) && result.mdl.get(mdd.key) != mdd.defaultValue)
@@ -286,7 +294,7 @@ bool GuiMetaDataEd::hasChanges()
 	int edIdx = 0;
 	for(auto &mdd : mMetaDataDecl)
 	{
-		if(!mdd.isStatistic)
+		if(isEditable(mdd))
 		{
 			std::string gamelistVal = mMetaData->get(mdd.key);
 			std::string editorVal = mEditors.at(edIdx++)->getValue();
