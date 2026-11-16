@@ -55,3 +55,5 @@ resolved once is resolved again automatically. After the merge and a build, `cla
   callers. The library comes from hakchi, which already has each game's name, and the hmod never shipped the tables.
 - Packaging and templates: the `install()` and CPack/Debian block of `es-app/CMakeLists.txt`, which the hmod build does
   not use. The RetroPie `ISSUE_TEMPLATE.md` is replaced by issue forms for this project.
+- Build notes: the RetroPie `README.md` (Debian, Fedora, Windows and Raspberry Pi builds) and the `USE_MESA_GLES`
+  option, which picks the desktop Mesa driver. The project README is `.github/README.md`.

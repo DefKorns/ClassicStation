@@ -5,9 +5,6 @@ option(GLES "Set to ON if targeting Embedded OpenGL" ${GLES})
 option(CEC "Set to ON to enable CEC" ${CEC})
 option(PROFILING "Set to ON to enable profiling" ${PROFILING})
 
-# GLES implementation overrides
-option(USE_MESA_GLES "Set to ON to select the MESA OpenGL ES driver" ${USE_MESA_GLES})
-
 # OpenGL library preference (https://cmake.org/cmake/help/git-stage/policy/CMP0072.html)
 # Set it to OLD to appease older proprietary drivers without libglvnd support
 if(POLICY CMP0072)
@@ -28,10 +25,6 @@ set(HINT_GLES_LIBNAME GLESv2)
 
 #set up OpenGL system variable
 if(GLES)
-    set(GLSystem "Embedded OpenGL" CACHE STRING "The OpenGL system to be used")
-
-# check if the MESA GLES library is requested
-elseif(USE_MESA_GLES)
     set(GLSystem "Embedded OpenGL" CACHE STRING "The OpenGL system to be used")
 
 #check if we're running on olinuxino / odroid / etc

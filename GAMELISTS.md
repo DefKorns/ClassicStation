@@ -67,7 +67,7 @@ Some metadata is also marked as "statistic" - these are kept track of by ES and 
 Things to be Aware Of
 =====================
 
-* You can use ES's built-in [scraping](http://en.wikipedia.org/wiki/Web_scraping) tools to avoid creating a gamelist.xml by hand, as described in README.md.
+* You can use ES's built-in [scraping](http://en.wikipedia.org/wiki/Web_scraping) tools to avoid creating a gamelist.xml by hand, as described in the [README](.github/README.md).
 
 * ES will try to write any image paths as relative to the current system games path or relative to the current home directory if it can.  This is done to try and keep installations portable (so you can copy them between computers).
 
