@@ -44,7 +44,7 @@ GuiAbout::GuiAbout(Window* window) : GuiComponent(window),
 		text.setSize(textWidth, 0.0f);
 	};
 	style(mVersion, "EMULATIONSTATION V" + Utils::String::toUpper(PROGRAM_VERSION_STRING) + (DebugMode::isEnabled() ? " (DEBUG)" : ""), Font::get(FONT_SIZE_MENU), MenuColors::Title);
-	style(mCredit, "SNES CLASSIC PORT BY DEFKORNS", Font::get(FONT_SIZE_SMALL), MenuColors::Dim);
+	style(mCredit, "NES AND SNES CLASSIC PORT BY DEFKORNS", Font::get(FONT_SIZE_SMALL), MenuColors::Dim);
 	style(mControls, "UP: MENU   DOWN: SUSPEND POINT LIST\nA: SELECT   B: GO TO SAVED GAME   Y: SORT", Font::get(FONT_SIZE_SMALL), MenuColors::Text);
 
 	const float gap = screenHeight * 0.02f;
