@@ -97,10 +97,21 @@ void ViewController::goToSystemView(SystemData* system)
 		mCurrentView->onHide();
 	}
 
+	auto systemList = getSystemListView();
+	systemList->refreshSystems();
+
+	if(!system->isVisible())
+	{
+		const auto& systems = SystemData::sSystemVector;
+		const auto firstVisible = std::find_if(systems.cbegin(), systems.cend(),
+			[](SystemData* candidate) { return candidate->isVisible(); });
+		if(firstVisible != systems.cend())
+			system = *firstVisible;
+	}
+
 	mState.viewing = SYSTEM_SELECT;
 	mState.system = system;
 
-	auto systemList = getSystemListView();
 	systemList->setPosition(getSystemId(system) * (float)Renderer::getScreenWidth(), systemList->getPosition().y());
 
 	systemList->goToSystem(system, false);

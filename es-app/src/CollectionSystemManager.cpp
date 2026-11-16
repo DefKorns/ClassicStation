@@ -17,6 +17,9 @@
 #include <fstream>
 #include <cstdlib>
 #include <cstring>
+#include <set>
+#include <string>
+#include <vector>
 
 /* Handling the getting, initialization, deinitialization, saving and deletion of
  * a CollectionSystemManager Instance */
@@ -28,15 +31,34 @@ namespace
 		if(path == nullptr)
 			return;
 
-		std::ofstream out(path, std::ios::trunc);
+		std::set<std::string> known;
+		std::set<std::string> favorites;
 		for(SystemData* system : SystemData::sSystemVector)
 		{
 			if(system->isCollection())
 				continue;
 			for(FileData* game : system->getRootFolder()->getFilesRecursive(GAME))
+			{
+				const std::string code = Utils::FileSystem::getStem(game->getPath());
+				known.insert(code);
 				if(game->metadata.get("favorite") == "true")
-					out << Utils::FileSystem::getStem(game->getPath()) << '\n';
+					favorites.insert(code);
+			}
 		}
+
+		std::vector<std::string> kept;
+		{
+			std::ifstream in(path);
+			for(std::string code; std::getline(in, code);)
+				if(!code.empty() && known.count(code) == 0)
+					kept.push_back(code);
+		}
+
+		std::ofstream out(path, std::ios::trunc);
+		for(const std::string& code : kept)
+			out << code << '\n';
+		for(const std::string& code : favorites)
+			out << code << '\n';
 	}
 }
 
@@ -595,6 +617,10 @@ bool CollectionSystemManager::toggleGameInCollection(FileData* file, bool confir
 			saveFavoritesFile();
 
 			refreshCollectionSystems(file->getSourceFileData());
+
+			SystemData* viewed = ViewController::get()->getState().getSystem();
+			if(!adding && viewed != nullptr && viewed->isCollection() && viewed->getName() == "favorites" && !viewed->isVisible())
+				ViewController::get()->goToSystemView(viewed);
 		}
 		if (adding)
 		{

@@ -131,6 +131,26 @@ void SystemView::populate()
 	}
 }
 
+void SystemView::refreshSystems()
+{
+	std::vector<SystemData*> visible;
+	for(SystemData* system : SystemData::sSystemVector)
+		if(system->isVisible())
+			visible.push_back(system);
+
+	const bool unchanged = visible.size() == mEntries.size() &&
+		std::equal(visible.cbegin(), visible.cend(), mEntries.cbegin(),
+			[](SystemData* system, const Entry& entry) { return system == entry.object; });
+	if(unchanged)
+		return;
+
+	SystemData* current = mEntries.empty() ? nullptr : mEntries.at(mCursor).object;
+	mCursor = 0;
+	populate();
+	if(current != nullptr && std::find(visible.cbegin(), visible.cend(), current) != visible.cend())
+		setCursor(current);
+}
+
 void SystemView::goToSystem(SystemData* system, bool animate)
 {
 	setCursor(system);

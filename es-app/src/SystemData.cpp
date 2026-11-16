@@ -461,8 +461,7 @@ std::string SystemData::getConfigPath(bool forWrite)
 bool SystemData::isVisible()
 {
    return (getDisplayedGameCount() > 0 ||
-           (UIModeController::getInstance()->isUIModeFull() && mIsCollectionSystem) ||
-           (mIsCollectionSystem && mName == "favorites"));
+           (UIModeController::getInstance()->isUIModeFull() && mIsCollectionSystem && mName != "favorites"));
 }
 
 SystemData* SystemData::getNext() const

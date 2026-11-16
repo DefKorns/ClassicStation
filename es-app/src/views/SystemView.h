@@ -56,6 +56,7 @@ public:
 	virtual void onHide() override;
 
 	void goToSystem(SystemData* system, bool animate);
+	void refreshSystems();
 
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
