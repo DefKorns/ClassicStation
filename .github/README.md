@@ -1,6 +1,6 @@
 # ClassicStation: EmulationStation for the NES/SNES Classic
 
-[![Build](https://github.com/DefKorns/es-port/actions/workflows/build.yml/badge.svg)](https://github.com/DefKorns/es-port/actions/workflows/build.yml)
+[![Build](https://github.com/DefKorns/ClassicStation/actions/workflows/build.yml/badge.svg)](https://github.com/DefKorns/ClassicStation/actions/workflows/build.yml)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../LICENSE.md)
 
