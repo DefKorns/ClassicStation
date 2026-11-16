@@ -335,20 +335,7 @@ void GuiGamelistOptions::openMetaDataEd()
 		ViewController::get()->getGameListView(file->getSystem())->onFileChanged(file, FILE_METADATA_CHANGED);
 	};
 
-	std::function<void()> deleteBtnFunc;
-	if (file->getType() == FOLDER)
-	{
-		deleteBtnFunc = NULL;
-	}
-	else
-	{
-		deleteBtnFunc = [this, file] {
-			CollectionSystemManager::get()->deleteCollectionFiles(file);
-			ViewController::get()->getGameListView(file->getSystem()).get()->remove(file, true, true);
-		};
-	}
-
-	mWindow->pushGui(new GuiMetaDataEd(mWindow, &file->metadata, file->metadata.getMDD(), p, Utils::FileSystem::getFileName(file->getPath()), saveBtnFunc, deleteBtnFunc));
+	mWindow->pushGui(new GuiMetaDataEd(mWindow, &file->metadata, file->metadata.getMDD(), p, Utils::FileSystem::getFileName(file->getPath()), saveBtnFunc, nullptr));
 }
 
 void GuiGamelistOptions::jumpToLetter()
