@@ -248,7 +248,11 @@ void GuiGamelistOptions::toggleKidGame()
 {
 	FileData* game = getGamelist()->getCursor()->getSourceFileData();
 	const bool kidGame = game->metadata.get("kidgame") != "true";
+	FileFilterIndex* index = game->getSystem()->getIndex();
+	index->removeFromIndex(game);
 	game->metadata.set("kidgame", kidGame ? "true" : "false");
+	index->addToIndex(game);
+	CollectionSystemManager::get()->refreshCollectionSystems(game);
 	updateGamelist(game->getSystem());
 
 	Window* window = mWindow;
