@@ -267,7 +267,8 @@ void GuiMenu::openScraperSettings()
 	s->addSaveFunc([scraper_list] { Settings::getInstance()->setString("Scraper", scraper_list->getSelected()); });
 
 	auto apiKeyLabel = std::make_shared<TextComponent>(mWindow, "THEGAMESDB API KEY", Font::get(FONT_SIZE_MENU), MenuColors::Text);
-	auto apiKeyValue = std::make_shared<TextComponent>(mWindow, "*********", Font::get(FONT_SIZE_MENU), MenuColors::Dim, ALIGN_RIGHT);
+	const auto apiKeyText = [](const std::string& key) { return key.empty() ? "DEFAULT KEY" : "CUSTOM KEY"; };
+	auto apiKeyValue = std::make_shared<TextComponent>(mWindow, apiKeyText(Settings::getInstance()->getString("TheGamesDBApiKey")), Font::get(FONT_SIZE_MENU), MenuColors::Dim, ALIGN_RIGHT);
 	auto apiKeyArrow = makeArrow(mWindow);
 	ComponentListRow apiKeyRow;
 	apiKeyRow.addElement(apiKeyLabel, true);
@@ -277,13 +278,14 @@ void GuiMenu::openScraperSettings()
 	apiKeyRow.addElement(apiKeyGap, false);
 	apiKeyRow.addElement(apiKeyArrow, false);
 	Window* window = mWindow;
-	apiKeyRow.makeAcceptInputHandler([window, scraper_list] {
+	apiKeyRow.makeAcceptInputHandler([window, scraper_list, apiKeyValue, apiKeyText] {
 		if(scraper_list->getSelected() != "TheGamesDB")
 			return;
 		window->pushGui(new GuiVirtualKeyboard(window, "YOUR THEGAMESDB API KEY (EMPTY: DEFAULT KEY)", "", true,
-			[](const std::string& key) {
+			[apiKeyValue, apiKeyText](const std::string& key) {
 				Settings::getInstance()->setString("TheGamesDBApiKey", key);
 				Settings::getInstance()->saveFile();
+				apiKeyValue->setText(apiKeyText(key));
 			}));
 	});
 	s->addRow(apiKeyRow);
