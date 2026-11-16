@@ -656,7 +656,18 @@ void GuiMenu::openDisplaySettings()
 		scanlines->setOpacity(scanlinesFixed ? 90 : 255);
 	};
 	mode->setSelectedChangedCallback(updateEffects);
-	filter->setSelectedChangedCallback(updateEffects);
+	auto previousFilter = std::make_shared<std::string>(currentFilter);
+	filter->setSelectedChangedCallback([filter, mode, previousFilter, updateEffects]
+	{
+		std::string chosen = filter->getSelected();
+		if (chosen == "sharp" && mode->getSelected() == "pixel-perfect")
+		{
+			filter->select(*previousFilter == "hlinear" ? "composite" : "hlinear");
+			return;
+		}
+		*previousFilter = chosen;
+		updateEffects();
+	});
 	updateEffects();
 
 	mWindow->pushGui(s);

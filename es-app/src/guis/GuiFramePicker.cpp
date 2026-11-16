@@ -154,6 +154,8 @@ size_t GuiFramePicker::count() const
 
 void GuiFramePicker::show()
 {
+	if (count() == 0)
+		return;
 	if (mExactSize)
 	{
 		const Item& item = mItems[mIndex];
@@ -179,6 +181,8 @@ void GuiFramePicker::show()
 void GuiFramePicker::step(int direction)
 {
 	const size_t total = count();
+	if (total == 0)
+		return;
 	mIndex = (mIndex + (direction > 0 ? 1 : total - 1)) % total;
 	show();
 }
@@ -205,6 +209,11 @@ std::vector<HelpPrompt> GuiFramePicker::getHelpPrompts()
 
 void GuiFramePicker::pick()
 {
+	if (count() == 0)
+	{
+		delete this;
+		return;
+	}
 	if (mExactSize)
 	{
 		const auto onPick = mOnPickIndex;
