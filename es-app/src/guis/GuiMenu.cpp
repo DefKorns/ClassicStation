@@ -530,18 +530,6 @@ void GuiMenu::openDisplaySettings()
 	s->addWithLabel("SCANLINES", scanlines);
 	s->addSaveFunc([scanlines] { Settings::getInstance()->setBool("DisplayCrtScanlines", scanlines->getState()); });
 
-	std::shared_ptr< OptionListComponent<std::string> > style;
-	const char* pad = std::getenv("ES_PAD");
-	if(pad != nullptr && std::string(pad) == "snes")
-	{
-		style = std::make_shared< OptionListComponent<std::string> >(mWindow, "SCANLINE STYLE", false);
-		const std::string currentStyle = Settings::getInstance()->getString("DisplayScanlineStyle");
-		style->add("STANDARD", "standard", currentStyle != "bright");
-		style->add("BRIGHT", "bright", currentStyle == "bright");
-		s->addWithLabel("SCANLINE STYLE", style);
-		s->addSaveFunc([style] { Settings::getInstance()->setString("DisplayScanlineStyle", style->getSelected()); });
-	}
-
 	const auto updateEffects = [mode, smooth, scanlines]
 	{
 		const bool enabled = mode->getSelected() != "crt-filter";
