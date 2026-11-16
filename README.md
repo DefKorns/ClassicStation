@@ -70,10 +70,6 @@ cmake -DCMAKE_BUILD_TYPE=Debug .
 * Support for using `omxplayer` to play video previews in the gamelist is enabled by adding `-DOMX=On` to the build options.
   NOTE: `omxplayer` support is not available on 64bit RasPI OS or in the default RasPI OS 'Bullseye' configuration.
 
-**GLES build notes**
-
- If your system doesn't have a working GLESv2 implementation, the GLESv1 legacy renderer can be compiled in by adding `-DUSE_GLES1=On` to the build options.
-
 Building on Windows
 -------------------
 

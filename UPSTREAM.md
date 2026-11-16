@@ -42,4 +42,5 @@ resolved once is resolved again automatically. After the merge and a build, `cla
 
 ## Removed from upstream
 
-Nothing yet.
+- Renderers: `Renderer_GL14`, `Renderer_GL21` and `Renderer_GLES10`, with the `GL`, `USE_GL21` and `USE_GLES1` build
+  options and `FindOpenGLES.cmake`. The Mali on the minis runs GLES2, so the build only has `Renderer_GLES20`.

@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.5...4.0)
 # Note: Visual Studio 2022 generator requires CMake 3.21 or greater.
 
 option(GLES "Set to ON if targeting Embedded OpenGL" ${GLES})
-option(GL "Set to ON if targeting Desktop OpenGL" ${GL})
 option(RPI "Set to ON to enable the Raspberry PI memory and audio options" ${RPI})
 option(OMX "Set to On to enable OMXPlayer for video snapshots" ${OMX})
 option(CEC "Set to ON to enable CEC" ${CEC})
@@ -10,10 +9,6 @@ option(PROFILING "Set to ON to enable profiling" ${PROFILING})
 
 # GLES implementation overrides
 option(USE_MESA_GLES "Set to ON to select the MESA OpenGL ES driver" ${USE_MESA_GLES})
-option(USE_GLES1 "Set to ON to force usage of the OpenGLES v1 renderer" ${USE_GLES1})
-
-# GL implementation overrides
-option(USE_GL21 "Set to ON to force usage of the OpenGL v2.1 renderer" ${USE_GL21})
 
 # OpenGL library preference (https://cmake.org/cmake/help/git-stage/policy/CMP0072.html)
 # Set it to OLD to appease older proprietary drivers without libglvnd support
@@ -36,8 +31,6 @@ set(HINT_GLES_LIBNAME GLESv2)
 #set up OpenGL system variable
 if(GLES)
     set(GLSystem "Embedded OpenGL" CACHE STRING "The OpenGL system to be used")
-elseif(GL)
-    set(GLSystem "Desktop OpenGL" CACHE STRING "The OpenGL system to be used")
 
 # check if the MESA GLES library is requested
 elseif(USE_MESA_GLES)
@@ -70,31 +63,16 @@ elseif(
     EXISTS "${CMAKE_FIND_ROOT_PATH}/usr/lib/${CMAKE_LIBRARY_ARCHITECTURE}/mali-egl/libmali.so")
         set(GLSystem "Embedded OpenGL" CACHE STRING "The OpenGL system to be used")
 else()
-    set(GLSystem "Desktop OpenGL" CACHE STRING "The OpenGL system to be used")
+    set(GLSystem "Embedded OpenGL" CACHE STRING "The OpenGL system to be used")
 endif(GLES)
 
-set_property(CACHE GLSystem PROPERTY STRINGS "Desktop OpenGL" "Embedded OpenGL")
+set_property(CACHE GLSystem PROPERTY STRINGS "Embedded OpenGL")
 
-if(${GLSystem} MATCHES "Desktop OpenGL")
-    find_package(OpenGL REQUIRED)
-    if(NOT USE_GL21)
-        add_definitions(-DUSE_OPENGL_14)
-    else()
-        add_definitions(-DUSE_OPENGL_21)
-    endif()
-else()
-    if(NOT USE_GLES1)
-        find_package(OpenGLES2 QUIET REQUIRED)
-        message(STATUS "Found GLESv2: ${OPENGLES2_LIBRARIES}")
-        set(OPENGLES_LIBRARIES ${OPENGLES2_LIBRARIES})
-        set(OPENGLES_INCLUDE_DIRS ${OPENGLES2_INCLUDE_DIRS})
-        add_definitions(-DUSE_OPENGLES_20)
-    else()
-        find_package(OpenGLES QUIET REQUIRED)
-        message(STATUS "Found GLES: ${OPENGLES_LIBRARIES}")
-        add_definitions(-DUSE_OPENGLES_10)
-    endif()
-endif()
+find_package(OpenGLES2 QUIET REQUIRED)
+message(STATUS "Found GLESv2: ${OPENGLES2_LIBRARIES}")
+set(OPENGLES_LIBRARIES ${OPENGLES2_LIBRARIES})
+set(OPENGLES_INCLUDE_DIRS ${OPENGLES2_INCLUDE_DIRS})
+add_definitions(-DUSE_OPENGLES_20)
 
 find_package(Freetype REQUIRED)
 find_package(FreeImage REQUIRED)
@@ -186,15 +164,9 @@ set(COMMON_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/es-core/src
 )
 
-if(${GLSystem} MATCHES "Desktop OpenGL")
-        LIST(APPEND COMMON_INCLUDE_DIRS
-            ${OPENGL_INCLUDE_DIRS}
-        )
-else()
-        LIST(APPEND COMMON_INCLUDE_DIRS
-            ${OPENGLES_INCLUDE_DIRS}
-        )
-endif()
+LIST(APPEND COMMON_INCLUDE_DIRS
+    ${OPENGLES_INCLUDE_DIRS}
+)
 
 #add libCEC_INCLUDE_DIR
 if(DEFINED libCEC_FOUND)
@@ -257,15 +229,9 @@ if(DEFINED HINT_GLES_LIBDIR)
     link_directories("${HINT_GLES_LIBDIR}")
 endif()
 
-if(${GLSystem} MATCHES "Desktop OpenGL")
-    LIST(APPEND COMMON_LIBRARIES
-        ${OPENGL_LIBRARIES}
-    )
-else()
-    LIST(APPEND COMMON_LIBRARIES
-        ${OPENGLES_LIBRARIES} ${GLES_EXTRA_LIBRARIES}
-    )
-endif()
+LIST(APPEND COMMON_LIBRARIES
+    ${OPENGLES_LIBRARIES} ${GLES_EXTRA_LIBRARIES}
+)
 
 
 #-------------------------------------------------------------------------------
