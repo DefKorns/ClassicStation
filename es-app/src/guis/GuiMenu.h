@@ -41,6 +41,7 @@ private:
 	void copyResourcesToUsb();
 	static bool isFamicomPad();
 	void openAbout();
+	void openDeveloper();
 	void openSystemInfo();
 	void openCollectionSystemSettings();
 	void openConfigInput();

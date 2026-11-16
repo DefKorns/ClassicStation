@@ -34,12 +34,34 @@ framePath() {
   [ -f "/usr/share/backgrounds/$frame/${frame}_$suffix.png" ] && printf '/usr/share/backgrounds/%s/%s_%s' "$frame" "$frame" "$suffix"
 }
 
+scanlineLevel() {
+  local level
+  level=$(esSetting DisplayScanlineLevel)
+  case $level in 1|2|3|4) printf '%s' "$level"; return ;; esac
+  [ "$(esSetting DisplayCrtScanlines)" = true ] && printf 1 || printf 0
+}
+
+smoothLevel() {
+  local level
+  level=$(esSetting DisplaySmoothness)
+  case $level in 1|3) printf '%s' "$level"; return ;; esac
+  [ "$(esSetting DisplayCrtSmooth)" = true ] && printf 3 || printf 0
+}
+
+scanlinesOn() {
+  [ "$(scanlineLevel)" -ge 1 ] && printf true || printf false
+}
+
+smoothOn() {
+  [ "$(smoothLevel)" = 3 ] && printf true || printf false
+}
+
 displayArgs() {
   local mode smooth scanlines frame_path
   mode=$(esSetting DisplayMode)
-  smooth=$(esSetting DisplayCrtSmooth)
-  scanlines=$(esSetting DisplayCrtScanlines)
-  case $mode in pixel-perfect|crt-filter) ;; *) mode=keep-aspect-ratio ;; esac
+  smooth=$(smoothOn)
+  scanlines=$(scanlinesOn)
+  case $mode in pixel-perfect|crt-filter) ;; composite) mode=keep-aspect-ratio; smooth=false; scanlines=true ;; *) mode=keep-aspect-ratio ;; esac
   printf ' --video-mode %s' "$mode"
   if [ "$mode" = crt-filter ]; then
     :
@@ -77,13 +99,113 @@ noFrameArg() {
 retroarchArgs() {
   local mode smooth scanlines
   mode=$(esSetting DisplayMode)
-  smooth=$(esSetting DisplayCrtSmooth)
-  scanlines=$(esSetting DisplayCrtScanlines)
+  smooth=$(smoothOn)
+  scanlines=$(scanlinesOn)
   if [ -n "$(framePath)" ]; then
     printf ' --bezel-mode'
-  elif [ "$mode" != crt-filter ] && { [ "$smooth" = true ] || [ "$scanlines" = true ]; }; then
+  elif [ "$mode" != crt-filter ] && [ "$mode" != composite ] && { [ "$smooth" = true ] || [ "$scanlines" = true ]; }; then
     printf ' --bezel-mode'
   fi
+}
+
+crtfxDevEnv() {
+  local es_dir stage
+  es_dir=$(dirname "$0")
+  stage=$(cat "$es_dir/crtfx.stage" 2>/dev/null)
+  [ -f "$es_dir/libcrtfx-$stage.so" ] || return 0
+  export LD_PRELOAD="$es_dir/libcrtfx-$stage.so"
+  if [ -f "$es_dir/crtfx.gains" ]; then
+    CRTFX_GAINS=$(cat "$es_dir/crtfx.gains")
+    export CRTFX_GAINS
+  fi
+  if [ -f "$es_dir/crtfx.filter" ]; then
+    CRTFX_FILTER=$(cat "$es_dir/crtfx.filter")
+    export CRTFX_FILTER
+  fi
+  if [ -f "$es_dir/crtfx.order" ]; then
+    CRTFX_ORDER=$(cat "$es_dir/crtfx.order")
+    export CRTFX_ORDER
+  fi
+  if [ -f "$es_dir/crtfx.sweep" ]; then
+    CRTFX_SWEEP=$(cat "$es_dir/crtfx.sweep")
+    export CRTFX_SWEEP
+  fi
+}
+
+scanlineGains() {
+  case $1 in
+    2) printf '155,-55,85,10' ;;
+    3) printf '195,-95,75,15' ;;
+    4) printf '195,-95,65,10' ;;
+  esac
+}
+
+canoeMagfilter() {
+  case $(esSetting DisplayMode) in crt-filter|composite) return 0 ;; esac
+  case $(smoothLevel) in
+    1) printf 0 ;;
+    3) printf 1 ;;
+  esac
+}
+
+crtfxJournalEnv() {
+  [ -f "$(dirname "$0")/crtfx_journal" ] || return 0
+  CRTFX_JOURNAL=/media/data/log/crtfx/journal.log
+  export CRTFX_JOURNAL
+}
+
+crtfxEnv() {
+  local es_dir level gains
+  es_dir=$(dirname "$0")
+  case "$cmd" in *clover-canoe-shvc*) ;; *) return 0 ;; esac
+  crtfxJournalEnv
+  if [ -f "$es_dir/crtfx.stage" ]; then
+    crtfxDevEnv
+    return 0
+  fi
+  case $(esSetting DisplayMode) in
+    crt-filter) return 0 ;;
+    composite)
+      [ -f "$es_dir/libcrtfx.so" ] || return 0
+      export LD_PRELOAD="$es_dir/libcrtfx.so"
+      gains=$(scanlineGains 3)
+      export CRTFX_GAINS="$gains"
+      export CRTFX_FILTER=1
+      return 0
+      ;;
+  esac
+  level=$(scanlineLevel)
+  [ "$level" -ge 2 ] || return 0
+  gains=$(scanlineGains "$level")
+  [ -f "$es_dir/libcrtfx.so" ] && [ -n "$gains" ] || return 0
+  export LD_PRELOAD="$es_dir/libcrtfx.so"
+  export CRTFX_GAINS="$gains"
+}
+
+canoeShim() {
+  local magfilter real
+  rm -f "$shim/canoe-shvc"
+  case "$cmd" in *clover-canoe-shvc*) ;; *) return 0 ;; esac
+  real=$(command -v canoe-shvc) || return 0
+  magfilter=$(canoeMagfilter)
+  [ -n "$magfilter" ] || return 0
+  cat > "$shim/canoe-shvc" <<SHIM
+#!/bin/sh
+n=\$#
+while [ \$n -gt 0 ]; do
+  a=\$1
+  shift
+  n=\$((n - 1))
+  if [ "\$a" = -magfilter ] && [ \$n -gt 0 ]; then
+    shift
+    n=\$((n - 1))
+    continue
+  fi
+  set -- "\$@" "\$a"
+done
+exec $real "\$@" -magfilter $magfilter
+SHIM
+  chmod +x "$shim/canoe-shvc"
 }
 
 desktop=$1
@@ -135,4 +257,6 @@ mkdir -p "$shim"
 printf '#!/bin/sh\nexec retroarch-clover-child "$@"%s\n' "$(retroarchArgs)$(noFrameArg)" > "$shim/retroarch-clover"
 chmod +x "$shim/retroarch-clover"
 
+canoeShim
+crtfxEnv
 PATH="$shim:$PATH" sh -c "$cmd"

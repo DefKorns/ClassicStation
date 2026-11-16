@@ -7,6 +7,7 @@
 #include "guis/GuiCollectionSystemsOptions.h"
 #include "guis/GuiDetectDevice.h"
 #include "guis/GuiFramePicker.h"
+#include <array>
 #include "guis/GuiGeneralScreensaverOptions.h"
 #include "guis/GuiMsgBox.h"
 #include "guis/GuiScraperStart.h"
@@ -127,19 +128,8 @@ void GuiMenu::showCategory(int category)
 		addEntry("SYSTEM INFORMATION", MenuColors::Text, false, [this] { openSystemInfo(); });
 		addEntry("SAVE KERNEL LOG TO USB", MenuColors::Text, false, [this] { showToolResult("savelog"); });
 		addEntry("ABOUT", MenuColors::Text, true, [this] { openAbout(); });
-		if (DebugMode::isUnlocked() || DebugMode::isEnabled())
-		{
-			auto debugToggle = std::make_shared<SwitchComponent>(mWindow, DebugMode::isEnabled());
-			debugToggle->setChangedCallback([](bool enabled) {
-				DebugMode::setEnabled(enabled);
-				DebugMode::setActive(enabled);
-				Log::setReportingLevel(enabled ? LogDebug : LogInfo);
-			});
-			ComponentListRow debugRow;
-			debugRow.addElement(std::make_shared<TextComponent>(mWindow, "DEBUG MODE", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
-			debugRow.addElement(debugToggle, false);
-			mMenu.addRow(debugRow);
-		}
+		if (DebugMode::isUnlocked() || DebugMode::isEnabled() || DebugMode::isJournalEnabled())
+			addEntry("DEVELOPER", MenuColors::Text, true, [this] { openDeveloper(); });
 		break;
 	}
 
@@ -244,6 +234,25 @@ void GuiMenu::openSystemInfo()
 	window->pushGui(new GuiToolRunner(window, [] { return ConsoleTools::run("sysinfo"); }, [window](const std::string& text) {
 		window->pushGui(new GuiSystemInfo(window, text));
 	}));
+}
+
+void GuiMenu::openDeveloper()
+{
+	auto s = new GuiSettings(mWindow, "DEVELOPER");
+
+	auto debugToggle = std::make_shared<SwitchComponent>(mWindow, DebugMode::isEnabled());
+	debugToggle->setChangedCallback([](bool enabled) {
+		DebugMode::setEnabled(enabled);
+		DebugMode::setActive(enabled);
+		Log::setReportingLevel(enabled ? LogDebug : LogInfo);
+	});
+	s->addWithLabel("DEBUG MODE", debugToggle);
+
+	auto journalToggle = std::make_shared<SwitchComponent>(mWindow, DebugMode::isJournalEnabled());
+	journalToggle->setChangedCallback([](bool enabled) { DebugMode::setJournalEnabled(enabled); });
+	s->addWithLabel("VIDEO DEBUG LOG", journalToggle);
+
+	mWindow->pushGui(s);
 }
 
 void GuiMenu::openAbout()
@@ -507,6 +516,8 @@ void GuiMenu::openDisplaySettings()
 	mode->add("4:3", "keep-aspect-ratio", currentMode == "keep-aspect-ratio");
 	mode->add("PIXEL PERFECT", "pixel-perfect", currentMode == "pixel-perfect");
 	mode->add("CRT FILTER", "crt-filter", currentMode == "crt-filter");
+	if (!isFamicomPad())
+		mode->add("COMPOSITE", "composite", currentMode == "composite");
 	s->addWithLabel("VIDEO MODE", mode);
 	s->addSaveFunc([mode] { Settings::getInstance()->setString("DisplayMode", mode->getSelected()); });
 
@@ -533,21 +544,88 @@ void GuiMenu::openDisplaySettings()
 	});
 	s->addSaveFunc([bezel] { Settings::getInstance()->setString("DisplayFrame", bezel->getSelected()); });
 
-	auto smooth = std::make_shared<SwitchComponent>(mWindow);
-	smooth->setState(Settings::getInstance()->getBool("DisplayCrtSmooth"));
-	s->addWithLabel("SMOOTHING", smooth);
-	s->addSaveFunc([smooth] { Settings::getInstance()->setBool("DisplayCrtSmooth", smooth->getState()); });
+	const bool famicom = isFamicomPad();
 
-	auto scanlines = std::make_shared<SwitchComponent>(mWindow);
-	scanlines->setState(Settings::getInstance()->getBool("DisplayCrtScanlines"));
+	int currentSmooth = Settings::getInstance()->getInt("DisplaySmoothness");
+	if (currentSmooth < 1 && Settings::getInstance()->getBool("DisplayCrtSmooth"))
+		currentSmooth = 3;
+	if (famicom && currentSmooth > 0)
+		currentSmooth = 3;
+	auto smooth = std::make_shared< OptionListComponent<int> >(mWindow, "SMOOTHNESS", false);
+	if (famicom)
+	{
+		smooth->add("OFF", 0, currentSmooth == 0);
+		smooth->add("ON", 3, currentSmooth == 3);
+	}
+	else
+	{
+		smooth->add("DEFAULT", 0, currentSmooth == 0);
+		smooth->add("NEAREST", 1, currentSmooth == 1);
+		smooth->add("SMOOTH", 3, currentSmooth == 3);
+	}
+	s->addWithLabel("SMOOTHNESS", smooth);
+	if (!famicom)
+	{
+		smooth->setOpenHandler([window, smooth, mode]
+		{
+			const std::string series = mode->getSelected() == "pixel-perfect" ? "pp" : "43";
+			const std::array<int, 3> values = { 0, 1, 3 };
+			const std::array<const char*, 3> labels = { "DEFAULT", "NEAREST", "SMOOTH" };
+			std::vector<GuiFramePicker::Item> items;
+			size_t current = 0;
+			for (size_t i = 0; i < values.size(); ++i)
+			{
+				items.push_back({ labels[i], ":/smoothness/smoothness_" + series + "_" + std::to_string(values[i]) + ".png" });
+				if (values[i] == smooth->getSelected())
+					current = i;
+			}
+			window->pushGui(new GuiFramePicker(window, items, current, 480, 270,
+				[smooth, values](size_t index) { smooth->select(values[index]); }));
+		});
+	}
+
+	int currentLevel = Settings::getInstance()->getInt("DisplayScanlineLevel");
+	if (currentLevel < 1 && Settings::getInstance()->getBool("DisplayCrtScanlines"))
+		currentLevel = 1;
+	if (famicom && currentLevel > 1)
+		currentLevel = 1;
+	auto scanlines = std::make_shared< OptionListComponent<int> >(mWindow, "SCANLINES", false);
+	scanlines->add("OFF", 0, currentLevel == 0);
+	if (famicom)
+		scanlines->add("ON", 1, currentLevel == 1);
+	else
+		for (int level = 1; level <= 4; ++level)
+			scanlines->add(std::to_string(level), level, currentLevel == level);
 	s->addWithLabel("SCANLINES", scanlines);
-	s->addSaveFunc([scanlines] { Settings::getInstance()->setBool("DisplayCrtScanlines", scanlines->getState()); });
+	if (!famicom)
+	{
+		scanlines->setOpenHandler([window, scanlines]
+		{
+			std::vector<GuiFramePicker::Item> items;
+			for (int level = 0; level <= 4; ++level)
+				items.push_back({ level == 0 ? std::string("OFF") : "LEVEL " + std::to_string(level),
+					":/scanlines/scanlines_" + std::to_string(level) + ".png" });
+			window->pushGui(new GuiFramePicker(window, items, static_cast<size_t>(scanlines->getSelected()), 480, 270,
+				[scanlines](size_t index) { scanlines->select(static_cast<int>(index)); }));
+		});
+	}
+
+	s->addSaveFunc([smooth, scanlines]
+	{
+		const int smoothness = smooth->getSelected();
+		const int level = scanlines->getSelected();
+		Settings::getInstance()->setInt("DisplaySmoothness", smoothness);
+		Settings::getInstance()->setBool("DisplayCrtSmooth", smoothness == 3);
+		Settings::getInstance()->setInt("DisplayScanlineLevel", level);
+		Settings::getInstance()->setBool("DisplayCrtScanlines", level > 0);
+	});
 
 	const auto updateEffects = [mode, smooth, scanlines]
 	{
-		const bool enabled = mode->getSelected() != "crt-filter";
-		smooth->setEnabled(enabled);
-		scanlines->setEnabled(enabled);
+		const std::string selected = mode->getSelected();
+		const unsigned char opacity = selected != "crt-filter" && selected != "composite" ? 255 : 90;
+		smooth->setOpacity(opacity);
+		scanlines->setOpacity(opacity);
 	};
 	mode->setSelectedChangedCallback(updateEffects);
 	updateEffects();
