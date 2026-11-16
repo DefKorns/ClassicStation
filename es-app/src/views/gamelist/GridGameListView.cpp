@@ -210,12 +210,6 @@ bool GridGameListView::input(InputConfig* config, Input input)
 		return true;
 	}
 
-	if(input.value != 0 && config->isMappedTo("y", input))
-	{
-		cycleSort();
-		return true;
-	}
-
 	if(config->isMappedLike("left", input) || config->isMappedLike("right", input))
 		return GuiComponent::input(config, input);
 
@@ -648,10 +642,10 @@ std::vector<HelpPrompt> GridGameListView::getHelpPrompts()
 		prompts.push_back(HelpPrompt("b", "go to last saved game"));
 	else
 		prompts.push_back(HelpPrompt("b", mCursorStack.empty() ? "systems" : "back"));
-	if(hasExtraButtons())
-		prompts.push_back(HelpPrompt("y", "sort"));
-	else
+	if(!hasExtraButtons())
 		prompts.push_back(HelpPrompt("select", "options"));
+	else if(!UIModeController::getInstance()->isUIModeKid())
+		prompts.push_back(HelpPrompt("y", "favorite"));
 	if(!(UIModeController::getInstance()->isUIModeKid() && Settings::getInstance()->getBool("DisableKidStartMenu")))
 		prompts.push_back(HelpPrompt("start", "settings"));
 	return prompts;
@@ -668,19 +662,6 @@ void GridGameListView::onShow()
 	GuiComponent::onShow();
 	refreshFloating();
 	updateInfoPanel();
-}
-
-void GridGameListView::cycleSort()
-{
-	const std::vector<FileData::SortType>& types = FileSorts::SortTypes;
-	std::size_t next = 0;
-	for(std::size_t index = 0; index < types.size(); ++index)
-		if(types[index].description == mRoot->getSortDescription())
-			next = (index + 1) % types.size();
-
-	mRoot->sort(types[next]);
-	onFileChanged(mRoot, FILE_SORTED);
-	mWindow->setInfoPopup(new GuiInfoPopup(mWindow, "Sorted by " + types[next].description, 2000));
 }
 
 void GridGameListView::onFocusLost() {

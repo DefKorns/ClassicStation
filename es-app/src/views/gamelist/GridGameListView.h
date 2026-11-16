@@ -60,7 +60,6 @@ private:
 	void onFloatingChanged() override;
 	void setHeaderFocus(bool focus);
 	void openHeaderMenu();
-	void cycleSort();
 
 	TextComponent mLblRating, mLblReleaseDate, mLblDeveloper, mLblPublisher, mLblGenre, mLblPlayers, mLblLastPlayed, mLblPlayCount;
 
