@@ -688,11 +688,16 @@ void GuiMenu::openUISettings()
 	}
 
 	// theme options (subsets declared by the theme)
-	ComponentListRow themeOptionsRow;
-	themeOptionsRow.addElement(std::make_shared<TextComponent>(mWindow, "THEME OPTIONS", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
-	themeOptionsRow.addElement(makeArrow(mWindow), false);
-	themeOptionsRow.makeAcceptInputHandler([this, s] { openThemeOptions(s); });
-	s->addRow(themeOptionsRow);
+	const bool themeHasOptions = std::any_of(SystemData::sSystemVector.cbegin(), SystemData::sSystemVector.cend(),
+		[](SystemData* system) { return !system->getTheme()->getSubsets().empty(); });
+	if (themeHasOptions)
+	{
+		ComponentListRow themeOptionsRow;
+		themeOptionsRow.addElement(std::make_shared<TextComponent>(mWindow, "THEME OPTIONS", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+		themeOptionsRow.addElement(makeArrow(mWindow), false);
+		themeOptionsRow.makeAcceptInputHandler([this, s] { openThemeOptions(s); });
+		s->addRow(themeOptionsRow);
+	}
 
 	// GameList view style
 	auto gamelist_style = std::make_shared< OptionListComponent<std::string> >(mWindow, "GAMELIST VIEW STYLE", false);
