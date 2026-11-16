@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [classicmini]
+    branches: [classicstation, main]
     tags: ['v*']
     paths:
       - classicmini/**
