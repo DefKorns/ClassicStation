@@ -33,8 +33,4 @@ docker run --rm $user_opts -v "$repo:/src" -v "$repo/classicmini/out:/out" "$ima
   rm -f /out/libcrtfx.so
   arm-linux-gnueabihf-g++ -std=c++14 -O3 -Wall -Wextra -Werror -shared -fPIC -fno-builtin-floorf -fvisibility=hidden -static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL -o /out/libcrtfx.so /src/classicmini/tools/crtfx.cpp -pthread -ldl
   arm-linux-gnueabihf-strip /out/libcrtfx.so
-  for stage in 0 1 2 3 4 5; do
-    arm-linux-gnueabihf-g++ -std=c++14 -O3 -Wall -Wextra -Werror -shared -fPIC -fno-builtin-floorf -fvisibility=hidden -static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL -DCRTFX_STAGE=$stage -o /out/libcrtfx-$stage.so /src/classicmini/tools/crtfx.cpp -pthread -ldl
-    arm-linux-gnueabihf-strip /out/libcrtfx-$stage.so
-  done
-  ls -l /out/padstate /out/libcrtfx.so /out/libcrtfx-*.so'
+  ls -l /out/padstate /out/libcrtfx.so'

@@ -24,18 +24,12 @@
 #include <time.h>
 #include <unistd.h>
 
-#ifndef CRTFX_STAGE
-#define CRTFX_STAGE 5
-#endif
-
 #define CRTFX_EXPORT extern "C" __attribute__((visibility("default")))
 
 namespace {
 
 constexpr const char* kDefaultSession = "/var/lib/hakchi/emulationstation/crtfx.session";
-#if CRTFX_STAGE >= 3
 constexpr unsigned long kFbPanDisplay = 0x4606;
-#endif
 constexpr std::array<const char*, 2> kTargets{{"canoe-shvc", "kachikachi"}};
 
 struct Journal {
@@ -48,21 +42,15 @@ Journal gJournal{-1, PTHREAD_MUTEX_INITIALIZER, std::chrono::steady_clock::time_
 bool gActive = false;
 std::array<char, 160> gSessionPath;
 std::atomic<std::uint64_t> gFrames{0};
-#if CRTFX_STAGE >= 4
 std::atomic<std::uint64_t> gClaims{0};
-#endif
-#if CRTFX_STAGE >= 5
 std::uint64_t gFilterCapUs = 1500000;
 int gSlowLimit = 2;
 int gFilterLevel = 0;
 std::atomic<std::uint64_t> gFilterNs{0};
 std::atomic<bool> gFilterOff{false};
-#endif
-#if CRTFX_STAGE >= 5
 bool gMaskOn = false;
 std::atomic<bool> gMaskOff{false};
 std::atomic<std::uint64_t> gMaskNs{0};
-#endif
 std::atomic<unsigned> gLoggedGains{0};
 std::atomic<bool> gStop{false};
 
@@ -121,7 +109,6 @@ bool isTarget(const char* exe)
     return std::any_of(kTargets.begin(), kTargets.end(), [name](const char* target) { return std::strcmp(name, target) == 0; });
 }
 
-#if CRTFX_STAGE >= 2
 constexpr std::size_t kMaxSweep = 32;
 constexpr const char* kSweepTrigger = "/tmp/crtfx.go";
 
@@ -162,15 +149,12 @@ void sweepTick()
         journal("sweep profile %d: %.0f,%.0f,%.0f,%.0f", index, static_cast<double>(g[0]), static_cast<double>(g[1]), static_cast<double>(g[2]), static_cast<double>(g[3]));
     }
 }
-#endif
 
-#if CRTFX_STAGE >= 1
 long readNumber(const char* text, const char* key)
 {
     const char* found = std::strstr(text, key);
     return found != nullptr ? std::strtol(found + std::strlen(key), nullptr, 10) : -1;
 }
-#endif
 
 bool readSmall(const char* path, std::array<char, 1024>& out)
 {
@@ -198,27 +182,20 @@ void sessionOpen()
         return;
     }
     std::array<char, 64> text;
-    const int length = std::snprintf(text.data(), text.size(), "pid %d stage %d\n", static_cast<int>(::getpid()), CRTFX_STAGE);
+    const int length = std::snprintf(text.data(), text.size(), "pid %d\n", static_cast<int>(::getpid()));
     const ssize_t written = ::write(fd, text.data(), static_cast<std::size_t>(length));
     static_cast<void>(written);
     ::fdatasync(fd);
     ::close(fd);
 }
 
-#if CRTFX_STAGE >= 1
 void* heartbeat(void*)
 {
     std::uint64_t last_frames = 0;
-#if CRTFX_STAGE >= 4
     std::uint64_t last_claims = 0;
-#endif
-#if CRTFX_STAGE >= 5
     std::uint64_t last_filter_ns = 0;
-#if CRTFX_STAGE >= 5
     std::uint64_t last_mask_ns = 0;
-#endif
     int slow_seconds = 0;
-#endif
     while (!gStop.load()) {
         const timespec second{1, 0};
         ::nanosleep(&second, nullptr);
@@ -228,30 +205,23 @@ void* heartbeat(void*)
         const bool have_memory = logging && readSmall("/proc/meminfo", memory);
         const bool have_load = logging && readSmall("/proc/loadavg", load);
         const std::uint64_t frames = gFrames.load();
-#if CRTFX_STAGE >= 2
         if (gSweep.count > 0) {
             sweepTick();
         }
-#endif
         journal("beat frames %llu (+%llu) free %ld kB cached %ld kB load %.4s", static_cast<unsigned long long>(frames),
                 static_cast<unsigned long long>(frames - last_frames), have_memory ? readNumber(memory.data(), "MemFree:") : -1L,
                 have_memory ? readNumber(memory.data(), "Cached:") : -1L, have_load ? load.data() : "?");
-#if CRTFX_STAGE >= 4
         const std::uint64_t claims = gClaims.load();
         journal("claims %llu (+%llu)", static_cast<unsigned long long>(claims), static_cast<unsigned long long>(claims - last_claims));
         last_claims = claims;
-#endif
-#if CRTFX_STAGE >= 5
         const std::uint64_t filter_ns = gFilterNs.load();
         std::uint64_t spent_us = (filter_ns - last_filter_ns) / 1000;
         last_filter_ns = filter_ns;
-#if CRTFX_STAGE >= 5
         const std::uint64_t mask_ns = gMaskNs.load();
         const std::uint64_t mask_us = (mask_ns - last_mask_ns) / 1000;
         last_mask_ns = mask_ns;
         journal("mask %llu us in the last second", static_cast<unsigned long long>(mask_us));
         spent_us += mask_us;
-#endif
         journal("filter %llu us in the last second", static_cast<unsigned long long>(spent_us));
         const std::uint64_t frame_step = frames - last_frames;
         const bool mask_running = gMaskOn && !gMaskOff.load();
@@ -271,7 +241,6 @@ void* heartbeat(void*)
                 }
             }
         }
-#endif
         journalSync();
         last_frames = frames;
     }
@@ -289,9 +258,7 @@ void heartbeatStart()
     }
     pthread_attr_destroy(&attributes);
 }
-#endif
 
-#if CRTFX_STAGE >= 2
 struct CanoeBuild {
     std::uint64_t fingerprint;
     std::array<std::uintptr_t, 4> returns;
@@ -405,9 +372,7 @@ void sweepSelect()
     gSweep.delay = std::max(delay, 0);
     journal("sweep: %zu profiles, %d s each, waiting for %s", gSweep.count, gSweep.period, kSweepTrigger);
 }
-#endif
 
-#if CRTFX_STAGE >= 4
 struct ProbeSites {
     std::uint64_t fingerprint;
     std::uintptr_t first_claim;
@@ -499,9 +464,7 @@ void probeTask(const unsigned char* task)
     }
     probePixels(task);
 }
-#endif
 
-#if CRTFX_STAGE >= 5
 struct FilterLevel {
     int luma;
     int chroma_i;
@@ -735,9 +698,7 @@ void filterAround(const unsigned char* task, int claimed)
         ensureFiltered(base, static_cast<int>(width), line);
     }
 }
-#endif
 
-#if CRTFX_STAGE >= 5
 constexpr int kMaskMax = 1280;
 int gMaskOffPct = 60;
 int gMaskGainPct = 125;
@@ -753,7 +714,9 @@ std::atomic<bool> gMaskReady{false};
 std::atomic<bool> gGeometryDone{false};
 std::array<int, 3> gMaskMul{{0, 0, 0}};
 thread_local int tMaskLine = -1;
-thread_local const unsigned char* tMaskTask = nullptr;
+thread_local std::uint32_t tMaskDestination = 0;
+thread_local std::uint32_t tMaskSource = 0;
+thread_local std::uint32_t tMaskWidth = 0;
 
 void maskSelect()
 {
@@ -843,14 +806,8 @@ void maskGeometry(const unsigned char* task)
             static_cast<unsigned long long>(last_row_end), static_cast<unsigned>(gMaskEnd));
 }
 
-void maskLine(const unsigned char* task, int line)
+void maskLine(std::uint32_t destination, std::uint32_t source, std::uint32_t width, int line)
 {
-    std::uint32_t destination = 0;
-    std::uint32_t source = 0;
-    std::uint32_t width = 0;
-    std::memcpy(&destination, task + 4, sizeof destination);
-    std::memcpy(&source, task + 8, sizeof source);
-    std::memcpy(&width, task + 12, sizeof width);
     const std::uint64_t row_end = static_cast<std::uint64_t>(destination) + static_cast<std::uint64_t>(gMaskYoff + 3 * line + 1) * static_cast<std::uint64_t>(gMaskStride);
     if (width != 256 || source < 0x10000 || (source & 3U) != 0 || destination < gMaskBegin || row_end > gMaskEnd) {
         return;
@@ -884,15 +841,16 @@ void maskStep(const unsigned char* task, int claimed, std::uint64_t claims)
     if (!gGeometryDone.load(std::memory_order_relaxed) && claims >= 1000) {
         maskGeometry(task);
     }
-    if (tMaskLine >= 0 && tMaskTask != nullptr && gMaskReady.load(std::memory_order_relaxed) && !gMaskOff.load(std::memory_order_relaxed)) {
-        maskLine(tMaskTask, tMaskLine);
+    if (tMaskLine >= 0 && gMaskReady.load(std::memory_order_relaxed) && !gMaskOff.load(std::memory_order_relaxed)) {
+        maskLine(tMaskDestination, tMaskSource, tMaskWidth, tMaskLine);
     }
     std::uint32_t height = 0;
+    std::memcpy(&tMaskDestination, task + 4, sizeof tMaskDestination);
+    std::memcpy(&tMaskSource, task + 8, sizeof tMaskSource);
+    std::memcpy(&tMaskWidth, task + 12, sizeof tMaskWidth);
     std::memcpy(&height, task + 16, sizeof height);
-    tMaskTask = task;
     tMaskLine = (claimed >= 0 && claimed < static_cast<int>(height) && height <= 224) ? claimed : -1;
 }
-#endif
 
 }  // namespace
 
@@ -910,28 +868,18 @@ __attribute__((constructor)) static void onLoad()
         journalOpen(path);
     }
     gActive = true;
-    journal("loaded in %s pid %d stage %d", exe.data(), static_cast<int>(::getpid()), CRTFX_STAGE);
+    journal("loaded in %s pid %d", exe.data(), static_cast<int>(::getpid()));
     if (gJournal.fd >= 0) {
         sessionOpen();
     }
-#if CRTFX_STAGE >= 2
     identifyBuild(exe.data());
     selectBuild();
     gainsSelect();
     sweepSelect();
-#endif
-#if CRTFX_STAGE >= 4
     probeSelect();
-#endif
-#if CRTFX_STAGE >= 5
     filterSelect();
-#endif
-#if CRTFX_STAGE >= 5
     maskSelect();
-#endif
-#if CRTFX_STAGE >= 1
     heartbeatStart();
-#endif
     journalSync();
 }
 
@@ -946,7 +894,6 @@ __attribute__((destructor)) static void onUnload()
     ::unlink(gSessionPath.data());
 }
 
-#if CRTFX_STAGE >= 2
 CRTFX_EXPORT float floorf(float value) noexcept
 {
     using Fn = float (*)(float);
@@ -974,9 +921,7 @@ CRTFX_EXPORT float floorf(float value) noexcept
     }
     return real(value);
 }
-#endif
 
-#if CRTFX_STAGE >= 3
 CRTFX_EXPORT int ioctl(int fd, unsigned long request, ...)
 {
     using Fn = int (*)(int, unsigned long, void*);
@@ -990,9 +935,7 @@ CRTFX_EXPORT int ioctl(int fd, unsigned long request, ...)
     }
     return real(fd, request, argument);
 }
-#endif
 
-#if CRTFX_STAGE >= 4
 CRTFX_EXPORT int SDL_AtomicAdd(void* atomic, int value)
 {
     using Fn = int (*)(void*, int);
@@ -1014,16 +957,11 @@ CRTFX_EXPORT int SDL_AtomicAdd(void* atomic, int value)
     if ((claims & 0x3fff) == 0 && gPixelDumps.fetch_add(1) < 6) {
         probePixels(task);
     }
-#if CRTFX_STAGE >= 5
     if (gFilterLevel > 0 && !gFilterOff.load(std::memory_order_relaxed)) {
         filterAround(task, previous);
     }
-#endif
-#if CRTFX_STAGE >= 5
     if (gMaskOn) {
         maskStep(task, previous, claims);
     }
-#endif
     return previous;
 }
-#endif
