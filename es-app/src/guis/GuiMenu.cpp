@@ -179,6 +179,8 @@ void GuiMenu::openController()
 	configureRow.makeAcceptInputHandler([this] { openConfigInput(); });
 	s->addRow(configureRow);
 
+	addToggleRow("HOME COMBO", "clovercon home state", "clovercon home toggle");
+
 	addToggleRow("AUTOFIRE", "clovercon state autofire", "clovercon toggle autofire");
 
 	auto speed = std::make_shared< OptionListComponent<std::string> >(mWindow, "AUTOFIRE SPEED", false);
@@ -198,7 +200,6 @@ void GuiMenu::openController()
 	});
 
 	addToggleRow("X/Y AS TURBO A/B", "clovercon state autofire_xy", "clovercon toggle autofire_xy");
-	addToggleRow("HOME COMBO", "clovercon home state", "clovercon home toggle");
 	if (ConsoleTools::isOn("clovercon available fc_start"))
 		addToggleRow("START ON 2ND CONTROLLER", "clovercon state fc_start", "clovercon toggle fc_start");
 
@@ -521,6 +522,18 @@ void GuiMenu::openDisplaySettings()
 	scanlines->setState(Settings::getInstance()->getBool("DisplayCrtScanlines"));
 	s->addWithLabel("SCANLINES", scanlines);
 	s->addSaveFunc([scanlines] { Settings::getInstance()->setBool("DisplayCrtScanlines", scanlines->getState()); });
+
+	std::shared_ptr< OptionListComponent<std::string> > style;
+	const char* pad = std::getenv("ES_PAD");
+	if(pad != nullptr && std::string(pad) == "snes")
+	{
+		style = std::make_shared< OptionListComponent<std::string> >(mWindow, "SCANLINE STYLE", false);
+		const std::string currentStyle = Settings::getInstance()->getString("DisplayScanlineStyle");
+		style->add("STANDARD", "standard", currentStyle != "bright");
+		style->add("BRIGHT", "bright", currentStyle == "bright");
+		s->addWithLabel("SCANLINE STYLE", style);
+		s->addSaveFunc([style] { Settings::getInstance()->setString("DisplayScanlineStyle", style->getSelected()); });
+	}
 
 	const auto updateEffects = [mode, smooth, scanlines]
 	{
