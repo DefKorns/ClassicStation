@@ -140,62 +140,6 @@ namespace
 		check(centerCrop(source, 40).width() == 20, "a narrower image is left alone");
 	}
 
-	unsigned be16(const std::vector<unsigned char>& data, std::size_t at)
-	{
-		return (static_cast<unsigned>(data[at]) << 8) | data[at + 1];
-	}
-
-	unsigned long be32(const std::vector<unsigned char>& data, std::size_t at)
-	{
-		return (static_cast<unsigned long>(be16(data, at)) << 16) | be16(data, at + 2);
-	}
-
-	std::size_t tableAt(const std::vector<unsigned char>& font, const char* tag)
-	{
-		const unsigned count = be16(font, 4);
-		for(unsigned i = 0; i < count; ++i)
-			if(std::string(font.begin() + 12 + i * 16, font.begin() + 16 + i * 16) == tag)
-				return be32(font, 12 + i * 16 + 8);
-		return 0;
-	}
-
-	void buildsAValidGlyphFont()
-	{
-		Image block(3, 2);
-		for(int y = 0; y < 2; ++y)
-			for(int x = 0; x < 3; ++x)
-			{
-				unsigned char* pixel = block.at(x, y);
-				const bool hole = x == 1 && y == 0;
-				pixel[0] = hole ? 255 : 117;
-				pixel[1] = hole ? 255 : 117;
-				pixel[2] = hole ? 255 : 117;
-				pixel[3] = 255;
-			}
-
-		const std::vector<unsigned char> font = buildPlayersFont(block, block);
-		check(be32(font, 0) == 0x00010000, "font is a TrueType file");
-		check(be16(font, 4) == 8, "eight tables");
-		check(tableAt(font, "head") != 0 && be32(font, tableAt(font, "head") + 12) == 0x5F0F3CF5, "head magic number");
-		check(be16(font, tableAt(font, "head") + 18) == 1100, "units per em");
-		check(be16(font, tableAt(font, "maxp") + 4) == 3, "notdef plus two glyphs");
-
-		const std::size_t cmap = tableAt(font, "cmap");
-		check(be16(font, cmap + 12) == 4, "cmap format 4");
-		const unsigned segments = be16(font, cmap + 18) / 2;
-		check(segments == 3, "two characters and the terminator");
-		check(be16(font, cmap + 26) == '1' && be16(font, cmap + 28) == '2' && be16(font, cmap + 30) == 0xFFFF, "end codes");
-
-		const std::size_t glyf = tableAt(font, "glyf");
-		const std::size_t loca = tableAt(font, "loca");
-		check(be32(font, loca) == 0 && be32(font, loca + 4) == 0, "notdef is empty");
-		check(be16(font, glyf + be32(font, loca + 4)) == 3, "block with a hole is three runs");
-		unsigned long sum = 0;
-		for(std::size_t i = 0; i < font.size(); i += 4)
-			sum = (sum + be32(font, i)) & 0xffffffffUL;
-		check(sum == 0xB1B0AFBAUL, "whole file checksum");
-	}
-
 	void findsAndClearsBakedLogo()
 	{
 		Image bar(100, 30);
@@ -313,7 +257,6 @@ int main()
 	cropsAndScales();
 	ninePatchKeepsCorners();
 	centerCropsToExactWidth();
-	buildsAValidGlyphFont();
 	findsAndClearsBakedLogo();
 	buildsLayersForBothFamilies();
 

@@ -8,6 +8,7 @@
 #include "components/SuspendSlotsComponent.h"
 #include "components/PagedTextComponent.h"
 #include "views/gamelist/BasicGameListView.h"
+#include "views/gamelist/InfoLine.h"
 
 class DetailedGameListView : public BasicGameListView
 {
@@ -49,11 +50,7 @@ private:
 	TextComponent mInfo;
 	SuspendSlotsComponent mSlots;
 	PlayersIconComponent mPlayersIcon;
-	std::vector<std::string> mInfoFields;
-	std::string mInfoSeparator = " ";
-	std::string mPlayersOne = "player";
-	std::string mPlayersMany = "players";
-	std::string buildInfo(FileData* file) const;
+	InfoLine mInfoLine;
 
 	std::vector<TextComponent*> getMDLabels();
 	std::vector<GuiComponent*> getMDValues();

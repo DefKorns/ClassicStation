@@ -288,33 +288,22 @@ void ScreenScraperRequest::processGame(const pugi::xml_document& xmldoc, std::ve
 
 		if (media_list)
 		{
-			pugi::xml_node art = pugi::xml_node(NULL);
-
-			// Do an XPath query for media[type='$media_type'], then filter by region
-			// We need to do this because any child of 'medias' has the form
-			// <media type="..." region="..." format="...">
-			// and we need to find the right media for the region.
-			pugi::xpath_node_set results = media_list.select_nodes((static_cast<std::string>("media[@type='") + ssConfig.media_name + "']").c_str());
-
-			if (results.size())
+			const auto findArt = [&](const std::string& mediaName)
 			{
-				// Region fallback: WOR(LD), US, CUS(TOM?), JP, EU
-				for (auto _region : std::vector<std::string>{ region, "wor", "us", "cus", "jp", "eu" })
+				pugi::xml_node art;
+				const pugi::xpath_node_set results = media_list.select_nodes(("media[@type='" + mediaName + "']").c_str());
+				for (const auto& candidate : std::vector<std::string>{ region, "wor", "us", "cus", "jp", "eu" })
 				{
-					if (art)
-						break;
-
-					for (auto node : results)
+					for (const auto& node : results)
 					{
-						if (node.node().attribute("region").value() == _region)
-						{
-							art = node.node();
-							break;
-						}
+						if (node.node().attribute("region").value() == candidate)
+							return node.node();
 					}
 				}
-			} // results
+				return art;
+			};
 
+			const pugi::xml_node art = findArt(ssConfig.media_name);
 			if (art)
 			{
 				// Sending a 'softname' containing space will make the image URLs returned by the API also contain the space.
@@ -332,6 +321,14 @@ void ScreenScraperRequest::processGame(const pugi::xml_document& xmldoc, std::ve
 				LOG(LogDebug) << "Failed to find media XML node with name=" << ssConfig.media_name;
 			}
 
+			const pugi::xml_node wheel = findArt("wheel");
+			if (wheel)
+			{
+				result.marqueeUrl = Utils::String::replace(wheel.text().get(), " ", "%20");
+				const std::string wheelType = wheel.attribute("format").value();
+				if (!wheelType.empty())
+					result.marqueeType = "." + wheelType;
+			}
 		}
 
 		out_results.push_back(result);

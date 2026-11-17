@@ -32,6 +32,8 @@ struct ScraperSearchResult
 	MetaDataList mdl;
 	std::string imageUrl;
 	std::string thumbnailUrl;
+	std::string marqueeUrl;
+	std::string marqueeType;
 
 	// Needed to pre-set the image type
 	std::string imageType;

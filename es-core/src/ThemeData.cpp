@@ -83,6 +83,7 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "separator", STRING },
 		{ "playersOne", STRING },
 		{ "playersMany", STRING },
+		{ "breakAfter", FLOAT },
 		{ "suffixOne", STRING },
 		{ "value", STRING },
 		{ "visible", BOOLEAN },

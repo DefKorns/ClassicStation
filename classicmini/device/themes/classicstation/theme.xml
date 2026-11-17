@@ -3,7 +3,7 @@
 
 	<include>./console.xml</include>
 
-	<view name="basic, detailed, video, system, grid">
+	<view name="basic, detailed, system, grid">
 		<image name="background" extra="true">
 			<path>./background.png</path>
 			<pos>0 0</pos>
@@ -33,7 +33,7 @@
 		</helpsystem>
 	</view>
 
-	<view name="basic, detailed, video, grid">
+	<view name="basic, detailed, grid">
 		<image name="menubar_top" extra="true">
 			<path>./menubar_top.png</path>
 			<pos>0 -0.033333</pos>
@@ -190,7 +190,7 @@
 		</text>
 	</view>
 
-	<view name="basic, detailed, video">
+	<view name="basic, detailed">
 		<image name="row_1" extra="true">
 			<path>./list_row.png</path>
 			<pos>0.5375 0.1875</pos>
@@ -284,6 +284,15 @@
 			<zIndex>40</zIndex>
 		</playersicon>
 
+		<text name="md_code">
+			<pos>0.0344 0.7125</pos>
+			<size>0.2039 0.0417</size>
+			<fontSize>0.0236</fontSize>
+			<color>A8A8A8</color>
+			<alignment>center</alignment>
+			<zIndex>40</zIndex>
+		</text>
+
 		<text name="md_name">
 			<pos>0.2641 0.1597</pos>
 			<size>0.2383 0.0903</size>
@@ -318,6 +327,7 @@
 			<alignment>left</alignment>
 			<fields>releasedate publisher genre</fields>
 			<separator>  ·  </separator>
+			<breakAfter>2</breakAfter>
 			<zIndex>40</zIndex>
 		</text>
 

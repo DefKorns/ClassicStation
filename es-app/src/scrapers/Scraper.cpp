@@ -194,6 +194,18 @@ MDResolveHandle::MDResolveHandle(const ScraperSearchResult& result, const Scrape
 			mResult.imageUrl = "";
 		}));
 	}
+
+	if(!result.marqueeUrl.empty() && Settings::getInstance()->getBool("ScrapeMarquee"))
+	{
+		const std::string ext = result.marqueeType.empty() ? ".png" : result.marqueeType;
+		const std::string marqueePath = getSaveAsPath(search, "marquee", ext);
+
+		mFuncs.push_back(ResolvePair(downloadImageAsync(result.marqueeUrl, marqueePath), [this, marqueePath]
+		{
+			mResult.mdl.set("marquee", marqueePath);
+			mResult.marqueeUrl.clear();
+		}));
+	}
 }
 
 void MDResolveHandle::update()
@@ -358,6 +370,7 @@ bool isScrapedKeyEnabled(const std::string& key)
 		{ "name", "ScrapeName" },
 		{ "desc", "ScrapeDescription" },
 		{ "image", "ScrapeImage" },
+		{ "marquee", "ScrapeMarquee" },
 		{ "rating", "ScrapeRatings" },
 		{ "releasedate", "ScrapeDetails" },
 		{ "developer", "ScrapeDetails" },

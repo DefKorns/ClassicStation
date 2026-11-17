@@ -421,6 +421,7 @@ void GuiMenu::openScraperSettings()
 		{ "SCRAPE NAME", "ScrapeName" },
 		{ "SCRAPE DESCRIPTION", "ScrapeDescription" },
 		{ "SCRAPE COVER IMAGE", "ScrapeImage" },
+		{ "SCRAPE LOGO", "ScrapeMarquee" },
 		{ "SCRAPE DETAILS", "ScrapeDetails" },
 		{ "OVERWRITE EXISTING DATA", "ScrapeOverwrite" }
 	};

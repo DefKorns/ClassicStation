@@ -156,7 +156,6 @@ void DetailedGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& them
 
 	mCode.applyTheme(theme, getName(), "md_code", ALL ^ ThemeFlags::TEXT);
 
-	mInfoFields.clear();
 	const ThemeData::ThemeElement* info = theme->getElement(getName(), "md_info", "text");
 	mInfo.setVisible(info != nullptr);
 
@@ -172,20 +171,9 @@ void DetailedGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& them
 	if(info)
 	{
 		mInfo.applyTheme(theme, getName(), "md_info", ALL ^ ThemeFlags::TEXT);
-		if(info->has("fields"))
-		{
-			std::istringstream names(info->get<std::string>("fields"));
-			for(std::string name; names >> name;)
-				mInfoFields.push_back(name);
-		}
-		if(info->has("separator"))
-			mInfoSeparator = info->get<std::string>("separator");
-		if(info->has("playersOne"))
-			mPlayersOne = info->get<std::string>("playersOne");
-		if(info->has("playersMany"))
-			mPlayersMany = info->get<std::string>("playersMany");
+		mInfoLine.load(*info);
 		if(mList.size() > 0)
-			mInfo.setText(buildInfo(mList.getSelected()));
+			mInfo.setText(mInfoLine.build(*mList.getSelected()));
 	}
 
 	mDescription.applyTheme(theme, getName(), "md_description", ALL ^ (TEXT | ROTATION));
@@ -293,7 +281,7 @@ void DetailedGameListView::updateInfoPanel()
 		mPlayersIcon.setPlayers(file->metadata.get("players"));
 		mName.setValue(hasLogo ? std::string() : file->metadata.get("name"));
 		mCode.setText(file->getType() == GAME ? file->metadata.get("code") : std::string());
-		mInfo.setText(buildInfo(file));
+		mInfo.setText(mInfoLine.build(*file));
 		mSlots.setStates(suspendStates(file));
 
 		if(file->getType() == GAME)
@@ -335,25 +323,6 @@ void DetailedGameListView::updateInfoPanel()
 			comp->setAnimation(new LambdaAnimation(func, 150), 0, nullptr, fadingOut);
 		}
 	}
-}
-
-std::string DetailedGameListView::buildInfo(FileData* file) const
-{
-	std::string out;
-	for(const std::string& field : mInfoFields)
-	{
-		std::string value = file->metadata.get(field);
-		if(field == "releasedate")
-			value = (value.size() >= 4 && value != "not-a-date-time") ? value.substr(0, 4) : "";
-		else if(field == "players")
-			value = (value.empty() || value == "0") ? "" : value + " " + (value == "1" ? mPlayersOne : mPlayersMany);
-		else if(value == "unknown")
-			value.clear();
-		if(value.empty())
-			continue;
-		out += (out.empty() ? "" : mInfoSeparator) + value;
-	}
-	return out;
 }
 
 void DetailedGameListView::launch(FileData* game)

@@ -79,6 +79,7 @@ void Settings::setDefaults()
 	mBoolMap["ScrapeName"] = false;
 	mBoolMap["ScrapeDescription"] = true;
 	mBoolMap["ScrapeImage"] = false;
+	mBoolMap["ScrapeMarquee"] = true;
 	mBoolMap["ScrapeDetails"] = true;
 	mBoolMap["ScrapeOverwrite"] = false;
 	mBoolMap["IgnoreGamelist"] = false;
