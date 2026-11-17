@@ -1,0 +1,264 @@
+<theme>
+	<formatVersion>3</formatVersion>
+
+	<include>./console.xml</include>
+
+	<view name="basic, detailed, video, system, grid">
+		<image name="background" extra="true">
+			<path>./background.png</path>
+			<pos>0 0</pos>
+			<size>1 1</size>
+			<zIndex>0</zIndex>
+		</image>
+
+		<text name="logoText">
+			<pos>0 0.03</pos>
+			<size>1 0.08</size>
+			<fontSize>0.045</fontSize>
+			<color>FFFFFF</color>
+			<alignment>center</alignment>
+			<backgroundColor>00000000</backgroundColor>
+			<zIndex>50</zIndex>
+		</text>
+
+		<helpsystem name="help">
+			<pos>0.02 0.94</pos>
+			<textColor>FFFFFF</textColor>
+			<iconColor>FFFFFF</iconColor>
+			<fontSize>0.03</fontSize>
+		</helpsystem>
+	</view>
+
+	<view name="basic, detailed, video">
+		<image name="row_1" extra="true">
+			<path>./list_row.png</path>
+			<pos>0.2898 0.2139</pos>
+			<size>0.4203 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_2" extra="true">
+			<path>./list_row.png</path>
+			<pos>0.2898 0.2931</pos>
+			<size>0.4203 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_3" extra="true">
+			<path>./list_row.png</path>
+			<pos>0.2898 0.3723</pos>
+			<size>0.4203 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_4" extra="true">
+			<path>./list_row.png</path>
+			<pos>0.2898 0.4514</pos>
+			<size>0.4203 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_5" extra="true">
+			<path>./list_row.png</path>
+			<pos>0.2898 0.5306</pos>
+			<size>0.4203 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_6" extra="true">
+			<path>./list_row.png</path>
+			<pos>0.2898 0.6098</pos>
+			<size>0.4203 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_7" extra="true">
+			<path>./list_row.png</path>
+			<pos>0.2898 0.6889</pos>
+			<size>0.4203 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+
+		<textlist name="gamelist">
+			<pos>0.2867 0.2006</pos>
+			<size>0.4266 0.5819</size>
+			<horizontalMargin>0.0219</horizontalMargin>
+			<alignment>left</alignment>
+			<fontSize>0.0444</fontSize>
+			<lineSpacing>1.78</lineSpacing>
+			<fitMinScale>0.7</fitMinScale>
+			<primaryColor>1C1C1C</primaryColor>
+			<secondaryColor>1C1C1C</secondaryColor>
+			<selectedColor>FFFFFF</selectedColor>
+			<selectorImagePath>./list_selector.png</selectorImagePath>
+			<selectorColor>FFFFFF</selectorColor>
+			<selectorHeight>0.0806</selectorHeight>
+			<selectorOffsetY>-0.0069</selectorOffsetY>
+			<zIndex>20</zIndex>
+		</textlist>
+
+		<image name="md_image">
+			<pos>0.1445 0.5</pos>
+			<maxSize>0.25 0.45</maxSize>
+			<origin>0.5 0.5</origin>
+			<zIndex>30</zIndex>
+		</image>
+
+		<text name="md_description">
+			<pos>0.7227 0.2083</pos>
+			<size>0.2305 0.45</size>
+			<fontSize>0.0278</fontSize>
+			<lineSpacing>1.2</lineSpacing>
+			<color>FFFFFF</color>
+			<alignment>left</alignment>
+			<zIndex>40</zIndex>
+		</text>
+
+		<rating name="md_rating">
+			<pos>0.7227 0.72</pos>
+			<size>0.0703 0.025</size>
+			<filledPath>./rating_filled.png</filledPath>
+			<unfilledPath>./rating_empty.png</unfilledPath>
+			<zIndex>40</zIndex>
+		</rating>
+
+		<text name="md_lbl_rating, md_lbl_releasedate, md_lbl_developer, md_lbl_publisher, md_lbl_genre, md_lbl_players, md_lbl_lastplayed, md_lbl_playcount">
+			<pos>1 1</pos>
+			<size>0.1 0.05</size>
+		</text>
+
+		<text name="md_name, md_developer, md_publisher, md_genre, md_players, md_playcount">
+			<pos>1 1</pos>
+			<size>0.1 0.05</size>
+		</text>
+
+		<datetime name="md_releasedate, md_lastplayed">
+			<pos>1 1</pos>
+			<size>0.1 0.05</size>
+		</datetime>
+	</view>
+
+	<view name="system">
+		<carousel name="systemcarousel">
+			<type>horizontal</type>
+			<pos>0 0.3</pos>
+			<size>1 0.3</size>
+			<logoSize>0.26 0.2</logoSize>
+			<logoScale>1.2</logoScale>
+			<color>00000000</color>
+			<zIndex>40</zIndex>
+		</carousel>
+
+		<text name="systemInfo">
+			<pos>0 0.8</pos>
+			<size>1 0.08</size>
+			<fontSize>0.04</fontSize>
+			<color>FFFFFF</color>
+			<alignment>center</alignment>
+			<backgroundColor>00000000</backgroundColor>
+			<zIndex>50</zIndex>
+		</text>
+	</view>
+
+	<view name="grid">
+		<image name="menubar_top" extra="true">
+			<path>./menubar_top.png</path>
+			<pos>0 -0.038889</pos>
+			<size>1 0.166667</size>
+			<zIndex>5</zIndex>
+		</image>
+		<image name="menubar_bottom" extra="true">
+			<path>./menubar_bottom.png</path>
+			<pos>0 0.868056</pos>
+			<size>1 0.166667</size>
+			<zIndex>5</zIndex>
+		</image>
+		<image name="title_bar" extra="true">
+			<path>./title_bar.png</path>
+			<pos>0.1078 0.2153</pos>
+			<size>0.7844 0.0736</size>
+			<zIndex>10</zIndex>
+		</image>
+
+		<container name="menuIcons">
+			<pos>0.3172 0.0639</pos>
+			<size>0.3672 0.0611</size>
+		</container>
+
+		<image name="bar_logo" extra="true">
+			<path>./assets/systems/logos/${system.theme}.svg</path>
+			<color>${logoColor}</color>
+			<pos>0.0602 0.9194</pos>
+			<maxSize>0.35 0.0778</maxSize>
+			<origin>0 0.5</origin>
+			<zIndex>20</zIndex>
+		</image>
+
+		<text name="logoText">
+			<pos>1 1</pos>
+			<size>0.1 0.05</size>
+		</text>
+
+		<text name="md_name">
+			<pos>0.1078 0.2153</pos>
+			<size>0.7844 0.0736</size>
+			<fontSize>0.05</fontSize>
+			<color>FFFFFF</color>
+			<alignment>center</alignment>
+			<zIndex>20</zIndex>
+		</text>
+
+		<imagegrid name="gamegrid">
+			<pos>0 0.2444</pos>
+			<size>1 0.4528</size>
+			<margin>0.0133 0</margin>
+			<autoLayout>5 1</autoLayout>
+			<autoLayoutSelectedZoom>1.06</autoLayoutSelectedZoom>
+			<centerSelection>true</centerSelection>
+			<scrollLoop>true</scrollLoop>
+			<imageSource>image</imageSource>
+			<zIndex>30</zIndex>
+		</imagegrid>
+
+		<gridtile name="default">
+			<padding>0.0383 0.0847</padding>
+			<imageColor>FFFFFF</imageColor>
+			<backgroundCornerSize>0.04375 0.0847</backgroundCornerSize>
+			<backgroundCenterColor>FFFFFFFF</backgroundCenterColor>
+			<backgroundEdgeColor>FFFFFFFF</backgroundEdgeColor>
+			<backgroundImage>./card.png</backgroundImage>
+		</gridtile>
+
+		<gridtile name="selected">
+			<backgroundImage>./card_active.png</backgroundImage>
+		</gridtile>
+
+		<helpsystem name="help">
+			<pos>0.23 0.84</pos>
+		</helpsystem>
+
+		<image name="md_image">
+			<pos>1 1</pos>
+			<visible>false</visible>
+		</image>
+
+		<text name="md_description">
+			<pos>1 1</pos>
+			<size>0.1 0.05</size>
+		</text>
+
+		<text name="md_lbl_rating, md_lbl_releasedate, md_lbl_developer, md_lbl_publisher, md_lbl_genre, md_lbl_players, md_lbl_lastplayed, md_lbl_playcount">
+			<pos>1 1</pos>
+			<size>0.1 0.05</size>
+		</text>
+
+		<text name="md_developer, md_publisher, md_genre, md_players, md_playcount">
+			<pos>1 1</pos>
+			<size>0.1 0.05</size>
+		</text>
+
+		<datetime name="md_releasedate, md_lastplayed">
+			<pos>1 1</pos>
+			<size>0.1 0.05</size>
+		</datetime>
+
+		<rating name="md_rating">
+			<pos>1 1</pos>
+			<size>0.07 0.02</size>
+		</rating>
+	</view>
+</theme>

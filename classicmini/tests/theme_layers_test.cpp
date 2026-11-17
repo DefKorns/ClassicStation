@@ -131,6 +131,88 @@ namespace
 		check(threw, "insets without a centre throw");
 	}
 
+	void centerCropsToExactWidth()
+	{
+		const Image source = gradient(20, 4);
+		const Image cropped = centerCrop(source, 12);
+		check(cropped.width() == 12 && cropped.height() == 4, "centre crop size");
+		check(cropped.at(0, 0)[0] == 4 && cropped.at(11, 0)[0] == 15, "centre crop keeps the middle columns");
+		check(centerCrop(source, 40).width() == 20, "a narrower image is left alone");
+	}
+
+	void findsAndClearsBakedLogo()
+	{
+		Image bar(100, 30);
+		for(int y = 0; y < bar.height(); ++y)
+			for(int x = 0; x < bar.width(); ++x)
+			{
+				unsigned char* pixel = bar.at(x, y);
+				const bool logo = x >= 20 && x < 50 && y >= 5 && y < 13;
+				const bool slot = x >= 80 && y < 10;
+				pixel[0] = logo ? 200 : (slot ? 0 : 180);
+				pixel[1] = logo ? 30 : (slot ? 0 : 180);
+				pixel[2] = logo ? 20 : (slot ? 0 : 180);
+				pixel[3] = 255;
+			}
+
+		const Rect found = findBakedLogo(bar, 22, 60);
+		check(found.x == 20 && found.y == 5 && found.w == 30 && found.h == 8, "logo box found without the slot");
+		check(findBakedLogo(bar, 22, 10).w == 0, "no logo inside an empty area");
+
+		const std::string svg = logoSvg(bar, found);
+		check(svg.find("viewBox=\"0 0 30 8\"") != std::string::npos, "logo svg has the box size");
+		size_t rects = 0;
+		for(size_t at = svg.find("<rect"); at != std::string::npos; at = svg.find("<rect", at + 1))
+			++rects;
+		check(rects == 8, "a solid block is one run per row");
+
+		clearArea(bar, found);
+		check(bar.at(30, 8)[0] == 180 && bar.at(30, 8)[1] == 180, "logo pixels take the background colour");
+		check(bar.at(85, 5)[0] == 0, "the slot is left alone");
+	}
+
+	void buildsLayersForBothFamilies()
+	{
+		const Image sheet = gradient(250, 210);
+		Atlas atlas;
+		atlas["icon_Resume_on.png"] = Rect{0, 0, 6, 6};
+		atlas["icon_Resume_off.png"] = Rect{6, 0, 6, 6};
+		atlas["resume_card.png"] = Rect{0, 10, 64, 56};
+		atlas["caption_title.png"] = Rect{70, 10, 100, 22};
+		atlas["btn_init_on.png"] = Rect{0, 70, 152, 32};
+		atlas["game_card.png"] = Rect{0, 110, 82, 90};
+		atlas["game_card_active.png"] = Rect{90, 110, 82, 90};
+		atlas["menubar_U.png"] = Rect{0, 0, 120, 40};
+		atlas["menubar_L.png"] = Rect{0, 40, 120, 40};
+
+		for(const Family family : {Family::A, Family::B})
+		{
+			const std::vector<Layer> layers = buildLayers(sheet, atlas, family, Options{});
+			check(layers.size() == 9, "nine layers");
+			check(layers[0].name == "rating_filled" && layers[0].image.width() == 18 && layers[0].image.height() == 18, "rating icon scaled by 3");
+			check(layers[2].name == "list_row" && layers[2].image.width() == 538 && layers[2].image.height() == 57, "row frame size");
+			check(layers[3].name == "list_selector" && layers[3].image.width() == 546 && layers[3].image.height() == 66, "selector frame size");
+			check(layers[4].name == "title_bar" && layers[4].image.width() == 1004 && layers[4].image.height() == 53, "title bar size");
+			check(layers[5].name == "card" && layers[5].image.width() == 246 && layers[5].image.height() == 326, "card scaled by 3 with the extra top");
+			check(layers[7].name == "menubar_top" && layers[7].image.width() == 360 && layers[7].image.height() == 120, "menu bar scaled by 3");
+			check(layers[5].image.at(60, 80)[3] == 0 && layers[5].image.at(5, 100)[3] != 0, "card window is transparent and its border is not");
+		}
+
+		check(std::string(rowFrameSpec(Family::A).sprite) == "resume_card", "family A row frame");
+		check(std::string(rowFrameSpec(Family::B).sprite) == "caption_title", "family B row frame");
+
+		bool threw = false;
+		try
+		{
+			buildLayers(sheet, atlas, Family::Unknown, Options{});
+		}
+		catch(const std::invalid_argument&)
+		{
+			threw = true;
+		}
+		check(threw, "unknown family throws");
+	}
+
 	std::string readFile(const std::string& path)
 	{
 		std::ifstream stream(path, std::ios::binary);
@@ -151,8 +233,8 @@ namespace
 		const Atlas atlas = parseAtlas(json);
 		check(atlas.size() == count, (std::string("sprite count of ") + file).c_str());
 		check(detectFamily(atlas) == family, (std::string("family of ") + file).c_str());
-		for(const char* name : {"icon_Resume_on.png", "icon_Resume_off.png", "resume_card.png", "btn_init_on.png"})
-			check(atlas.count(name) == 1, (std::string(name) + " in " + file).c_str());
+		for(const std::string& name : requiredSprites(family))
+			check(atlas.count(name + ".png") == 1, (name + " in " + file).c_str());
 	}
 }
 
@@ -163,6 +245,9 @@ int main()
 	detectsFamilies();
 	cropsAndScales();
 	ninePatchKeepsCorners();
+	centerCropsToExactWidth();
+	findsAndClearsBakedLogo();
+	buildsLayersForBothFamilies();
 
 	if(const char* samples = std::getenv("THEME_ATLAS_SAMPLES"))
 	{

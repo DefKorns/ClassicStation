@@ -82,6 +82,14 @@ namespace theme_layers
 		int rowHeight = 57;
 		int selectorWidth = 546;
 		int selectorHeight = 66;
+		int titleWidth = 1004;
+		int titleHeight = 53;
+		int cardScale = 3;
+		Rect cardWindow{49, 5, 148, 204};
+		int cardExtraTop = 56;
+		int barScale = 3;
+		int screenWidth = 1280;
+		int background = -1;
 	};
 
 	inline Atlas parseAtlas(const std::string& json)
@@ -151,6 +159,13 @@ namespace theme_layers
 		return result;
 	}
 
+	inline Image centerCrop(const Image& source, int width)
+	{
+		if(width <= 0 || source.width() <= width)
+			return source;
+		return crop(source, Rect{(source.width() - width) / 2, 0, width, source.height()});
+	}
+
 	inline Image scale(const Image& source, int factor)
 	{
 		if(factor < 1)
@@ -201,20 +216,139 @@ namespace theme_layers
 		return crop(sheet, found->second);
 	}
 
-	inline std::vector<Layer> buildLayers(const Image& sheet, const Atlas& atlas, const Options& options)
+	inline bool differsFromBackground(const unsigned char* pixel, const unsigned char* background)
 	{
+		return std::abs(pixel[0] - background[0]) + std::abs(pixel[1] - background[1]) + std::abs(pixel[2] - background[2]) > 60;
+	}
+
+	inline std::string logoSvg(const Image& bar, const Rect& area)
+	{
+		std::string svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 " + std::to_string(area.w) + " " + std::to_string(area.h) + "\" shape-rendering=\"crispEdges\" fill=\"#FFFFFF\">\n";
+		for(int row = 0; row < area.h; ++row)
+		{
+			const unsigned char* background = bar.at(0, area.y + row);
+			int runStart = -1;
+			for(int column = 0; column <= area.w; ++column)
+			{
+				const bool lit = column < area.w && differsFromBackground(bar.at(area.x + column, area.y + row), background);
+				if(lit && runStart < 0)
+					runStart = column;
+				if(!lit && runStart >= 0)
+				{
+					svg += "<rect x=\"" + std::to_string(runStart) + "\" y=\"" + std::to_string(row) + "\" width=\"" + std::to_string(column - runStart) + "\" height=\"1\"/>\n";
+					runStart = -1;
+				}
+			}
+		}
+		return svg + "</svg>\n";
+	}
+
+	inline Rect findBakedLogo(const Image& bar, int rows, int xLimit)
+	{
+		const int limitX = std::min(xLimit, bar.width());
+		const int limitY = std::min(rows, bar.height());
+		int minX = limitX;
+		int maxX = -1;
+		int minY = limitY;
+		int maxY = -1;
+		for(int y = 0; y < limitY; ++y)
+		{
+			const unsigned char* background = bar.at(0, y);
+			for(int x = 0; x < limitX; ++x)
+			{
+				const unsigned char* pixel = bar.at(x, y);
+				if(!differsFromBackground(pixel, background))
+					continue;
+				minX = std::min(minX, x);
+				maxX = std::max(maxX, x);
+				minY = std::min(minY, y);
+				maxY = std::max(maxY, y);
+			}
+		}
+		return maxX < 0 ? Rect{0, 0, 0, 0} : Rect{minX, minY, maxX - minX + 1, maxY - minY + 1};
+	}
+
+	inline void clearArea(Image& image, const Rect& area)
+	{
+		for(int y = area.y; y < area.y + area.h; ++y)
+			for(int x = area.x; x < area.x + area.w; ++x)
+				std::copy_n(image.at(0, y), 4, image.at(x, y));
+	}
+
+	inline Image cardFrame(const Image& card, const Rect& window, int extraTop)
+	{
+		if(window.w <= 0 || window.h <= 0 || window.x < 0 || window.y < 0 || window.x + window.w > card.width() || window.y + window.h > card.height() || extraTop < 0)
+			throw std::out_of_range("card window outside the card");
+
+		Image result(card.width(), card.height() + extraTop);
+		for(int y = 0; y < card.height(); ++y)
+			std::copy_n(card.at(0, y), static_cast<std::size_t>(card.width()) * 4, result.at(0, y + extraTop));
+		for(int y = window.y; y < window.y + window.h; ++y)
+			for(int x = window.x; x < window.x + window.w; ++x)
+				std::fill_n(result.at(x, y + extraTop), 4, static_cast<unsigned char>(0));
+		return result;
+	}
+
+	struct FrameSpec
+	{
+		const char* sprite;
+		Insets insets;
+	};
+
+	inline FrameSpec rowFrameSpec(Family family)
+	{
+		return family == Family::B ? FrameSpec{"caption_title", Insets{7, 7, 7, 7}} : FrameSpec{"resume_card", Insets{4, 4, 4, 4}};
+	}
+
+	inline FrameSpec selectorFrameSpec()
+	{
+		return FrameSpec{"btn_init_on", Insets{6, 6, 6, 6}};
+	}
+
+	inline std::vector<std::string> requiredSprites(Family family)
+	{
+		return {"icon_Resume_on", "icon_Resume_off", rowFrameSpec(family).sprite, selectorFrameSpec().sprite, "caption_title", "game_card", "game_card_active", "menubar_U", "menubar_L"};
+	}
+
+	inline std::vector<Layer> buildLayers(const Image& sheet, const Atlas& atlas, Family family, const Options& options)
+	{
+		if(family == Family::Unknown)
+			throw std::invalid_argument("no layers for an unknown atlas family");
+
 		std::vector<Layer> layers;
+		if(options.background >= 0)
+		{
+			Image fill(16, 16);
+			for(int y = 0; y < fill.height(); ++y)
+				for(int x = 0; x < fill.width(); ++x)
+				{
+					unsigned char* pixel = fill.at(x, y);
+					pixel[0] = static_cast<unsigned char>((options.background >> 16) & 0xff);
+					pixel[1] = static_cast<unsigned char>((options.background >> 8) & 0xff);
+					pixel[2] = static_cast<unsigned char>(options.background & 0xff);
+					pixel[3] = 255;
+				}
+			layers.push_back({"background", fill});
+		}
 		layers.push_back({"rating_filled", scale(sprite(sheet, atlas, "icon_Resume_on"), options.iconScale)});
 		layers.push_back({"rating_empty", scale(sprite(sheet, atlas, "icon_Resume_off"), options.iconScale)});
 
-		const auto frame = [&](const char* name, const Insets& nativeInsets, int width, int height)
+		const auto frame = [&](const FrameSpec& spec, int width, int height)
 		{
-			const Image source = scale(sprite(sheet, atlas, name), options.frameScale);
-			const Insets insets{nativeInsets.left * options.frameScale, nativeInsets.top * options.frameScale, nativeInsets.right * options.frameScale, nativeInsets.bottom * options.frameScale};
+			const Image source = scale(sprite(sheet, atlas, spec.sprite), options.frameScale);
+			const Insets insets{spec.insets.left * options.frameScale, spec.insets.top * options.frameScale, spec.insets.right * options.frameScale, spec.insets.bottom * options.frameScale};
 			return ninePatch(source, insets, width, height);
 		};
-		layers.push_back({"list_row", frame("resume_card", Insets{4, 4, 4, 4}, options.rowWidth, options.rowHeight)});
-		layers.push_back({"list_selector", frame("btn_init_on", Insets{6, 6, 6, 6}, options.selectorWidth, options.selectorHeight)});
+		layers.push_back({"list_row", frame(rowFrameSpec(family), options.rowWidth, options.rowHeight)});
+		layers.push_back({"list_selector", frame(selectorFrameSpec(), options.selectorWidth, options.selectorHeight)});
+		layers.push_back({"title_bar", frame(FrameSpec{"caption_title", Insets{5, 5, 5, 5}}, options.titleWidth, options.titleHeight)});
+		layers.push_back({"card", cardFrame(scale(sprite(sheet, atlas, "game_card"), options.cardScale), options.cardWindow, options.cardExtraTop)});
+		layers.push_back({"card_active", cardFrame(scale(sprite(sheet, atlas, "game_card_active"), options.cardScale), options.cardWindow, options.cardExtraTop)});
+		layers.push_back({"menubar_top", centerCrop(scale(sprite(sheet, atlas, "menubar_U"), options.barScale), options.screenWidth)});
+		Image bottomBar = sprite(sheet, atlas, "menubar_L");
+		if(family == Family::A)
+			clearArea(bottomBar, findBakedLogo(bottomBar, 22, 340));
+		layers.push_back({"menubar_bottom", centerCrop(scale(bottomBar, options.barScale), options.screenWidth)});
 		return layers;
 	}
 }

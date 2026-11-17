@@ -34,6 +34,14 @@ namespace
 		return content.str();
 	}
 
+	void writeFile(const std::string& path, const std::string& content)
+	{
+		std::ofstream stream(path, std::ios::binary);
+		stream << content;
+		if(!stream)
+			throw std::runtime_error("cannot write " + path);
+	}
+
 	Image loadPng(const std::string& path)
 	{
 		std::vector<unsigned char> pixels;
@@ -74,7 +82,7 @@ namespace
 	int usage()
 	{
 		std::cerr << "usage: theme_layers info <atlas.json>\n"
-		             "       theme_layers layers <atlas.json> <atlas.png> <out_dir> [--icon-scale N] [--frame-scale N] [--row WxH] [--selector WxH]\n";
+		             "       theme_layers layers <atlas.json> <atlas.png> <out_dir> [--icon-scale N] [--frame-scale N] [--row WxH] [--selector WxH] [--background RRGGBB]\n";
 		return 2;
 	}
 
@@ -91,6 +99,7 @@ namespace
 			return usage();
 
 		Options options;
+		std::string consoleLogoPath;
 		for(int i = 5; i < argc; ++i)
 		{
 			const std::string flag = argv[i];
@@ -103,6 +112,10 @@ namespace
 				options.frameScale = std::atoi(value.c_str());
 			else if(flag == "--row" && parseSize(value, options.rowWidth, options.rowHeight))
 				continue;
+			else if(flag == "--console-logo")
+				consoleLogoPath = value;
+			else if(flag == "--background")
+				options.background = static_cast<int>(std::strtol(value.c_str(), nullptr, 16));
 			else if(flag == "--selector" && parseSize(value, options.selectorWidth, options.selectorHeight))
 				continue;
 			else
@@ -119,8 +132,17 @@ namespace
 		const Image sheet = loadPng(argv[3]);
 		const std::string outDir = argv[4];
 		makeDirectory(outDir);
-		for(const Layer& layer : buildLayers(sheet, atlas, options))
+		const Family family = detectFamily(atlas);
+		for(const Layer& layer : buildLayers(sheet, atlas, family, options))
 			savePng(outDir + "/" + layer.name + ".png", layer.image);
+
+		if(family == Family::A)
+		{
+			const Image bar = sprite(sheet, atlas, "menubar_L");
+			const Rect logo = findBakedLogo(bar, 22, 340);
+			if(logo.w > 0 && !consoleLogoPath.empty())
+				writeFile(consoleLogoPath, logoSvg(bar, logo));
+		}
 		return 0;
 	}
 }
