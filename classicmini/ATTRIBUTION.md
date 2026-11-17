@@ -2,59 +2,24 @@
 
 ## Fonts
 
-Both are licensed under the [SIL Open Font License 1.1](https://openfontlicense.org); each licence text sits next
-to its font.
+All licensed under the [SIL Open Font License 1.1](https://openfontlicense.org).
 
 - Noto Sans, by The Noto Project Authors (<https://github.com/notofonts/latin-greek-cyrillic>):
-  `device/resources/fallback_latin.ttf`, the Regular weight reduced to Latin Extended-A/B and Latin Extended
-  Additional, used as the fallback for accented letters such as macrons. The text on `device/resources/splash.png`,
-  `shutdown.png` and `restart.png` is rendered in Noto Sans Bold and Regular from the same project; the licence text
-  is `device/resources/OFL-NotoSans.txt`.
+  `device/resources/fallback_latin.ttf`, reduced to Latin Extended-A/B and Latin Extended Additional.
 - Noto Sans JP, by Adobe and The Noto Project Authors (<https://github.com/notofonts/noto-cjk>):
-  `device/resources/fallback_ja.ttf`, the fallback for Japanese glyphs. It is the variable font instantiated at
-  weight 400 and reduced to kana, punctuation and the JIS X 0208 kanji.
+  `device/resources/fallback_ja.ttf`, weight 400 reduced to kana, punctuation and the JIS X 0208 kanji.
+- Fredoka, by The Fredoka Project Authors (<https://github.com/hafontia/Fredoka-One>): the lettering of
+  `device/favorites.svg` and `device/other.svg`.
 
-## CA certificates
+## Third-party code and data
 
-`device/resources/cacert.pem` is the Mozilla CA certificate bundle as extracted by the curl project
-(<https://curl.se/docs/caextract.html>, licensed under the [Mozilla Public License 2.0](https://www.mozilla.org/MPL/2.0/)).
-It is not stored in the repository: the hmod build downloads it from <https://curl.se/ca/cacert.pem>, and for a
-manual deploy it has to be downloaded to that path first. The console has no certificate store, so the scrapers use
-it to verify HTTPS.
-
-## MP3 decoding
-
-`es-core/src/minimp3/` is minimp3 by lieff (<https://github.com/lieff/minimp3>), released under CC0 1.0; the
-licence text sits next to the headers.
-
-## Menu audio and covers
-
-The menu sound effects and the default background music are imported on the console from the firmware's own
-files at first run and are not shipped in this repository. Cover images are user data kept on the console in
-`/media/data/emulationstation/covers`; this repository ships only the alias table that maps console game codes to
-cover names, and a script to shrink covers.
-
-## Library generation
-
-The approach in `device/es-library.sh` of resolving every cover in a single `awk` pass (listing the covers folder
-and reading `aliases.txt` once) comes from code shared by DNA64 (<https://github.com/dna64>) to test the cover timings.
-
-## Icons
-
-The power and restart icons on `device/resources/shutdown.png` and `device/resources/restart.png` are the `power` and
-`rotate-cw` icons from [Lucide](https://lucide.dev), licensed under the [ISC License](https://lucide.dev/license).
-
-## Default theme
-
-The hmod ships the [es-theme-simple](https://github.com/RetroPie/es-theme-simple) theme by Nils Bonenberger,
-licensed under [CC BY-NC-SA](https://creativecommons.org/licenses/by-nc-sa/4.0/). It is not stored in the
-repository: `hmod/stage.sh` downloads it at a pinned commit and the hmod installs it on the SD card or USB stick,
-in `/media/data/emulationstation/themes/simple`. The theme folders for systems and collections it lacks are
-generated from `device/collection_theme.xml`, a copy of its Super Nintendo layout.
-
-`device/favorites.svg` is the word "FAVORITES" converted to outlines from [Fredoka](https://github.com/hafontia/Fredoka-One),
-by The Fredoka Project Authors under the [SIL Open Font License 1.1](https://openfontlicense.org), with the "O"
-replaced by an eye from the DefKorns logo.
+- minimp3 by lieff (<https://github.com/lieff/minimp3>), CC0 1.0: `es-core/src/minimp3/`.
+- Mozilla CA certificate bundle as extracted by the curl project (<https://curl.se/docs/caextract.html>),
+  [MPL 2.0](https://www.mozilla.org/MPL/2.0/): downloaded by the hmod build as `device/resources/cacert.pem`.
+- [es-theme-simple](https://github.com/RetroPie/es-theme-simple) by Nils Bonenberger,
+  [CC BY-NC-SA](https://creativecommons.org/licenses/by-nc-sa/4.0/): downloaded by `hmod/stage.sh`.
+- The single `awk` pass that resolves covers in `device/es-library.sh` comes from code shared by DNA64
+  (<https://github.com/dna64>).
 
 ## Trademarks
 
