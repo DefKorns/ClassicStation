@@ -94,15 +94,9 @@ resume=$2
 [ -n "$cmd" ] || exit 1
 if [ -d "$path" ]; then cd "$path" || exit 1; fi
 
+native=
+saved=
 if [ -n "$code" ]; then
-  out=$volatile/$code/suspendpoint0
-  for stale in "$volatile"/*/suspendpoint0; do
-    [ "$stale" = "$out" ] || rm -rf "$stale"
-  done
-  rm -rf "$out"
-  mkdir -p "$profile/$code" "$out/rollback"
-  suspend_dir=$profile/$code/suspendpoint$resume
-  native=
   case "$cmd" in
     *kachikachi*)
       case " $cmd " in
@@ -111,10 +105,24 @@ if [ -n "$code" ]; then
       esac
       ;;
   esac
+  out=$volatile/$code/suspendpoint0
+  floating=$volatile/$code/0
+  rm -rf "$volatile"/*/suspendpoint0
+  rm -f "$volatile"/*/0.state "$volatile"/*/0.state.png "$volatile"/*/0.state_time.txt
+  mkdir -p "$profile/$code" "$volatile/$code"
+  suspend_dir=$profile/$code/suspendpoint$resume
+  saved=$profile/$code/$resume
   if [ -n "$native" ]; then
-    cmd="$cmd --save-data-backing-file $profile/$code/cartridge.sram --save-screenshot-on-quit $out/state.png --save-on-quit $out/state"
-    [ -n "$resume" ] && cmd="$cmd --load-state-file $suspend_dir/state"
+    cmd="$cmd --save-data-backing-file $profile/$code/cartridge.sram --save-screenshot-on-quit $floating.state.png --save-on-quit $floating.state"
+    if [ -n "$resume" ]; then
+      if [ -f "$saved.state" ]; then
+        cmd="$cmd --load-state-file $saved.state"
+      else
+        cmd="$cmd --load-state-file $suspend_dir/state"
+      fi
+    fi
   else
+    mkdir -p "$out/rollback"
     cmd="$cmd --save-data-backing-file $profile/$code/cartridge.sram --title-code $code$(displayArgs)"
     cmd="$cmd --save-time-path $out/state.time --save-screenshot-on-quit $out/state.png"
     case "$cmd" in
@@ -135,4 +143,20 @@ mkdir -p "$shim"
 printf '#!/bin/sh\nexec retroarch-clover-child "$@"%s\n' "$(retroarchArgs)$(noFrameArg)" > "$shim/retroarch-clover"
 chmod +x "$shim/retroarch-clover"
 
+launched=$(cut -d. -f1 /proc/uptime)
 PATH="$shim:$PATH" sh -c "$cmd"
+status=$?
+if [ -n "$native" ] && [ -f "$floating.state" ]; then
+  played=$(($(cut -d. -f1 /proc/uptime) - launched))
+  if [ -n "$resume" ]; then
+    if [ -f "$saved.state" ]; then
+      previous=$(cat "$saved.state_time.txt" 2>/dev/null)
+    else
+      previous=$(cat "$suspend_dir/state.time" 2>/dev/null)
+    fi
+    case $previous in ''|*[!0-9]*) previous=0 ;; esac
+    played=$((played + previous))
+  fi
+  printf '%s' "$played" > "$floating.state_time.txt"
+fi
+exit $status
