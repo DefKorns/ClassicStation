@@ -1,5 +1,6 @@
 <theme>
 	<formatVersion>3</formatVersion>
+	<defaultView>grid</defaultView>
 
 	<include>./console.xml</include>
 
@@ -82,6 +83,38 @@
 			<fontSize>0.0311</fontSize>
 			<iconHeight>0.041667</iconHeight>
 		</helpsystem>
+
+		<image name="nandSpaceIcon">
+			<pos>0.859375 0.061111</pos>
+			<size>0.019531 0.034722</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>70</zIndex>
+		</image>
+
+		<text name="nandSpace">
+			<pos>0.871875 0.041667</pos>
+			<size>0.0625 0.038889</size>
+			<fontSize>0.0306</fontSize>
+			<color>FFFFFF</color>
+			<alignment>left</alignment>
+			<zIndex>70</zIndex>
+		</text>
+
+		<image name="diskSpaceIcon">
+			<pos>0.859375 0.105556</pos>
+			<size>0.019531 0.034722</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>70</zIndex>
+		</image>
+
+		<text name="diskSpace">
+			<pos>0.871875 0.086111</pos>
+			<size>0.0625 0.038889</size>
+			<fontSize>0.0306</fontSize>
+			<color>FFFFFF</color>
+			<alignment>left</alignment>
+			<zIndex>70</zIndex>
+		</text>
 
 		<helpsystem name="suspend_help">
 			<pos>0.5 0.929167</pos>
