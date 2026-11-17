@@ -611,15 +611,10 @@ void GuiMenu::openDisplaySettings()
 	int currentLevel = Settings::getInstance()->getInt("DisplayScanlineLevel");
 	if (currentLevel < 1 && Settings::getInstance()->getBool("DisplayCrtScanlines"))
 		currentLevel = 1;
-	if (famicom && currentLevel > 1)
-		currentLevel = 1;
 	auto scanlines = std::make_shared< OptionListComponent<int> >(mWindow, "SCANLINES", false);
 	scanlines->add("OFF", 0, currentLevel == 0);
-	if (famicom)
-		scanlines->add("ON", 1, currentLevel == 1);
-	else
-		for (int level = 1; level <= 4; ++level)
-			scanlines->add(scanlineName(level), level, currentLevel == level);
+	for (int level = 1; level <= 4; ++level)
+		scanlines->add(scanlineName(level), level, currentLevel == level);
 	s->addWithLabel("SCANLINES", scanlines);
 	if (!famicom)
 	{
