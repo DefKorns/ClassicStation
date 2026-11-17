@@ -502,6 +502,7 @@ void ViewController::render(const Transform4x4f& parentTrans)
 	getSystemListView()->render(trans);
 
 	// draw gamelists
+	bool drewView = false;
 	for(auto it = mGameListViews.cbegin(); it != mGameListViews.cend(); it++)
 	{
 		// clipping
@@ -510,11 +511,19 @@ void ViewController::render(const Transform4x4f& parentTrans)
 
 		if(guiEnd.x() >= viewStart.x() && guiEnd.y() >= viewStart.y() &&
 			guiStart.x() <= viewEnd.x() && guiStart.y() <= viewEnd.y())
+		{
 			it->second->render(trans);
+			drewView = true;
+		}
 	}
 
 	if(mWindow->peekGui() == this)
-		mWindow->renderHelpPromptsEarly();
+	{
+		if(drewView)
+			mWindow->renderHelpPromptsEarly();
+		else
+			mWindow->skipHelpPrompts();
+	}
 
 	// fade out
 	if(mFadeOpacity)

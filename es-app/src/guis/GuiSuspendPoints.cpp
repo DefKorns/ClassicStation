@@ -110,7 +110,7 @@ void GuiSuspendPoints::loadTheme(const std::shared_ptr<ThemeData>& theme, const 
 {
 	mTheme = theme;
 	mView = view;
-	constexpr unsigned int textProperties = ThemeFlags::COLOR | ThemeFlags::FONT_PATH | ThemeFlags::FONT_SIZE;
+	constexpr unsigned int textProperties = ThemeFlags::COLOR | ThemeFlags::FONT_PATH | ThemeFlags::FONT_SIZE | ThemeFlags::ALIGNMENT;
 	const float width = static_cast<float>(Renderer::getScreenWidth());
 	const float height = static_cast<float>(Renderer::getScreenHeight());
 
@@ -146,6 +146,9 @@ void GuiSuspendPoints::loadTheme(const std::shared_ptr<ThemeData>& theme, const 
 	mFrameTheme = boxRect("suspend_frame");
 	mFrameSelectedTheme = boxRect("suspend_frame_selected");
 	mLockTheme = rectOf("suspend_lock", "image");
+	if(const ThemeData::ThemeElement* lock = theme->getElement(view, "suspend_lock", "image"))
+		if(lock->has("path"))
+			mLock.setImage(lock->get<std::string>("path"));
 	mGaugeTheme = rectOf("suspend_gauge", "image");
 	mNextTheme = rectOf("suspend_cell_next", "image");
 	mGaugeColor = GaugeColor;
