@@ -9,6 +9,7 @@
 #include "SuspendPoints.h"
 
 #include <algorithm>
+#include <array>
 #include <cerrno>
 #include <cstddef>
 #include <cstdlib>
@@ -26,6 +27,9 @@ namespace
 {
 	constexpr const char* FloatingName = "suspendpoint0";
 	constexpr const char* LockedName = "es.locked";
+	constexpr const char* FileLockedSuffix = ".es_locked";
+	constexpr const char* SwapPrefix = "es-swap";
+	constexpr std::array<const char*, 4> FileSuffixes = { ".state", ".state.png", ".state_time.txt", FileLockedSuffix };
 	constexpr const char* StagingSuffix = ".new";
 	constexpr const char* SwapSuffix = ".swap";
 	constexpr const char* PreviousSuffix = ".old";
@@ -149,6 +153,37 @@ namespace
 			&& isFile(dir + "/state.time");
 	}
 
+	std::string filePrefix(const std::string& dir, int slot)
+	{
+		return dir + "/" + std::to_string(slot);
+	}
+
+	bool isFilesPoint(const std::string& dir, int slot)
+	{
+		const std::string prefix = filePrefix(dir, slot);
+		return isFile(prefix + ".state") && isFile(prefix + ".state.png");
+	}
+
+	bool hasFileContents(const std::string& prefix)
+	{
+		return std::any_of(FileSuffixes.begin(), FileSuffixes.end(),
+			[&prefix](const char* suffix) { return isFile(prefix + suffix); });
+	}
+
+	bool renameFiles(const std::string& from, const std::string& to)
+	{
+		for(const char* suffix : FileSuffixes)
+			if(isFile(from + suffix) && ::rename((from + suffix).c_str(), (to + suffix).c_str()) != 0)
+				return false;
+		return true;
+	}
+
+	bool removeFiles(const std::string& prefix)
+	{
+		return std::all_of(FileSuffixes.begin(), FileSuffixes.end(),
+			[&prefix](const char* suffix) { return ::unlink((prefix + suffix).c_str()) == 0 || errno == ENOENT; });
+	}
+
 	bool replaceDirectory(const std::string& from, const std::string& target)
 	{
 		const std::string previous = target + PreviousSuffix;
@@ -176,28 +211,49 @@ namespace
 			static_cast<void>(::rename(previous.c_str(), target.c_str()));
 	}
 
-	long readPlaytime(const std::string& dir)
+	long readNumber(const std::string& file)
 	{
-		std::ifstream in(dir + "/state.time");
+		std::ifstream in(file);
 		long value = 0;
 		in >> value;
 		return in ? value : 0;
 	}
 
-	SuspendPoint describe(const std::string& code, int slot, const std::string& dir)
+	SuspendPoint describe(const std::string& code, int slot, const std::string& dir, const std::string& gameDir)
 	{
 		SuspendPoint point;
-		if(!isValidPoint(dir))
-			return point;
-
-		point.valid = true;
 		point.slot = slot;
 		point.code = code;
-		point.dir = dir;
-		point.thumbnail = dir + "/state.png";
-		point.playtime = readPlaytime(dir);
-		point.locked = isFile(dir + "/" + LockedName);
-		return point;
+		if(isValidPoint(dir))
+		{
+			point.valid = true;
+			point.dir = dir;
+			point.thumbnail = dir + "/state.png";
+			point.playtime = readNumber(dir + "/state.time");
+			point.locked = isFile(dir + "/" + LockedName);
+			return point;
+		}
+		if(isFilesPoint(gameDir, slot))
+		{
+			const std::string prefix = filePrefix(gameDir, slot);
+			point.valid = true;
+			point.files = true;
+			point.dir = gameDir;
+			point.thumbnail = prefix + ".state.png";
+			point.playtime = readNumber(prefix + ".state_time.txt");
+			point.locked = isFile(prefix + FileLockedSuffix);
+			return point;
+		}
+		return SuspendPoint();
+	}
+
+	long pointTime(const SuspendPoint& point)
+	{
+		if(!point.files)
+			return modifiedTime(point.dir + "/state.time");
+		const std::string prefix = filePrefix(point.dir, point.slot);
+		const long stamped = modifiedTime(prefix + ".state_time.txt");
+		return stamped != 0 ? stamped : modifiedTime(prefix + ".state");
 	}
 
 	bool validSlot(int slot) noexcept
@@ -217,6 +273,11 @@ SuspendPoints SuspendPoints::fromEnvironment()
 		environmentOr("ES_SP_VOLATILE", "/var/cache/clover/volatile"));
 }
 
+std::string SuspendPoints::codeDir(const std::string& code, int slot) const
+{
+	return (slot == 0 ? mVolatileDir : mProfileDir) + "/" + code;
+}
+
 std::string SuspendPoints::slotDir(const std::string& code, int slot) const
 {
 	if(slot == 0)
@@ -231,11 +292,11 @@ SuspendPoint SuspendPoints::floating() const
 
 	for(const std::string& code : listDirectory(mVolatileDir))
 	{
-		SuspendPoint candidate = describe(code, 0, slotDir(code, 0));
+		SuspendPoint candidate = describe(code, 0, slotDir(code, 0), codeDir(code, 0));
 		if(!candidate.valid)
 			continue;
 
-		const long time = modifiedTime(candidate.dir + "/state.time");
+		const long time = pointTime(candidate);
 		if(!newest.valid || time > newestTime)
 		{
 			newestTime = time;
@@ -250,7 +311,7 @@ SuspendPoint SuspendPoints::get(const std::string& code, int slot) const
 	if(!validSlot(slot))
 		return SuspendPoint();
 	restoreInterrupted(slotDir(code, slot));
-	return describe(code, slot, slotDir(code, slot));
+	return describe(code, slot, slotDir(code, slot), codeDir(code, slot));
 }
 
 std::array<SuspendPoint, SuspendPoints::MaxSlots> SuspendPoints::slots(const std::string& code) const
@@ -266,7 +327,7 @@ SuspendPoints::SaveResult SuspendPoints::save(const std::string& code, int slot,
 	if(!validSlot(slot))
 		return SaveResult::BadSlot;
 
-	const SuspendPoint pending = describe(code, 0, slotDir(code, 0));
+	const SuspendPoint pending = describe(code, 0, slotDir(code, 0), codeDir(code, 0));
 	if(!pending.valid)
 		return floating().valid ? SaveResult::WrongGame : SaveResult::NoFloating;
 
@@ -280,8 +341,25 @@ SuspendPoints::SaveResult SuspendPoints::save(const std::string& code, int slot,
 	}
 
 	const std::string target = slotDir(code, slot);
+	if(!makeDirectories(mProfileDir + "/" + code))
+		return SaveResult::Failed;
+
+	if(pending.files)
+	{
+		const std::string from = filePrefix(pending.dir, 0);
+		const std::string to = filePrefix(codeDir(code, slot), slot);
+		static_cast<void>(::unlink((to + FileLockedSuffix).c_str()));
+		const bool moved = (!isFile(from + ".state_time.txt") || moveTree(from + ".state_time.txt", to + ".state_time.txt"))
+			&& moveTree(from + ".state.png", to + ".state.png")
+			&& moveTree(from + ".state", to + ".state");
+		if(!moved)
+			return SaveResult::Failed;
+		static_cast<void>(removeTree(target));
+		return SaveResult::Saved;
+	}
+
 	const std::string staging = target + StagingSuffix;
-	if(!makeDirectories(mProfileDir + "/" + code) || !removeTree(staging) || !moveTree(pending.dir, staging))
+	if(!removeTree(staging) || !moveTree(pending.dir, staging))
 		return SaveResult::Failed;
 
 	if(!replaceDirectory(staging, target))
@@ -289,12 +367,13 @@ SuspendPoints::SaveResult SuspendPoints::save(const std::string& code, int slot,
 		static_cast<void>(removeTree(staging));
 		return SaveResult::Failed;
 	}
+	static_cast<void>(removeFiles(filePrefix(codeDir(code, slot), slot)));
 	return SaveResult::Saved;
 }
 
 bool SuspendPoints::remove(const std::string& code, int slot) const
 {
-	return validSlot(slot) && removeTree(slotDir(code, slot));
+	return validSlot(slot) && removeTree(slotDir(code, slot)) && removeFiles(filePrefix(codeDir(code, slot), slot));
 }
 
 bool SuspendPoints::lock(const std::string& code, int slot) const
@@ -303,7 +382,7 @@ bool SuspendPoints::lock(const std::string& code, int slot) const
 	if(!point.valid)
 		return false;
 
-	const std::ofstream marker(point.dir + "/" + LockedName);
+	const std::ofstream marker(point.files ? filePrefix(point.dir, slot) + FileLockedSuffix : point.dir + "/" + LockedName);
 	return static_cast<bool>(marker);
 }
 
@@ -313,7 +392,8 @@ bool SuspendPoints::unlock(const std::string& code, int slot) const
 	if(!point.valid)
 		return false;
 
-	return ::unlink((point.dir + "/" + LockedName).c_str()) == 0 || errno == ENOENT;
+	const std::string marker = point.files ? filePrefix(point.dir, slot) + FileLockedSuffix : point.dir + "/" + LockedName;
+	return ::unlink(marker.c_str()) == 0 || errno == ENOENT;
 }
 
 bool SuspendPoints::swap(const std::string& code, int first, int second) const
@@ -321,29 +401,41 @@ bool SuspendPoints::swap(const std::string& code, int first, int second) const
 	if(first == second || !validSlot(first) || !validSlot(second))
 		return false;
 
-	const std::string a = slotDir(code, first);
-	const std::string b = slotDir(code, second);
-	const std::string spare = a + SwapSuffix;
+	struct Name { std::string directory; std::string prefix; };
+	const auto nameOf = [this, &code](int slot) { return Name{ slotDir(code, slot), filePrefix(codeDir(code, slot), slot) }; };
+	const auto holds = [](const Name& name) { return isDirectory(name.directory) || hasFileContents(name.prefix); };
+	const auto move = [](const Name& from, const Name& to)
+	{
+		if(isDirectory(from.directory) && ::rename(from.directory.c_str(), to.directory.c_str()) != 0)
+			return false;
+		return renameFiles(from.prefix, to.prefix);
+	};
 
-	const bool hasFirst = isDirectory(a);
-	const bool hasSecond = isDirectory(b);
+	const Name a = nameOf(first);
+	const Name b = nameOf(second);
+	const Name spare{ a.directory + SwapSuffix, codeDir(code, first) + "/" + SwapPrefix };
+
+	const bool hasFirst = holds(a);
+	const bool hasSecond = holds(b);
 	if(!hasFirst && !hasSecond)
 		return false;
 
-	if(hasFirst && ::rename(a.c_str(), spare.c_str()) != 0)
+	if(hasFirst && !move(a, spare))
 		return false;
 
-	if(hasSecond && ::rename(b.c_str(), a.c_str()) != 0)
+	if(hasSecond && !move(b, a))
 	{
 		if(hasFirst)
-			static_cast<void>(::rename(spare.c_str(), a.c_str()));
+			static_cast<void>(move(spare, a));
 		return false;
 	}
-	return !hasFirst || ::rename(spare.c_str(), b.c_str()) == 0;
+	return !hasFirst || move(spare, b);
 }
 
 bool SuspendPoints::discardFloating() const
 {
 	const SuspendPoint pending = floating();
-	return !pending.valid || removeTree(pending.dir);
+	if(!pending.valid)
+		return true;
+	return pending.files ? removeFiles(filePrefix(pending.dir, 0)) : removeTree(pending.dir);
 }

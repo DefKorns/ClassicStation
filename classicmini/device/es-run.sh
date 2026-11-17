@@ -17,6 +17,8 @@
 es_dir=/var/lib/hakchi/emulationstation
 source /etc/preinit
 script_init
+# shellcheck source=es-autofire.sh
+source "$es_dir/es-autofire.sh"
 
 export ES_PAD=snes
 [ "$sftype" = snes ] || ES_PAD=nes
@@ -31,8 +33,9 @@ stopPowerWatch(){
 }
 
 restore_ui=1
-trap '[ ! -f /tmp/es-stopping ] && stopPowerWatch; [ "$restore_ui" = 1 ] && [ ! -f /tmp/es-stopping ] && { type stockUistart >/dev/null 2>&1 && stockUistart || uistart; }' EXIT
+trap 'autofireForGames; [ ! -f /tmp/es-stopping ] && stopPowerWatch; [ "$restore_ui" = 1 ] && [ ! -f /tmp/es-stopping ] && { type stockUistart >/dev/null 2>&1 && stockUistart || uistart; }' EXIT
 uistop
+autofireForUi
 stopPowerWatch
 setsid sh "$es_dir/es-power-watch.sh" &
 echo $! > /run/es-power.pid

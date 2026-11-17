@@ -67,7 +67,7 @@ systemOf() {
     segacd) system=segacd ;;
     32x) system=sega32x ;;
     md) system=megadrive ;;
-    genesis*|picodrive*)
+    genesis*|picodrive*|m2engage)
       case $ext in
         sms) system=mastersystem ;;
         gg) system=gamegear ;;

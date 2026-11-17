@@ -46,6 +46,7 @@ applyCfg() {
   isValidName "$1" && isValidValue "$2" || return 1
   eval "cfg_clovercon_$1='$2'"
   save_config
+  case $1 in autofire|autofire_xy) return 0 ;; esac
   param_file="/sys/module/clovercon/parameters/$1"
   [ -w "$param_file" ] && echo "$2" > "$param_file"
 }

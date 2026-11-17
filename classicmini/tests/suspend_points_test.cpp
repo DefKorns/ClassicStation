@@ -48,6 +48,22 @@ namespace
 		std::ofstream(dir + "/state.png") << "png";
 		std::ofstream(dir + "/state.time") << playtime;
 	}
+
+	void makeFilesPoint(const std::string& dir, int slot, const std::string& playtime)
+	{
+		run("mkdir -p '" + dir + "'");
+		const std::string prefix = dir + "/" + std::to_string(slot);
+		std::ofstream(prefix + ".state") << "state of " << prefix;
+		std::ofstream(prefix + ".state.png") << "png";
+		if(!playtime.empty())
+			std::ofstream(prefix + ".state_time.txt") << playtime;
+	}
+
+	bool exists(const std::string& path)
+	{
+		struct stat info;
+		return ::stat(path.c_str(), &info) == 0;
+	}
 }
 
 int main()
@@ -113,6 +129,54 @@ int main()
 
 	makePoint(vol + "/CLV-A/suspendpoint0", "1");
 	check(points.discardFloating() && !points.floating().valid, "discard floating");
+
+	makeFilesPoint(vol + "/CLV-S", 0, "15");
+	const SuspendPoint stockFloating = points.floating();
+	check(stockFloating.valid && stockFloating.files && stockFloating.code == "CLV-S" && stockFloating.playtime == 15, "floating in the stock file layout");
+	check(points.save("CLV-S", 1, SuspendPoints::SaveMode::KeepExisting) == SuspendPoints::SaveResult::Saved, "save a file-layout point");
+	check(!exists(vol + "/CLV-S/0.state") && !exists(vol + "/CLV-S/0.state.png") && !exists(vol + "/CLV-S/0.state_time.txt"), "floating files consumed");
+	const SuspendPoint filed = points.get("CLV-S", 1);
+	check(filed.valid && filed.files && filed.playtime == 15, "file-layout slot readable");
+	check(filed.thumbnail == profile + "/CLV-S/1.state.png", "file-layout thumbnail path");
+	check(exists(profile + "/CLV-S/1.state") && exists(profile + "/CLV-S/1.state.png") && exists(profile + "/CLV-S/1.state_time.txt"), "stock file names in the profile");
+	check(!isDirectory(profile + "/CLV-S/suspendpoint1"), "no directory made for a file-layout point");
+
+	makeFilesPoint(profile + "/CLV-T", 2, "11");
+	const auto stockSlots = points.slots("CLV-T");
+	check(!stockSlots[0].valid && stockSlots[1].valid && stockSlots[1].files && stockSlots[1].playtime == 11, "slots() reads a point made by the stock menu");
+	makeFilesPoint(profile + "/CLV-T", 3, "");
+	check(points.get("CLV-T", 3).valid && points.get("CLV-T", 3).playtime == 0, "missing state_time.txt gives a zero play time");
+
+	makeFilesPoint(vol + "/CLV-S", 0, "40");
+	check(points.save("CLV-S", 1, SuspendPoints::SaveMode::KeepExisting) == SuspendPoints::SaveResult::Occupied, "file-layout slot occupied");
+	check(points.lock("CLV-S", 1) && points.get("CLV-S", 1).locked && exists(profile + "/CLV-S/1.es_locked"), "lock a file-layout slot");
+	check(points.save("CLV-S", 1, SuspendPoints::SaveMode::Overwrite) == SuspendPoints::SaveResult::Locked, "locked file-layout slot refuses overwrite");
+	check(points.unlock("CLV-S", 1) && !points.get("CLV-S", 1).locked && !exists(profile + "/CLV-S/1.es_locked"), "unlock a file-layout slot");
+	check(points.save("CLV-S", 1, SuspendPoints::SaveMode::Overwrite) == SuspendPoints::SaveResult::Saved && points.get("CLV-S", 1).playtime == 40, "overwrite a file-layout slot");
+
+	makeFilesPoint(vol + "/CLV-S", 0, "60");
+	check(points.save("CLV-S", 2, SuspendPoints::SaveMode::KeepExisting) == SuspendPoints::SaveResult::Saved, "second file-layout slot");
+	check(points.swap("CLV-S", 1, 2) && points.get("CLV-S", 1).playtime == 60 && points.get("CLV-S", 2).playtime == 40, "swap two file-layout slots");
+	check(points.swap("CLV-S", 2, 4) && !points.get("CLV-S", 2).valid && points.get("CLV-S", 4).playtime == 40, "move a file-layout slot into an empty one");
+	makePoint(profile + "/CLV-S/suspendpoint3", "300");
+	check(points.swap("CLV-S", 3, 4) && points.get("CLV-S", 3).files && points.get("CLV-S", 3).playtime == 40 && !points.get("CLV-S", 4).files && points.get("CLV-S", 4).playtime == 300, "swap a directory slot with a file slot");
+
+	makePoint(vol + "/CLV-S/suspendpoint0", "900");
+	check(points.save("CLV-S", 1, SuspendPoints::SaveMode::Overwrite) == SuspendPoints::SaveResult::Saved, "directory point over a file slot");
+	check(!points.get("CLV-S", 1).files && points.get("CLV-S", 1).playtime == 900 && !exists(profile + "/CLV-S/1.state"), "file slot replaced by a directory point");
+	makeFilesPoint(vol + "/CLV-S", 0, "42");
+	check(points.save("CLV-S", 1, SuspendPoints::SaveMode::Overwrite) == SuspendPoints::SaveResult::Saved, "file point over a directory slot");
+	check(points.get("CLV-S", 1).files && points.get("CLV-S", 1).playtime == 42 && !isDirectory(profile + "/CLV-S/suspendpoint1"), "directory slot replaced by a file point");
+
+	check(points.remove("CLV-S", 1) && !points.get("CLV-S", 1).valid && !exists(profile + "/CLV-S/1.state.png"), "remove a file-layout slot");
+	makeFilesPoint(vol + "/CLV-S", 0, "1");
+	check(points.discardFloating() && !points.floating().valid && !exists(vol + "/CLV-S/0.state"), "discard a file-layout floating point");
+
+	makePoint(vol + "/CLV-OLD/suspendpoint0", "5");
+	run("touch -d '2026-01-01 00:00:00' '" + vol + "/CLV-OLD/suspendpoint0/state.time'");
+	makeFilesPoint(vol + "/CLV-NEW", 0, "6");
+	check(points.floating().code == "CLV-NEW", "the newest floating point wins across layouts");
+	check(points.discardFloating() && points.floating().code == "CLV-OLD" && points.discardFloating(), "discard walks through both layouts");
 
 	run("rm -rf '" + root + "'");
 	if(failures == 0)
