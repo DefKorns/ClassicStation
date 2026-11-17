@@ -267,7 +267,7 @@ void GuiMenu::openDeveloper()
 				"OVERCLOCK RAISES THE CPU TO ITS MAXIMUM FREQUENCY.\n\n"
 				"USE AT YOUR OWN RISK. IT MAY NOT WORK ON EVERY CONSOLE AND CAN CAUSE CRASHES OR REBOOTS, "
 				"ESPECIALLY WITH A WEAK POWER SUPPLY (5V/2A OR MORE RECOMMENDED) OR USB DEVICES ATTACHED.\n\n"
-				"IT STAYS ON UNTIL YOU TURN IT OFF OR RESTART THE CONSOLE.\n\n"
+				"IT STAYS ON UNTIL YOU TURN IT OFF OR RESTART THE CONSOLE, AND TURNS OFF BY ITSELF AT 80 C.\n\n"
 				"ENABLE OVERCLOCK?",
 				"YES", [] { ConsoleTools::run("overclock toggle"); },
 				"NO", [overclockSwitch] { overclockSwitch->setState(false); });
@@ -275,6 +275,28 @@ void GuiMenu::openDeveloper()
 			window->pushGui(confirm);
 		});
 		s->addWithLabel("OVERCLOCK", overclockToggle);
+
+		auto autoToggle = std::make_shared<SwitchComponent>(mWindow, ConsoleTools::isOn("overclock auto state"));
+		SwitchComponent* autoSwitch = autoToggle.get();
+		autoToggle->setChangedCallback([window, autoSwitch](bool enabled) {
+			if (!enabled)
+			{
+				ConsoleTools::run("overclock auto toggle");
+				return;
+			}
+			auto confirm = new GuiMsgBox(window,
+				"OVERCLOCK TURNS ON BY ITSELF ONLY WHILE YOU PLAY N64, PS1, ARCADE, DS, PSP OR GBA GAMES, "
+				"AND GOES BACK TO NORMAL WHEN YOU LEAVE THE GAME.\n\n"
+				"USE AT YOUR OWN RISK. IT MAY NOT WORK ON EVERY CONSOLE AND CAN CAUSE CRASHES OR REBOOTS, "
+				"ESPECIALLY WITH A WEAK POWER SUPPLY (5V/2A OR MORE RECOMMENDED) OR USB DEVICES ATTACHED. "
+				"IT TURNS OFF BY ITSELF AT 80 C.\n\n"
+				"ENABLE OVERCLOCK IN HEAVY GAMES?",
+				"YES", [] { ConsoleTools::run("overclock auto toggle"); },
+				"NO", [autoSwitch] { autoSwitch->setState(false); });
+			confirm->selectButton(1);
+			window->pushGui(confirm);
+		});
+		s->addWithLabel("OVERCLOCK IN HEAVY GAMES", autoToggle);
 	}
 
 	if (ConsoleTools::isOn("swap available"))
@@ -324,8 +346,16 @@ void GuiMenu::openDeveloper()
 	}
 
 	s->addWithLabel("MEMORY", std::make_shared<TextComponent>(mWindow, ConsoleTools::run("swap info"), Font::get(FONT_SIZE_MENU), MenuColors::Dim, ALIGN_RIGHT));
+	s->addWithLabel("TEMPERATURE", std::make_shared<TextComponent>(mWindow, ConsoleTools::run("temperature"), Font::get(FONT_SIZE_MENU), MenuColors::Dim, ALIGN_RIGHT));
 
 	mWindow->pushGui(s);
+
+	const std::string cutoffTemperature = ConsoleTools::run("overclock cutoff");
+	if (!cutoffTemperature.empty())
+		mWindow->pushGui(new GuiMsgBox(mWindow,
+			"OVERCLOCK WAS TURNED OFF BY ITSELF BECAUSE THE CPU REACHED " + cutoffTemperature + " C.\n\n"
+			"LET THE CONSOLE COOL DOWN BEFORE TURNING IT ON AGAIN.",
+			"OK", nullptr));
 }
 
 void GuiMenu::openAbout()

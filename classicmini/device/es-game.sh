@@ -22,6 +22,8 @@ settings_file=$(dirname "$0")/home/.emulationstation/es_settings.cfg
 # shellcheck source=es-autofire.sh
 source "$(dirname "$0")/es-autofire.sh"
 
+heavy_cores="mupen64*|parallel_n64*|glupen64*|ludicrousn64*|pcsx*|mednafen_psx*|mame*|fbalpha*|fbneo*|desmume*|melonds*|drastic*|ppsspp*|mgba*|gpsp*"
+
 esSetting() {
   sed -n "s|^<[a-z]* name=\"$1\" value=\"\([^\"]*\)\" */>.*|\1|p" "$settings_file" 2>/dev/null | head -n 1
 }
@@ -101,6 +103,12 @@ nesDisplayArgs() {
     *) printf ' --graphic-filter gpu720' ;;
   esac
   [ "$(scanlinesOn)" = true ] && printf ' --enable-crt-scanlines'
+}
+
+overclockShimLine() {
+  [ -f "$(dirname "$0")/overclock_auto" ] || return 0
+  # shellcheck disable=SC2016 # the expansion belongs to the generated shim
+  printf 'case "${1#km_}" in %s) set -- "$@" --overclock ;; esac' "$heavy_cores"
 }
 
 noFrameArg() {
@@ -275,7 +283,7 @@ fi
 
 clearRetroarchFrame
 mkdir -p "$shim"
-printf '#!/bin/sh\nexec retroarch-clover-child "$@"%s\n' "$(retroarchArgs)$(noFrameArg)" > "$shim/retroarch-clover"
+printf '#!/bin/sh\n%s\nexec retroarch-clover-child "$@"%s\n' "$(overclockShimLine)" "$(retroarchArgs)$(noFrameArg)" > "$shim/retroarch-clover"
 chmod +x "$shim/retroarch-clover"
 
 canoeShim

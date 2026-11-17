@@ -30,6 +30,8 @@ drawSplash(){
 stopPowerWatch(){
   [ -f /run/es-power.pid ] && kill -TERM -- "-$(cat /run/es-power.pid)" 2>/dev/null
   rm -f /run/es-power.pid
+  [ -f /run/es-thermal.pid ] && kill -TERM -- "-$(cat /run/es-thermal.pid)" 2>/dev/null
+  rm -f /run/es-thermal.pid
 }
 
 restore_ui=1
@@ -39,6 +41,8 @@ autofireForUi
 stopPowerWatch
 setsid sh "$es_dir/es-power-watch.sh" &
 echo $! > /run/es-power.pid
+setsid sh "$es_dir/es-thermal-watch.sh" &
+echo $! > /run/es-thermal.pid
 mkdir -p "$es_dir/home/.emulationstation"
 for cfg in es_settings.cfg es_input.cfg; do
   [ -f "$es_dir/home/.emulationstation/$cfg" ] || cp "$es_dir/defaults/$cfg" "$es_dir/home/.emulationstation/"

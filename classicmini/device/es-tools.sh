@@ -269,6 +269,15 @@ case "$1" in
     case "$2" in
       available) printState overclockAvailable ;;
       state) printState overclockActive ;;
+      auto)
+        case "$3" in
+          state) printState test -f "$es_dir/overclock_auto" ;;
+          toggle) if [ -f "$es_dir/overclock_auto" ]; then rm -f "$es_dir/overclock_auto"; else touch "$es_dir/overclock_auto"; fi ;;
+        esac
+        ;;
+      cutoff)
+        [ -f /tmp/es-oc-cutoff ] && { cat /tmp/es-oc-cutoff; rm -f /tmp/es-oc-cutoff; }
+        ;;
       toggle)
         overclockAvailable || exit 1
         if overclockActive; then
@@ -314,6 +323,9 @@ case "$1" in
         free -m | awk '/buffers\/cache/ { free = $4 } /^Swap/ { used = $3; total = $2 } END { printf "%s MB free, swap %s / %s MB\n", free, used, total }'
         ;;
     esac
+    ;;
+  temperature)
+    printf "%s C, %s MHz\n" "$(cat /sys/class/thermal/thermal_zone0/temp)" "$(($(cat "$cpu_freq_dir/scaling_cur_freq") / 1000))"
     ;;
   audio)
     case "$2" in
