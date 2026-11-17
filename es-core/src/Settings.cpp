@@ -112,6 +112,7 @@ void Settings::setDefaults()
 	mBoolMap["DisplayCrtScanlines"] = false;
 	mStringMap["DisplayFilter"] = "";
 	mIntMap["DisplayScanlineLevel"] = 0;
+	mIntMap["DisplayCrtSharp"] = 0;
 	mIntMap["DisplaySmoothness"] = 0;
 	mStringMap["GamelistViewStyle"] = "automatic";
 	mStringMap["SaveGamelistsMode"] = "on exit";

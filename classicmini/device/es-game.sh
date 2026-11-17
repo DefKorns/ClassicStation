@@ -100,7 +100,8 @@ nesDisplayArgs() {
     crt-filter) printf ' --graphic-filter crt720 --enable-crt-scanlines'; return ;;
     *) printf ' --graphic-filter gpu720' ;;
   esac
-  [ "$(scanlinesOn)" = true ] && printf ' --enable-crt-scanlines'
+  { [ "$(scanlinesOn)" = true ] || [ "$(filterName)" = phosphor ]; } && printf ' --enable-crt-scanlines'
+  return 0
 }
 
 noFrameArg() {
@@ -157,7 +158,12 @@ crtfxEnv() {
     *) return 0 ;;
   esac
   crtfxJournalEnv
-  [ "$(esSetting DisplayMode)" != crt-filter ] || return 0
+  if [ "$(esSetting DisplayMode)" = crt-filter ]; then
+    [ -z "$canoe" ] && [ "$(esSetting DisplayCrtSharp)" = 1 ] && [ -f "$es_dir/libcrtfx.so" ] || return 0
+    export LD_PRELOAD="$es_dir/libcrtfx.so"
+    export CRTFX_SHARP=1
+    return 0
+  fi
   case "$canoe$(filterName)" in
     1composite|1phosphor)
       [ -f "$es_dir/libcrtfx.so" ] || return 0
@@ -170,6 +176,14 @@ crtfxEnv() {
       ;;
   esac
   level=$(scanlineLevel)
+  if [ -z "$canoe" ] && [ "$(filterName)" = phosphor ]; then
+    [ -f "$es_dir/libcrtfx.so" ] || return 0
+    export LD_PRELOAD="$es_dir/libcrtfx.so"
+    gains=$(scanlineGains 3)
+    export CRTFX_GAINS="$gains"
+    export CRTFX_MASK=60
+    return 0
+  fi
   [ "$level" -ge 2 ] || return 0
   gains=$(scanlineGains "$level")
   [ -f "$es_dir/libcrtfx.so" ] && [ -n "$gains" ] || return 0

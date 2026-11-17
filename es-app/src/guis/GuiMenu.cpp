@@ -535,23 +535,36 @@ void GuiMenu::openDisplaySettings()
 		if (Utils::FileSystem::isDirectory(dir))
 			frameNames.push_back(Utils::FileSystem::getFileName(dir));
 
-	auto bezel = std::make_shared< OptionListComponent<std::string> >(mWindow, "BEZEL", false);
-	const std::string currentBezel = Settings::getInstance()->getString("DisplayFrame");
-	for (const auto& name : frameNames)
-		bezel->add(name.empty() ? std::string("NONE") : Utils::String::toUpper(name), name, name == currentBezel);
-	s->addWithLabel("BEZEL", bezel);
 	Window* window = mWindow;
-	bezel->setOpenHandler([window, mode, bezel, frameNames]
+	if (frameNames.size() > 1)
 	{
-		const std::string suffix = mode->getSelected() == "pixel-perfect" ? "pixel_perfect" : "4_3";
-		window->pushGui(new GuiFramePicker(window, frameNames, bezel->getSelected(), suffix, [bezel](const std::string& picked)
+		auto bezel = std::make_shared< OptionListComponent<std::string> >(mWindow, "BEZEL", false);
+		const std::string currentBezel = Settings::getInstance()->getString("DisplayFrame");
+		for (const auto& name : frameNames)
+			bezel->add(name.empty() ? std::string("NONE") : Utils::String::toUpper(name), name, name == currentBezel);
+		s->addWithLabel("BEZEL", bezel);
+		bezel->setOpenHandler([window, mode, bezel, frameNames]
 		{
-			bezel->select(picked);
-		}));
-	});
-	s->addSaveFunc([bezel] { Settings::getInstance()->setString("DisplayFrame", bezel->getSelected()); });
+			const std::string suffix = mode->getSelected() == "pixel-perfect" ? "pixel_perfect" : "4_3";
+			window->pushGui(new GuiFramePicker(window, frameNames, bezel->getSelected(), suffix, [bezel](const std::string& picked)
+			{
+				bezel->select(picked);
+			}));
+		});
+		s->addSaveFunc([bezel] { Settings::getInstance()->setString("DisplayFrame", bezel->getSelected()); });
+	}
 
 	const bool famicom = isFamicomPad();
+
+	auto sharp = std::make_shared< OptionListComponent<int> >(mWindow, "CRT SHARPNESS", false);
+	const int currentSharp = Settings::getInstance()->getInt("DisplayCrtSharp");
+	sharp->add("STOCK", 0, currentSharp == 0);
+	sharp->add("SHARP", 1, currentSharp == 1);
+	if (famicom)
+	{
+		s->addWithLabel("CRT SHARPNESS", sharp);
+		s->addSaveFunc([sharp] { Settings::getInstance()->setInt("DisplayCrtSharp", sharp->getSelected()); });
+	}
 
 	std::string currentFilter = Settings::getInstance()->getString("DisplayFilter");
 	if (currentFilter.empty())
@@ -565,13 +578,13 @@ void GuiMenu::openDisplaySettings()
 		else
 			currentFilter = famicom ? "nearest" : "sharp";
 	}
-	if (famicom && currentFilter != "nearest")
-		currentFilter = "linear";
+	if (famicom && currentFilter != "phosphor")
+		currentFilter = "nearest";
 	auto filter = std::make_shared< OptionListComponent<std::string> >(mWindow, "FILTER", false);
 	if (famicom)
 	{
 		filter->add("OFF", "nearest", currentFilter == "nearest");
-		filter->add("ON", "linear", currentFilter == "linear");
+		filter->add("PHOSPHOR", "phosphor", currentFilter == "phosphor");
 	}
 	else
 	{
@@ -640,13 +653,15 @@ void GuiMenu::openDisplaySettings()
 		Settings::getInstance()->setBool("DisplayCrtScanlines", level > 0);
 	});
 
-	const auto updateEffects = [mode, filter, scanlines]
+	const auto updateEffects = [mode, filter, scanlines, sharp]
 	{
 		const bool crt = mode->getSelected() == "crt-filter";
 		const std::string chosen = filter->getSelected();
 		const bool scanlinesFixed = crt || chosen == "composite" || chosen == "phosphor";
 		filter->setEnabled(!crt);
 		filter->setOpacity(crt ? 90 : 255);
+		sharp->setEnabled(crt);
+		sharp->setOpacity(crt ? 255 : 90);
 		scanlines->setEnabled(!scanlinesFixed);
 		scanlines->setOpacity(scanlinesFixed ? 90 : 255);
 	};

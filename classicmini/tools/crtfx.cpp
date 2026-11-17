@@ -41,6 +41,8 @@ struct Journal {
 Journal gJournal{-1, PTHREAD_MUTEX_INITIALIZER, std::chrono::steady_clock::time_point()};
 bool gActive = false;
 bool gIsNes = false;
+bool gSharp = false;
+std::atomic<int> gTexLogs{0};
 std::array<char, 160> gSessionPath;
 std::atomic<std::uint64_t> gFrames{0};
 std::atomic<std::uint64_t> gClaims{0};
@@ -889,6 +891,17 @@ bool patchScanlineShader(std::array<char, kShaderMax>& source, const std::array<
         replaceFirst(patched.data(), patched.size(), "(0.85 + (0.1 * texel))", low.data()) == 0) {
         return false;
     }
+    if (gMaskOn) {
+        std::array<char, 384> masked;
+        std::snprintf(masked.data(), masked.size(),
+                      "float mp = floor(fract(varUv.x * 256.0) * 3.0);"
+                      "vec3 mk = vec3(%.3f) + vec3(step(mp, 0.5), step(0.5, mp) * step(mp, 1.5), step(1.5, mp)) * %.3f;"
+                      "gl_FragColor = vec4(pixelColor * mk, 1.0) * color;",
+                      static_cast<double>(gMaskOffPct) / 100.0, static_cast<double>(gMaskGainPct - gMaskOffPct) / 100.0);
+        if (replaceFirst(patched.data(), patched.size(), "gl_FragColor = vec4(pixelColor, 1.0) * color;", masked.data()) == 0) {
+            return false;
+        }
+    }
     source = patched;
     return true;
 }
@@ -936,6 +949,8 @@ __attribute__((constructor)) static void onLoad()
     probeSelect();
     filterSelect();
     maskSelect();
+    const char* sharp = std::getenv("CRTFX_SHARP");
+    gSharp = gIsNes && sharp != nullptr && std::atoi(sharp) > 0;
     heartbeatStart();
     journalSync();
 }
@@ -1064,7 +1079,27 @@ CRTFX_EXPORT void glShaderSource(unsigned shader, int count, const char* const* 
         real(shader, count, string, length);
         return;
     }
-    journal("scanline shader patched: %.0f,%.0f,%.0f,%.0f", static_cast<double>(gGains[0]), static_cast<double>(gGains[1]), static_cast<double>(gGains[2]),
-            static_cast<double>(gGains[3]));
+    journal("scanline shader patched: %.0f,%.0f,%.0f,%.0f%s", static_cast<double>(gGains[0]), static_cast<double>(gGains[1]), static_cast<double>(gGains[2]),
+            static_cast<double>(gGains[3]), gMaskOn ? " with the phosphor mask" : "");
     real(shader, count, parts.data(), sizes.data());
+}
+
+CRTFX_EXPORT void glTexParameteri(unsigned target, unsigned pname, int param)
+{
+    using Fn = void (*)(unsigned, unsigned, int);
+    static const Fn real = reinterpret_cast<Fn>(dlsym(RTLD_NEXT, "glTexParameteri"));
+    if (real == nullptr) {
+        return;
+    }
+    constexpr unsigned kMagFilter = 0x2800;
+    constexpr unsigned kMinFilter = 0x2801;
+    constexpr int kNearest = 0x2600;
+    constexpr int kLinear = 0x2601;
+    if (gActive && gIsNes && (pname == kMagFilter || pname == kMinFilter) && gTexLogs.fetch_add(1) < 12) {
+        journal("glTexParameteri: target %#x pname %#x param %#x%s", target, pname, static_cast<unsigned>(param), gSharp && param == kLinear ? " -> nearest" : "");
+    }
+    if (gSharp && (pname == kMagFilter || pname == kMinFilter) && param == kLinear) {
+        param = kNearest;
+    }
+    real(target, pname, param);
 }
