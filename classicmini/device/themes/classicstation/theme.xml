@@ -151,6 +151,18 @@
 			<size>0.125000 0.166667</size>
 		</image>
 
+		<image name="suspend_trash">
+			<path>./suspend_trash.png</path>
+			<pos>0.848438 0.744444</pos>
+			<size>0.075 0.2</size>
+		</image>
+
+		<image name="suspend_trash_open">
+			<path>./suspend_trash_open.png</path>
+			<pos>0.848438 0.744444</pos>
+			<size>0.075 0.2</size>
+		</image>
+
 		<image name="suspend_lock">
 			<path>./suspend_lock.png</path>
 			<pos>0.125000 0.783333</pos>

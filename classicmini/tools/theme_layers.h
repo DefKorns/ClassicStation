@@ -574,6 +574,11 @@ namespace theme_layers
 			layers.push_back({"suspend_cell_empty_selected", emptySelected});
 			layers.push_back({"suspend_frame", sprite(sheet, atlas, "resume_screen_frame")});
 			layers.push_back({"suspend_lock", scale(sprite(sheet, atlas, "icon_lock"), 3)});
+			if(atlas.find("icon_trash_0.png") != atlas.end() && atlas.find("icon_trash_2.png") != atlas.end())
+			{
+				layers.push_back({"suspend_trash", scale(sprite(sheet, atlas, "icon_trash_0"), 3)});
+				layers.push_back({"suspend_trash_open", scale(sprite(sheet, atlas, "icon_trash_2"), 3)});
+			}
 		}
 		if(atlas.find("icon_1P.png") != atlas.end() && atlas.find("icon_1P-2P.png") != atlas.end())
 		{

@@ -57,6 +57,12 @@ private:
 	void saveSelected(SuspendPoints::SaveMode mode);
 	void notify(const std::string& text);
 	void close();
+	void renderSlot(const Transform4x4f& trans, std::size_t index, bool selected, bool hidden);
+	void renderLifted(const Transform4x4f& trans);
+	void confirmDelete(int slot);
+	void enterMove();
+	void leaveMove();
+	bool moveInput(InputConfig* config, const Input& input);
 	struct Rect
 	{
 		Rect(float x_ = 0, float y_ = 0, float w_ = 0, float h_ = 0, bool set_ = false) : x(x_), y(y_), w(w_), h(h_), set(set_) {}
@@ -83,6 +89,9 @@ private:
 	std::array<SuspendPoint, SuspendPoints::MaxSlots> mSlots;
 	int mSelected = 1;
 	bool mHolding = false;
+	bool mMoving = false;
+	int mMoveFrom = 1;
+	int mTarget = 1;
 	int mHeldMs = 0;
 	int mNoticeMs = 0;
 
@@ -99,6 +108,8 @@ private:
 	Rect mLockTheme;
 	Rect mGaugeTheme;
 	Rect mNextTheme;
+	Rect mTrashTheme;
+	Rect mTrashRect;
 	Rect mFrameRect;
 	Rect mFrameSelectedRect;
 	Rect mLockRect;
@@ -120,6 +131,8 @@ private:
 	TextComponent mEmptyLabel;
 	Vector2f mEmptyLabelBase;
 	ImageComponent mLock;
+	ImageComponent mTrash;
+	ImageComponent mTrashOpen;
 	std::vector<std::unique_ptr<ImageComponent>> mShots;
 	std::vector<std::unique_ptr<TextComponent>> mLabels;
 };

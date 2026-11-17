@@ -93,7 +93,7 @@ GuiSuspendPoints::GuiSuspendPoints(Window* window, std::string title, std::strin
 	  mHeading(window, "", Font::get(FONT_SIZE_MEDIUM), TextColor),
 	  mNotice(window, "", Font::get(FONT_SIZE_SMALL), MutedColor, ALIGN_RIGHT),
 	  mEmptyLabel(window, "No Data", Font::get(FONT_SIZE_SMALL), TextColor, ALIGN_CENTER),
-	  mLock(window)
+	  mLock(window), mTrash(window), mTrashOpen(window)
 {
 	mLock.setImage(":/suspend_lock.png");
 	for(int slot = 0; slot < SuspendPoints::MaxSlots; ++slot)
@@ -149,6 +149,13 @@ void GuiSuspendPoints::loadTheme(const std::shared_ptr<ThemeData>& theme, const 
 	if(const ThemeData::ThemeElement* lock = theme->getElement(view, "suspend_lock", "image"))
 		if(lock->has("path"))
 			mLock.setImage(lock->get<std::string>("path"));
+	mTrashTheme = rectOf("suspend_trash", "image");
+	if(const ThemeData::ThemeElement* trash = theme->getElement(view, "suspend_trash", "image"))
+		if(trash->has("path"))
+			mTrash.setImage(trash->get<std::string>("path"));
+	if(const ThemeData::ThemeElement* trashOpen = theme->getElement(view, "suspend_trash_open", "image"))
+		if(trashOpen->has("path"))
+			mTrashOpen.setImage(trashOpen->get<std::string>("path"));
 	mGaugeTheme = rectOf("suspend_gauge", "image");
 	mNextTheme = rectOf("suspend_cell_next", "image");
 	mGaugeColor = GaugeColor;
@@ -206,6 +213,9 @@ void GuiSuspendPoints::layout()
 	mGaugeRect = mGaugeTheme.set ? mGaugeTheme : Rect(mCellRect.x + Bleed,
 		mCellRect.y + mCellRect.h - Bleed - Border * 2, mCellRect.w - 2 * Bleed, Border * 2);
 	mLock.setResize(mLockRect.w, mLockRect.h);
+	mTrashRect = mTrashTheme.set ? mTrashTheme : Rect(mPanelRect.x + mPanelRect.w - height * 0.2f, mCellRect.y, height * 0.1f, height * 0.2f);
+	mTrash.setResize(mTrashRect.w, mTrashRect.h);
+	mTrashOpen.setResize(mTrashRect.w, mTrashRect.h);
 
 	mPanel.setSize(mPanelRect.w, mPanelRect.h);
 	mCell.setSize(mCellRect.w, mCellRect.h);
@@ -290,8 +300,83 @@ void GuiSuspendPoints::saveSelected(SuspendPoints::SaveMode mode)
 	}
 }
 
+void GuiSuspendPoints::confirmDelete(int slot)
+{
+	mWindow->pushGui(new GuiMsgBox(mWindow, "DELETE THIS SUSPEND POINT?", "YES", [this, slot] {
+		UiSound::play("se_sys_delete.wav");
+		static_cast<void>(mPoints.remove(mCode, slot));
+		mSelected = slot;
+		leaveMove();
+		refresh();
+	}, "NO", nullptr));
+}
+
+void GuiSuspendPoints::enterMove()
+{
+	mMoving = true;
+	mMoveFrom = mSelected;
+	mTarget = mSelected;
+	UiSound::play("se_sys_click.wav");
+	updateHelpPrompts();
+}
+
+void GuiSuspendPoints::leaveMove()
+{
+	mMoving = false;
+	updateHelpPrompts();
+}
+
+bool GuiSuspendPoints::moveInput(InputConfig* config, const Input& input)
+{
+	if(input.value == 0)
+		return true;
+
+	if(config->isMappedLike("left", input))
+	{
+		mTarget = std::max(1, mTarget - 1);
+		UiSound::play("se_sys_cursor.wav");
+	}
+	else if(config->isMappedLike("right", input))
+	{
+		mTarget = std::min(SuspendPoints::MaxSlots + 1, mTarget + 1);
+		UiSound::play("se_sys_cursor.wav");
+	}
+	else if(config->isMappedTo("a", input))
+	{
+		if(mTarget > SuspendPoints::MaxSlots)
+		{
+			if(mSlots[static_cast<std::size_t>(mMoveFrom - 1)].locked)
+				notify("SLOT IS LOCKED");
+			else
+				confirmDelete(mMoveFrom);
+		}
+		else
+		{
+			if(mTarget != mMoveFrom)
+			{
+				if(mPoints.swap(mCode, mMoveFrom, mTarget))
+					UiSound::play("se_sys_click_game.wav");
+				else
+					notify("COULD NOT MOVE");
+			}
+			mSelected = mTarget;
+			leaveMove();
+			refresh();
+		}
+	}
+	else if(config->isMappedTo("select", input) || config->isMappedTo("b", input) || config->isMappedLike("up", input))
+	{
+		UiSound::play("se_sys_cancel.wav");
+		leaveMove();
+	}
+	return true;
+}
+
 bool GuiSuspendPoints::input(InputConfig* config, Input input)
 {
+	if(mMoving)
+		return moveInput(config, input);
+
 	if(isSaveKey(config, input))
 	{
 		if(input.value == 0)
@@ -353,17 +438,10 @@ bool GuiSuspendPoints::input(InputConfig* config, Input input)
 	}
 	else if(config->isMappedTo("select", input))
 	{
-		const SuspendPoint& point = selectedPoint();
-		if(point.locked)
-			notify("SLOT IS LOCKED");
-		else if(point.valid)
-		{
-			mWindow->pushGui(new GuiMsgBox(mWindow, "DELETE THIS SUSPEND POINT?", "YES", [this] {
-				UiSound::play("se_sys_delete.wav");
-				static_cast<void>(mPoints.remove(mCode, mSelected));
-				refresh();
-			}, "NO", nullptr));
-		}
+		if(selectedPoint().valid)
+			enterMove();
+		else
+			notify("NOTHING TO MOVE");
 	}
 	else if(config->isMappedLike("up", input) || config->isMappedTo("b", input))
 	{
@@ -409,48 +487,91 @@ void GuiSuspendPoints::render(const Transform4x4f& parentTrans)
 	mHeading.render(trans);
 	mNotice.render(trans);
 
+	if(mMoving)
+	{
+		Transform4x4f trashTrans = trans;
+		trashTrans.translate(Vector3f(mTrashRect.x, mTrashRect.y, 0.0f));
+		(mTarget > SuspendPoints::MaxSlots ? mTrashOpen : mTrash).render(trashTrans);
+	}
+
 	for(std::size_t index = 0; index < mSlots.size(); ++index)
 	{
-		const float shift = static_cast<float>(index) * mCellStep;
-		const bool selected = static_cast<int>(index) + 1 == mSelected;
+		const bool hidden = mMoving && static_cast<int>(index) + 1 == mMoveFrom;
+		const int highlighted = mMoving ? mTarget : mSelected;
+		renderSlot(trans, index, static_cast<int>(index) + 1 == highlighted && !hidden, hidden);
+	}
 
-		if(!mSlots[index].valid && mHasEmptyCell)
+	if(mMoving)
+		renderLifted(trans);
+}
+
+void GuiSuspendPoints::renderSlot(const Transform4x4f& trans, std::size_t index, bool selected, bool hidden)
+{
+	const float shift = static_cast<float>(index) * mCellStep;
+
+	if((hidden || !mSlots[index].valid) && mHasEmptyCell)
+	{
+		Transform4x4f emptyTrans = trans;
+		emptyTrans.translate(Vector3f(mCellEmptyRect.x + shift, mCellEmptyRect.y, 0.0f));
+		(selected ? mCellEmptySelected : mCellEmpty).render(emptyTrans);
+		if(!hidden)
 		{
-			Transform4x4f emptyTrans = trans;
-			emptyTrans.translate(Vector3f(mCellEmptyRect.x + shift, mCellEmptyRect.y, 0.0f));
-			(selected ? mCellEmptySelected : mCellEmpty).render(emptyTrans);
 			mEmptyLabel.setPosition(mEmptyLabelBase.x() + shift, mEmptyLabelBase.y(), 0.0f);
 			mEmptyLabel.render(trans);
-			continue;
 		}
-
-		Transform4x4f cellTrans = trans;
-		cellTrans.translate(Vector3f(mCellRect.x + shift, mCellRect.y, 0.0f));
-		(selected ? mCellSelected : mCell).render(cellTrans);
-
-		if(mSlots[index].valid)
-			mShots[index]->render(trans);
-
-		const Rect& frame = selected ? mFrameSelectedRect : mFrameRect;
-		Transform4x4f frameTrans = trans;
-		frameTrans.translate(Vector3f(frame.x + shift, frame.y, 0.0f));
-		(selected ? mFrameSelected : mFrame).render(frameTrans);
-		mLabels[index]->render(trans);
-
-		if(mSlots[index].locked)
-		{
-			Transform4x4f lockTrans = trans;
-			lockTrans.translate(Vector3f(mLockRect.x + shift, mLockRect.y, 0.0f));
-			mLock.render(lockTrans);
-		}
-
-		if(selected && mHolding)
-		{
-			Renderer::setMatrix(trans);
-			const float filled = mGaugeRect.w * static_cast<float>(mHeldMs) / static_cast<float>(HoldToOverwriteMs);
-			Renderer::drawRect(mGaugeRect.x + shift, mGaugeRect.y, filled, mGaugeRect.h, mGaugeColor, mGaugeColor);
-		}
+		return;
 	}
+
+	Transform4x4f cellTrans = trans;
+	cellTrans.translate(Vector3f(mCellRect.x + shift, mCellRect.y, 0.0f));
+	(selected ? mCellSelected : mCell).render(cellTrans);
+
+	if(hidden)
+		return;
+
+	if(mSlots[index].valid)
+		mShots[index]->render(trans);
+
+	const Rect& frame = selected ? mFrameSelectedRect : mFrameRect;
+	Transform4x4f frameTrans = trans;
+	frameTrans.translate(Vector3f(frame.x + shift, frame.y, 0.0f));
+	(selected ? mFrameSelected : mFrame).render(frameTrans);
+	mLabels[index]->render(trans);
+
+	if(mSlots[index].locked)
+	{
+		Transform4x4f lockTrans = trans;
+		lockTrans.translate(Vector3f(mLockRect.x + shift, mLockRect.y, 0.0f));
+		mLock.render(lockTrans);
+	}
+
+	if(selected && mHolding)
+	{
+		Renderer::setMatrix(trans);
+		const float filled = mGaugeRect.w * static_cast<float>(mHeldMs) / static_cast<float>(HoldToOverwriteMs);
+		Renderer::drawRect(mGaugeRect.x + shift, mGaugeRect.y, filled, mGaugeRect.h, mGaugeColor, mGaugeColor);
+	}
+}
+
+void GuiSuspendPoints::renderLifted(const Transform4x4f& trans)
+{
+	constexpr float LiftPixels = 6.0f;
+	constexpr float TrashScale = 2.0f / 3.0f;
+
+	const std::size_t from = static_cast<std::size_t>(mMoveFrom - 1);
+	Transform4x4f lifted = trans;
+	if(mTarget <= SuspendPoints::MaxSlots)
+		lifted.translate(Vector3f(static_cast<float>(mTarget - mMoveFrom) * mCellStep, -LiftPixels, 0.0f));
+	else
+	{
+		const float centreX = mCellRect.x + static_cast<float>(from) * mCellStep + mCellRect.w / 2.0f;
+		const float centreY = mCellRect.y + mCellRect.h / 2.0f;
+		lifted.translate(Vector3f(mTrashRect.x + mTrashRect.w / 2.0f - centreX, mTrashRect.y + mTrashRect.h / 2.0f - centreY - 24.0f, 0.0f));
+		lifted.translate(Vector3f(centreX, centreY, 0.0f));
+		lifted.scale(Vector3f(TrashScale, TrashScale, 1.0f));
+		lifted.translate(Vector3f(-centreX, -centreY, 0.0f));
+	}
+	renderSlot(lifted, from, true, false);
 }
 
 HelpStyle GuiSuspendPoints::getHelpStyle()
@@ -467,12 +588,19 @@ HelpStyle GuiSuspendPoints::getHelpStyle()
 std::vector<HelpPrompt> GuiSuspendPoints::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts;
-	prompts.push_back(HelpPrompt("left/right", "slot"));
-	prompts.push_back(HelpPrompt("start", "resume"));
-	if(mFloating.valid)
-		prompts.push_back(HelpPrompt("a", "save (hold to overwrite)"));
-	prompts.push_back(HelpPrompt("down", "lock"));
-	prompts.push_back(HelpPrompt("select", "delete"));
+	if(mMoving)
+	{
+		prompts.push_back(HelpPrompt("left/right", "select"));
+		prompts.push_back(HelpPrompt("a", "move/delete"));
+		prompts.push_back(HelpPrompt("b", "back"));
+		return prompts;
+	}
+	prompts.push_back(HelpPrompt("down", "lock/unlock"));
+	prompts.push_back(HelpPrompt("left/right", "select"));
+	prompts.push_back(HelpPrompt("select", "move/delete"));
+	prompts.push_back(HelpPrompt("start", "start game"));
 	prompts.push_back(HelpPrompt("b", "back"));
+	if(mFloating.valid)
+		prompts.push_back(HelpPrompt("a", "save"));
 	return prompts;
 }
