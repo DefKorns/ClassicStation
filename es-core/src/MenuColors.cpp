@@ -38,6 +38,8 @@ namespace MenuColors
 	unsigned int Key = DarkPalette.key;
 	unsigned int KeyHighlight = DarkPalette.keyHighlight;
 	unsigned int KeyHighlightText = DarkPalette.keyHighlightText;
+	float MenuHeight = 0.75f;
+	float FontScale = 1.0f;
 
 	namespace
 	{
@@ -81,6 +83,8 @@ namespace MenuColors
 		Key = palette.key;
 		KeyHighlight = palette.keyHighlight;
 		KeyHighlightText = palette.keyHighlightText;
+		MenuHeight = 0.75f;
+		FontScale = 1.0f;
 	}
 
 	void applyOverrides(const std::function<std::string(const std::string&)>& variable)
@@ -101,5 +105,13 @@ namespace MenuColors
 			if(parseColor(variable(entry.name), color))
 				*entry.target = color;
 		}
+
+		const float height = std::strtof(variable("es_menuHeight").c_str(), nullptr);
+		if(height >= 0.3f && height <= 0.9f)
+			MenuHeight = height;
+
+		const float scale = std::strtof(variable("es_menuFontScale").c_str(), nullptr);
+		if(scale >= 0.5f && scale <= 1.5f)
+			FontScale = scale;
 	}
 }
