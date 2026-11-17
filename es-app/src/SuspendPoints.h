@@ -17,6 +17,7 @@ struct SuspendPoint
 {
 	bool valid = false;
 	bool locked = false;
+	bool files = false;
 	int slot = 0;
 	long playtime = 0;
 	std::string code;
@@ -49,6 +50,7 @@ public:
 
 private:
 	std::string slotDir(const std::string& code, int slot) const;
+	std::string codeDir(const std::string& code, int slot) const;
 
 	std::string mProfileDir;
 	std::string mVolatileDir;

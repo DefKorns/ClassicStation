@@ -48,12 +48,18 @@ for collection in auto-allgames:"All Games" auto-lastplayed:"Last Played" auto-f
   mkdir -p "$es_payload/defaults/themes/simple/${collection%%:*}"
   sed "s/@TITLE@/${collection#*:}/" "$classicmini_dir/device/collection_theme.xml" > "$es_payload/defaults/themes/simple/${collection%%:*}/theme.xml"
 done
-favorites_theme=$es_payload/defaults/themes/simple/auto-favorites
-mkdir -p "$favorites_theme/art"
-cp "$classicmini_dir/device/favorites.svg" "$favorites_theme/art/"
-sed -i '$d' "$favorites_theme/theme.xml"
-cat "$classicmini_dir/device/favorites_logo.xml" >> "$favorites_theme/theme.xml"
-echo "</theme>" >> "$favorites_theme/theme.xml"
+brandCollection() {
+  local folder="$es_payload/defaults/themes/simple/$1" name="$2" title="$3"
+  mkdir -p "$folder/art"
+  cp "$classicmini_dir/device/$name.svg" "$classicmini_dir/device/${name}_art_blur.jpg" "$folder/art/"
+  sed "s/@TITLE@/$title/" "$classicmini_dir/device/collection_theme.xml" > "$folder/theme.xml"
+  sed -i "s|./../art/dark.png|./art/${name}_art_blur.jpg|; s|<textColor>00000077</textColor>|<textColor>ffffff88</textColor>|; s|<iconColor>00000077</iconColor>|<iconColor>ffffff88</iconColor>|" "$folder/theme.xml"
+  sed -i '$d' "$folder/theme.xml"
+  cat "$classicmini_dir/device/${name}_logo.xml" >> "$folder/theme.xml"
+  echo "</theme>" >> "$folder/theme.xml"
+}
+brandCollection auto-favorites favorites Favorites
+brandCollection other other Other
 awk '/<fullname>/ { gsub(/.*<fullname>|<\/fullname>.*/, ""); name = $0 } /<theme>/ { gsub(/.*<theme>|<\/theme>.*/, ""); print $0 "|" name }' "$classicmini_dir/device/es_systems.cfg" | sort -u | while IFS='|' read -r folder title; do
   [ -d "$es_payload/defaults/themes/simple/$folder" ] && continue
   mkdir -p "$es_payload/defaults/themes/simple/$folder"
