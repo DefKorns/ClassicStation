@@ -578,8 +578,8 @@ void GuiMenu::openDisplaySettings()
 		else
 			currentFilter = famicom ? "nearest" : "sharp";
 	}
-	if (famicom && currentFilter != "phosphor")
-		currentFilter = "nearest";
+	if (famicom && currentFilter != "nearest")
+		currentFilter = "linear";
 	auto filter = std::make_shared< OptionListComponent<std::string> >(mWindow, "FILTER", false);
 	if (famicom)
 	{
@@ -593,7 +593,6 @@ void GuiMenu::openDisplaySettings()
 		filter->add("HORIZONTAL LINEAR", "hlinear", currentFilter == "hlinear");
 		filter->add("SHARP", "sharp", currentFilter == "sharp");
 		filter->add("COMPOSITE", "composite", currentFilter == "composite");
-		filter->add("PHOSPHOR", "phosphor", currentFilter == "phosphor");
 	}
 	s->addWithLabel("FILTER", filter);
 	if (!famicom)

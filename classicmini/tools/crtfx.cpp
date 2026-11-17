@@ -891,17 +891,6 @@ bool patchScanlineShader(std::array<char, kShaderMax>& source, const std::array<
         replaceFirst(patched.data(), patched.size(), "(0.85 + (0.1 * texel))", low.data()) == 0) {
         return false;
     }
-    if (gMaskOn) {
-        std::array<char, 384> masked;
-        std::snprintf(masked.data(), masked.size(),
-                      "float mp = floor(fract(varUv.x * 256.0) * 3.0);"
-                      "vec3 mk = vec3(%.3f) + vec3(step(mp, 0.5), step(0.5, mp) * step(mp, 1.5), step(1.5, mp)) * %.3f;"
-                      "gl_FragColor = vec4(pixelColor * mk, 1.0) * color;",
-                      static_cast<double>(gMaskOffPct) / 100.0, static_cast<double>(gMaskGainPct - gMaskOffPct) / 100.0);
-        if (replaceFirst(patched.data(), patched.size(), "gl_FragColor = vec4(pixelColor, 1.0) * color;", masked.data()) == 0) {
-            return false;
-        }
-    }
     source = patched;
     return true;
 }
@@ -1079,8 +1068,8 @@ CRTFX_EXPORT void glShaderSource(unsigned shader, int count, const char* const* 
         real(shader, count, string, length);
         return;
     }
-    journal("scanline shader patched: %.0f,%.0f,%.0f,%.0f%s", static_cast<double>(gGains[0]), static_cast<double>(gGains[1]), static_cast<double>(gGains[2]),
-            static_cast<double>(gGains[3]), gMaskOn ? " with the phosphor mask" : "");
+    journal("scanline shader patched: %.0f,%.0f,%.0f,%.0f", static_cast<double>(gGains[0]), static_cast<double>(gGains[1]), static_cast<double>(gGains[2]),
+            static_cast<double>(gGains[3]));
     real(shader, count, parts.data(), sizes.data());
 }
 
