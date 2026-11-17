@@ -57,6 +57,13 @@ void GridTileComponent::render(const Transform4x4f& parentTrans)
 		mImage->render(trans);
 		mBackground.render(trans);
 
+		if (mOverlay)
+		{
+			Transform4x4f overlayTrans = trans;
+			overlayTrans.translate(Vector3f(-mCurrentProperties.mSize.x() / 2.0f, -mCurrentProperties.mSize.y() / 2.0f, 0.0f));
+			mOverlay->render(overlayTrans);
+		}
+
 		if (mMarked)
 		{
 			Transform4x4f badgeTrans = trans;
@@ -143,6 +150,9 @@ void GridTileComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, cons
 {
 	Vector2f screen = Vector2f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 
+	if (mOverlay)
+		mOverlay->applyTheme(theme, view, "gridtile", ThemeFlags::ALL);
+
 	// Apply theme to the default gridtile
 	const ThemeData::ThemeElement* elem = theme->getElement(view, "default", "gridtile");
 	if (elem)
@@ -217,6 +227,8 @@ void GridTileComponent::setSelected(bool selected, bool allowAnimation, Vector3f
 	}
 
 	mSelected = selected;
+	if (mOverlay)
+		mOverlay->setSelected(selected);
 
 	if (selected)
 	{

@@ -21,6 +21,7 @@ set(ES_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/AsyncReqComponent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/RatingComponent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/PlayersIconComponent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/components/ClassicTileOverlay.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/SuspendSlotsComponent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/MenuIconBar.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/DiskSpaceIndicator.h
@@ -95,6 +96,7 @@ set(ES_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/AsyncReqComponent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/RatingComponent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/PlayersIconComponent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/components/ClassicTileOverlay.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/SuspendSlotsComponent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/MenuIconBar.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/DiskSpaceIndicator.cpp

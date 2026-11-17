@@ -1,6 +1,7 @@
 #include "views/gamelist/GridGameListView.h"
 
 #include "animations/LambdaAnimation.h"
+#include "components/ClassicTileOverlay.h"
 #include "views/UIModeController.h"
 #include "views/ViewController.h"
 #include "CollectionSystemManager.h"
@@ -143,6 +144,12 @@ GridGameListView::GridGameListView(Window* window, FileData* root) :
 	initMDLabels();
 	initMDValues();
 	mGrid.setMarkFunction([this](FileData* file) { return isFloating(file); });
+	mGrid.setTileOverlay(
+		[this] { return std::make_shared<ClassicTileOverlay>(mWindow); },
+		[this](GridTileOverlay& overlay, FileData* file)
+		{
+			static_cast<ClassicTileOverlay&>(overlay).setGame(suspendStates(file), file->getType() == GAME ? file->metadata.get("players") : std::string());
+		});
 	refreshFloating();
 	updateInfoPanel();
 }

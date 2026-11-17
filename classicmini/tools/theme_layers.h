@@ -509,6 +509,13 @@ namespace theme_layers
 			const std::size_t colon = spec.find(':');
 			layers.push_back({"slot_" + spec.substr(0, colon), pad(scale(sprite(sheet, atlas, spec.substr(colon + 1)), options.iconScale), options.ratingMargin)});
 		}
+		if(atlas.find("icon_Resume_off_active.png") != atlas.end() && atlas.find("icon_Resume_on_active.png") != atlas.end() && atlas.find("icon_Resume_lock_active.png") != atlas.end())
+			for(const char* slot : {"empty:icon_Resume_off_active", "saved:icon_Resume_on_active", "locked:icon_Resume_lock_active"})
+			{
+				const std::string spec = slot;
+				const std::size_t colon = spec.find(':');
+				layers.push_back({"slot_" + spec.substr(0, colon) + "_active", pad(scale(sprite(sheet, atlas, spec.substr(colon + 1)), options.iconScale), options.ratingMargin)});
+			}
 		layers.push_back({"heart_filled", heartIcon(true, 2, 34)});
 		layers.push_back({"heart_empty", heartIcon(false, 2, 34)});
 		layers.push_back({"rating_heart_filled", heartIcon(true, 2, 30)});
@@ -572,6 +579,11 @@ namespace theme_layers
 		{
 			layers.push_back({"players_one", scale(sprite(sheet, atlas, "icon_1P"), 3)});
 			layers.push_back({"players_many", scale(sprite(sheet, atlas, "icon_1P-2P"), 3)});
+			if(atlas.find("icon_1P_active.png") != atlas.end() && atlas.find("icon_1P-2P_active.png") != atlas.end())
+			{
+				layers.push_back({"players_one_active", scale(sprite(sheet, atlas, "icon_1P_active"), 3)});
+				layers.push_back({"players_many_active", scale(sprite(sheet, atlas, "icon_1P-2P_active"), 3)});
+			}
 		}
 		return layers;
 	}

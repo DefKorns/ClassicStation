@@ -6,6 +6,7 @@
 #define ES_CORE_COMPONENTS_IMAGE_GRID_COMPONENT_H
 
 #include "Log.h"
+#include "Settings.h"
 #include "animations/LambdaAnimation.h"
 #include "components/IList.h"
 #include "resources/TextureResource.h"
@@ -62,6 +63,11 @@ public:
 	ImageGridComponent(Window* window);
 
 	void add(const std::string& name, const std::string& imagePath, const T& obj);
+	void setTileOverlay(std::function<std::shared_ptr<GridTileOverlay>()> factory, std::function<void(GridTileOverlay&, const T&)> updater)
+	{
+		mOverlayFactory = std::move(factory);
+		mOverlayUpdater = std::move(updater);
+	}
 	void setMarkFunction(std::function<bool(const T&)> markFunction) { mMarkFunction = std::move(markFunction); }
 	void refreshMarks() { updateTiles(false, false); }
 
@@ -111,6 +117,8 @@ private:
 
 	int mStartPosition;
 	std::function<bool(const T&)> mMarkFunction;
+	std::function<std::shared_ptr<GridTileOverlay>()> mOverlayFactory;
+	std::function<void(GridTileOverlay&, const T&)> mOverlayUpdater;
 
 	float mCamera;
 	float mCameraDirection;
@@ -120,6 +128,7 @@ private:
 
 	// MISCELLANEOUS
 	bool mAnimate;
+	bool animates() const { return mAnimate && Settings::getInstance()->getBool("MoveCarousel") && Settings::getInstance()->getString("TransitionStyle") != "instant"; }
 	bool mCenterSelection;
 	bool mScrollLoop;
 	ScrollDirection mScrollDirection;
@@ -461,7 +470,7 @@ void ImageGridComponent<T>::onCursorChanged(const CursorState& state)
 		updateTiles(false, false);
 	}
 
-	if (mAnimate) {
+	if (animates()) {
 
 		std::shared_ptr<GridTileComponent> oldTile = nullptr;
 		std::shared_ptr<GridTileComponent> newTile = nullptr;
@@ -527,9 +536,9 @@ void ImageGridComponent<T>::onCursorChanged(const CursorState& state)
 	startPos = residual * mCameraDirection;
 	mCamera = startPos;
 
-	if (lastCursor < 0 || !mAnimate)
+	if (lastCursor < 0 || !animates())
 	{
-		updateTiles(mAnimate && (lastCursor >= 0 || isScrollLoop()));
+		updateTiles(animates() && (lastCursor >= 0 || isScrollLoop()));
 
 		if (mCursorChangedCallback)
 			mCursorChangedCallback(state);
@@ -615,6 +624,8 @@ void ImageGridComponent<T>::buildTiles()
 			tile->setPosition(X * tileDistance.x() + startPosition.x(), Y * tileDistance.y() + startPosition.y());
 			tile->setOrigin(0.5f, 0.5f);
 			tile->setImage("");
+			if (mOverlayFactory)
+				tile->setOverlay(mOverlayFactory());
 
 			if (mTheme)
 				tile->applyTheme(mTheme, "grid", "gridtile", ThemeFlags::ALL);
@@ -701,6 +712,9 @@ void ImageGridComponent<T>::updateTileAtPos(int tilePos, int imgPos, bool allowA
 			tile->setImage(mDefaultFolderTexture);
 		else
 			tile->setImage(mDefaultGameTexture);
+
+		if (mOverlayUpdater && tile->getOverlay())
+			mOverlayUpdater(*tile->getOverlay(), mEntries.at(imgPos).object);
 
 		if (updateSelectedState)
 		{

@@ -3,6 +3,7 @@
 #define ES_CORE_COMPONENTS_GRID_TILE_COMPONENT_H
 
 #include "NinePatchComponent.h"
+#include "GridTileOverlay.h"
 #include "ImageComponent.h"
 #include "resources/TextureResource.h"
 
@@ -42,6 +43,8 @@ public:
 	void forceSize(Vector2f size, float selectedZoom);
 	void setShiftX(float shift) { mShiftX = shift; }
 	void setMarked(bool marked) { mMarked = marked; }
+	void setOverlay(std::shared_ptr<GridTileOverlay> overlay) { mOverlay = std::move(overlay); }
+	GridTileOverlay* getOverlay() const { return mOverlay.get(); }
 
 	Vector3f getBackgroundPosition();
 
@@ -58,6 +61,7 @@ private:
 	std::shared_ptr<ImageComponent> mImage;
 	NinePatchComponent mBackground;
 	ImageComponent mBadge;
+	std::shared_ptr<GridTileOverlay> mOverlay;
 	bool mMarked = false;
 
 	GridTileProperties mDefaultProperties;

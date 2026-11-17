@@ -437,6 +437,9 @@
 			<size>1 0.3</size>
 			<logoSize>0.26 0.2</logoSize>
 			<logoScale>1.2</logoScale>
+			<logoAlignment>center</logoAlignment>
+			<maxLogoCount>5</maxLogoCount>
+			<scrollDuration>500</scrollDuration>
 			<color>00000000</color>
 			<zIndex>40</zIndex>
 		</carousel>
@@ -455,8 +458,8 @@
 	<view name="grid">
 		<image name="title_bar" extra="true">
 			<path>./title_bar.png</path>
-			<pos>0.1078 0.2153</pos>
-			<size>0.7844 0.0736</size>
+			<pos>0.0992 0.2014</pos>
+			<size>0.8016 0.0917</size>
 			<zIndex>10</zIndex>
 		</image>
 
@@ -466,8 +469,8 @@
 		</text>
 
 		<text name="md_name">
-			<pos>0.1078 0.2153</pos>
-			<size>0.7844 0.0736</size>
+			<pos>0.0992 0.2014</pos>
+			<size>0.8016 0.0917</size>
 			<fontSize>0.05</fontSize>
 			<color>FFFFFF</color>
 			<alignment>center</alignment>
@@ -475,13 +478,17 @@
 		</text>
 
 		<imagegrid name="gamegrid">
-			<pos>0 0.2444</pos>
+			<pos>0.0023 0.2389</pos>
 			<size>1 0.4528</size>
-			<margin>0.0133 0</margin>
+			<margin>0 0</margin>
 			<autoLayout>5 1</autoLayout>
-			<autoLayoutSelectedZoom>1.06</autoLayoutSelectedZoom>
+			<autoLayoutSelectedZoom>1</autoLayoutSelectedZoom>
+			<scrollDuration>500</scrollDuration>
+			<scrollDirection>horizontal</scrollDirection>
+			<scrollSound>/media/data/emulationstation/audio/se_sys_cursor.wav</scrollSound>
 			<centerSelection>true</centerSelection>
 			<scrollLoop>true</scrollLoop>
+			<animate>true</animate>
 			<imageSource>image</imageSource>
 			<zIndex>30</zIndex>
 		</imagegrid>
@@ -490,6 +497,7 @@
 			<padding>0.0383 0.0847</padding>
 			<imageColor>FFFFFF</imageColor>
 			<backgroundCornerSize>0.04375 0.0847</backgroundCornerSize>
+			<backgroundBleed>-0.0039 0</backgroundBleed>
 			<backgroundCenterColor>FFFFFFFF</backgroundCenterColor>
 			<backgroundEdgeColor>FFFFFFFF</backgroundEdgeColor>
 			<backgroundImage>./card.png</backgroundImage>
@@ -497,7 +505,38 @@
 
 		<gridtile name="selected">
 			<backgroundImage>./card_active.png</backgroundImage>
+			<backgroundBleed>-0.0039 0</backgroundBleed>
 		</gridtile>
+
+		<slots name="tile_slots">
+			<pos>0.021875 0.398611</pos>
+			<size>0.075 0.033333</size>
+			<emptyPath>./slot_empty.png</emptyPath>
+			<savedPath>./slot_saved.png</savedPath>
+			<lockedPath>./slot_locked.png</lockedPath>
+		</slots>
+
+		<slots name="tile_slots_active">
+			<pos>0.021875 0.398611</pos>
+			<size>0.075 0.033333</size>
+			<emptyPath>./slot_empty_active.png</emptyPath>
+			<savedPath>./slot_saved_active.png</savedPath>
+			<lockedPath>./slot_locked_active.png</lockedPath>
+		</slots>
+
+		<playersicon name="tile_players">
+			<pos>0.1375 0.386111</pos>
+			<size>0.04453 0.045833</size>
+			<onePath>./players_one.png</onePath>
+			<manyPath>./players_many.png</manyPath>
+		</playersicon>
+
+		<playersicon name="tile_players_active">
+			<pos>0.1375 0.386111</pos>
+			<size>0.04453 0.045833</size>
+			<onePath>./players_one_active.png</onePath>
+			<manyPath>./players_many_active.png</manyPath>
+		</playersicon>
 
 		<image name="md_image">
 			<pos>1 1</pos>
