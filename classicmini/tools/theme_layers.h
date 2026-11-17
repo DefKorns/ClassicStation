@@ -81,6 +81,7 @@ namespace theme_layers
 		int ratingMargin = 3;
 		int frameScale = 2;
 		int rowWidth = 538;
+		int wideWidth = 0;
 		int rowHeight = 57;
 		int selectorWidth = 546;
 		int selectorHeight = 66;
@@ -487,6 +488,11 @@ namespace theme_layers
 		};
 		layers.push_back({"list_row", frame(rowFrameSpec(family), options.rowWidth, options.rowHeight)});
 		layers.push_back({"list_selector", frame(selectorFrameSpec(), options.selectorWidth, options.selectorHeight)});
+		if(options.wideWidth > 0)
+		{
+			layers.push_back({"list_row_wide", frame(rowFrameSpec(family), options.wideWidth, options.rowHeight)});
+			layers.push_back({"list_selector_wide", frame(selectorFrameSpec(), options.wideWidth + options.selectorWidth - options.rowWidth, options.selectorHeight)});
+		}
 		layers.push_back({"title_bar", frame(FrameSpec{"caption_title", Insets{5, 5, 5, 5}}, options.titleWidth, options.titleHeight)});
 		layers.push_back({"card", cardFrame(scale(sprite(sheet, atlas, "game_card"), options.cardScale), options.cardWindow, options.cardExtraTop)});
 		layers.push_back({"card_active", cardFrame(scale(sprite(sheet, atlas, "game_card_active"), options.cardScale), options.cardWindow, options.cardExtraTop)});

@@ -190,7 +190,7 @@
 		</text>
 	</view>
 
-	<view name="basic, detailed">
+	<view name="detailed">
 		<image name="row_1" extra="true">
 			<path>./list_row.png</path>
 			<pos>0.5375 0.1875</pos>
@@ -362,6 +362,72 @@
 			<pos>1 1</pos>
 			<size>0.1 0.05</size>
 		</datetime>
+	</view>
+
+	<view name="basic">
+		<image name="row_1" extra="true">
+			<path>./list_row_wide.png</path>
+			<pos>0.1986 0.1875</pos>
+			<size>0.6029 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_2" extra="true">
+			<path>./list_row_wide.png</path>
+			<pos>0.1986 0.2667</pos>
+			<size>0.6029 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_3" extra="true">
+			<path>./list_row_wide.png</path>
+			<pos>0.1986 0.3458</pos>
+			<size>0.6029 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_4" extra="true">
+			<path>./list_row_wide.png</path>
+			<pos>0.1986 0.4250</pos>
+			<size>0.6029 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_5" extra="true">
+			<path>./list_row_wide.png</path>
+			<pos>0.1986 0.5042</pos>
+			<size>0.6029 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_6" extra="true">
+			<path>./list_row_wide.png</path>
+			<pos>0.1986 0.5833</pos>
+			<size>0.6029 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_7" extra="true">
+			<path>./list_row_wide.png</path>
+			<pos>0.1986 0.6625</pos>
+			<size>0.6029 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+
+		<textlist name="gamelist">
+			<pos>0.1955 0.1742</pos>
+			<size>0.6092 0.5819</size>
+			<horizontalMargin>0.0370</horizontalMargin>
+			<alignment>left</alignment>
+			<fontSize>0.0444</fontSize>
+			<lineSpacing>1.78</lineSpacing>
+			<fitMinScale>0.7</fitMinScale>
+			<primaryColor>1C1C1C</primaryColor>
+			<secondaryColor>1C1C1C</secondaryColor>
+			<selectedColor>FFFFFF</selectedColor>
+			<favoriteIconPath>./heart_filled.png</favoriteIconPath>
+			<favoriteIconOffsetY>0.05</favoriteIconOffsetY>
+			<favoriteSlotAlways>true</favoriteSlotAlways>
+			<selectorImagePath>./list_selector_wide.png</selectorImagePath>
+			<selectorColor>FFFFFF</selectorColor>
+			<selectorHeight>0.0806</selectorHeight>
+			<selectorOffsetY>-0.0069</selectorOffsetY>
+			<zIndex>20</zIndex>
+		</textlist>
 	</view>
 
 	<view name="system">

@@ -134,6 +134,7 @@ private:
 	Vector2f mFavoriteIconOffset = Vector2f(0.0f, 0.0f);
 	ImageComponent mMarkerIcon;
 	bool mFavoriteIconVisible;
+	bool mFavoriteSlotAlways = false;
 };
 
 template <typename T>
@@ -248,7 +249,7 @@ void TextListComponent<T>::render(const Transform4x4f& parentTrans)
 		const float iconSize = entrySize * mFavoriteIconScale;
 		const float iconSlot = iconSize + iconSize * 0.35f;
 		const float markerWidth = showMarker ? iconSlot : 0.0f;
-		const float leadingWidth = markerWidth + (showFavorite ? iconSlot : 0.0f);
+		const float leadingWidth = markerWidth + ((showFavorite || mFavoriteSlotAlways) ? iconSlot : 0.0f);
 		const float textWidth = entry.data.textCache->metrics.size.x();
 		const float lineWidth = leadingWidth + textWidth;
 
@@ -534,6 +535,8 @@ void TextListComponent<T>::applyTheme(const std::shared_ptr<ThemeData>& theme, c
 
 	if(properties & FORCE_UPPERCASE && elem->has("forceUppercase"))
 		setUppercase(elem->get<bool>("forceUppercase"));
+
+	mFavoriteSlotAlways = elem->has("favoriteSlotAlways") && elem->get<bool>("favoriteSlotAlways");
 
 	if(elem->has("fitMinScale"))
 		setFitMinScale(elem->get<float>("fitMinScale"));

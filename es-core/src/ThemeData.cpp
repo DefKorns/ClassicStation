@@ -115,6 +115,7 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "favoriteIconSize", FLOAT },
 		{ "favoriteIconOffsetX", FLOAT },
 		{ "favoriteIconOffsetY", FLOAT },
+		{ "favoriteSlotAlways", BOOLEAN },
 		{ "zIndex", FLOAT } } },
 	{ "container", {
 		{ "pos", RESOLUTION_PAIR },
