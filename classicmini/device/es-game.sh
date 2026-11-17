@@ -92,6 +92,15 @@ clearRetroarchFrame() {
   clearOverlayFrame /etc/libretro/overlay/border_with_scanlines.cfg overlay0_desc0_overlay
 }
 
+nesDisplayArgs() {
+  case $(esSetting DisplayMode) in
+    pixel-perfect) printf ' --graphic-filter ppu' ;;
+    crt-filter) printf ' --graphic-filter crt720 --enable-crt-scanlines'; return ;;
+    *) printf ' --graphic-filter gpu720' ;;
+  esac
+  [ "$(scanlinesOn)" = true ] && printf ' --enable-crt-scanlines'
+}
+
 noFrameArg() {
   [ -z "$(framePath)" ] || return 0
   # shellcheck disable=SC2016 # the pattern is the literal text of the child script
@@ -136,13 +145,19 @@ crtfxJournalEnv() {
 }
 
 crtfxEnv() {
-  local es_dir level gains
+  local es_dir level gains canoe
   es_dir=$(dirname "$0")
-  case "$cmd" in *clover-canoe-shvc*) ;; *) return 0 ;; esac
+  case "$cmd" in
+    *clover-canoe-shvc*) canoe=1 ;;
+    *clover-kachikachi*)
+      case " $cmd " in *" --retroarch "*|*" -retroarch "*|*" --core "*|*" -core "*) return 0 ;; esac
+      ;;
+    *) return 0 ;;
+  esac
   crtfxJournalEnv
   [ "$(esSetting DisplayMode)" != crt-filter ] || return 0
-  case $(filterName) in
-    composite|phosphor)
+  case "$canoe$(filterName)" in
+    1composite|1phosphor)
       [ -f "$es_dir/libcrtfx.so" ] || return 0
       export LD_PRELOAD="$es_dir/libcrtfx.so"
       gains=$(scanlineGains 3)
@@ -213,6 +228,7 @@ if [ -n "$code" ]; then
   esac
   if [ -n "$native" ]; then
     cmd="$cmd --save-data-backing-file $profile/$code/cartridge.sram --save-screenshot-on-quit $out/state.png --save-on-quit $out/state"
+    cmd="$cmd$(nesDisplayArgs)"
     [ -n "$resume" ] && cmd="$cmd --load-state-file $suspend_dir/state"
   else
     cmd="$cmd --save-data-backing-file $profile/$code/cartridge.sram --title-code $code$(displayArgs)"
