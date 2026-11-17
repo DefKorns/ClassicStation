@@ -115,7 +115,10 @@ if [ -n "$code" ]; then
   suspend_dir=$profile/$code/suspendpoint$resume
   saved=$profile/$code/$resume
   if [ -n "$native" ]; then
-    cmd="$cmd --save-data-backing-file $profile/$code/cartridge.sram --save-screenshot-on-quit $floating.state.png --save-on-quit $floating.state"
+    if [ ! -f "$profile/$code/save.sram" ] && [ -f "$profile/$code/cartridge.sram" ]; then
+      cp "$profile/$code/cartridge.sram" "$profile/$code/save.sram"
+    fi
+    cmd="$cmd --save-data-backing-file $profile/$code/save.sram --save-screenshot-on-quit $floating.state.png --save-on-quit $floating.state"
     if [ -n "$resume" ]; then
       if [ -f "$saved.state" ]; then
         cmd="$cmd --load-state-file $saved.state"
