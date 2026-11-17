@@ -158,9 +158,18 @@ crtfxEnv() {
   esac
   crtfxJournalEnv
   if [ "$(esSetting DisplayMode)" = crt-filter ]; then
-    [ -z "$canoe" ] && [ "$(esSetting DisplayCrtSharp)" = 1 ] && [ -f "$es_dir/libcrtfx.so" ] || return 0
+    local sharp square
+    [ -z "$canoe" ] && [ -f "$es_dir/libcrtfx.so" ] || return 0
+    sharp=$(esSetting DisplayCrtSharp)
+    case $sharp in 1|2|3) ;; *) sharp= ;; esac
+    level=$(scanlineLevel)
+    [ "$level" -ge 2 ] && gains=$(scanlineGains "$level")
+    [ "$(esSetting DisplayCrtSquare)" = 1 ] && square=1
+    [ -n "$sharp" ] || [ -n "$gains" ] || [ -n "$square" ] || return 0
     export LD_PRELOAD="$es_dir/libcrtfx.so"
-    export CRTFX_SHARP=1
+    [ -z "$gains" ] || export CRTFX_GAINS="$gains"
+    [ -z "$sharp" ] || export CRTFX_SHARP="$sharp"
+    [ -z "$square" ] || export CRTFX_SQUARE=1
     return 0
   fi
   case "$canoe$(filterName)" in

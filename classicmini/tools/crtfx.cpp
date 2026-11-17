@@ -41,7 +41,9 @@ struct Journal {
 Journal gJournal{-1, PTHREAD_MUTEX_INITIALIZER, std::chrono::steady_clock::time_point()};
 bool gActive = false;
 bool gIsNes = false;
-bool gSharp = false;
+int gSharpLevel = 0;
+bool gSquare = false;
+std::atomic<int> gVertexShaders{0};
 std::atomic<int> gTexLogs{0};
 std::array<char, 160> gSessionPath;
 std::atomic<std::uint64_t> gFrames{0};
@@ -880,16 +882,28 @@ std::size_t replaceFirst(char* text, std::size_t size, const char* needle, const
     return head + new_length + tail - 1;
 }
 
-bool patchScanlineShader(std::array<char, kShaderMax>& source, const std::array<float, 4>& gains)
+bool patchScanlineShader(std::array<char, kShaderMax>& source, bool with_gains, const std::array<float, 4>& gains, int sharp_level)
 {
-    std::array<char, 64> high;
-    std::array<char, 64> low;
-    std::snprintf(high.data(), high.size(), "(%.4f + (%.4f * texel))", static_cast<double>(gains[0] / 100.0F), static_cast<double>(gains[1] / 100.0F));
-    std::snprintf(low.data(), low.size(), "(%.4f + (%.4f * texel))", static_cast<double>(gains[2] / 100.0F), static_cast<double>(gains[3] / 100.0F));
     std::array<char, kShaderMax> patched = source;
-    if (replaceFirst(patched.data(), patched.size(), "(1.2 - (0.2 * texel))", high.data()) == 0 ||
-        replaceFirst(patched.data(), patched.size(), "(0.85 + (0.1 * texel))", low.data()) == 0) {
-        return false;
+    if (with_gains) {
+        std::array<char, 64> high;
+        std::array<char, 64> low;
+        std::snprintf(high.data(), high.size(), "(%.4f + (%.4f * texel))", static_cast<double>(gains[0] / 100.0F), static_cast<double>(gains[1] / 100.0F));
+        std::snprintf(low.data(), low.size(), "(%.4f + (%.4f * texel))", static_cast<double>(gains[2] / 100.0F), static_cast<double>(gains[3] / 100.0F));
+        if (replaceFirst(patched.data(), patched.size(), "(1.2 - (0.2 * texel))", high.data()) == 0 ||
+            replaceFirst(patched.data(), patched.size(), "(0.85 + (0.1 * texel))", low.data()) == 0) {
+            return false;
+        }
+    }
+    if (sharp_level == 1 || sharp_level == 2) {
+        std::array<char, 384> lookup;
+        std::snprintf(lookup.data(), lookup.size(),
+                      "vec3 texel = texture2D(videoFrame, varUv).rgb;"
+                      "texel = clamp(texel + %.2f * (texel - 0.5 * (texture2D(videoFrame, varUv - vec2(0.001712, 0.0)).rgb + texture2D(videoFrame, varUv + vec2(0.001712, 0.0)).rgb)), 0.0, 1.0);",
+                      sharp_level == 1 ? 0.8 : 1.6);
+        if (replaceFirst(patched.data(), patched.size(), "vec3 texel = texture2D(videoFrame, varUv).rgb;", lookup.data()) == 0) {
+            return false;
+        }
     }
     source = patched;
     return true;
@@ -939,7 +953,9 @@ __attribute__((constructor)) static void onLoad()
     filterSelect();
     maskSelect();
     const char* sharp = std::getenv("CRTFX_SHARP");
-    gSharp = gIsNes && sharp != nullptr && std::atoi(sharp) > 0;
+    const char* square = std::getenv("CRTFX_SQUARE");
+    gSquare = gIsNes && square != nullptr && std::atoi(square) > 0;
+    gSharpLevel = (gIsNes && sharp != nullptr) ? std::min(std::max(std::atoi(sharp), 0), 3) : 0;
     heartbeatStart();
     journalSync();
 }
@@ -1038,7 +1054,8 @@ CRTFX_EXPORT void glShaderSource(unsigned shader, int count, const char* const* 
         journal("glShaderSource: shader %u count %d first \"%.40s\"", shader, count, (string != nullptr && count > 0 && string[0] != nullptr) ? string[0] : "?");
     }
     constexpr int kMaxStrings = 4;
-    if (!gActive || !gIsNes || !gHasGains || count < 1 || count > kMaxStrings || string == nullptr) {
+    const bool smooth_patch = gSharpLevel == 1 || gSharpLevel == 2;
+    if (!gActive || !gIsNes || (!gHasGains && !smooth_patch && !gSquare) || count < 1 || count > kMaxStrings || string == nullptr) {
         real(shader, count, string, length);
         return;
     }
@@ -1057,7 +1074,13 @@ CRTFX_EXPORT void glShaderSource(unsigned shader, int count, const char* const* 
         if (!patched && static_cast<std::size_t>(sizes[index]) < source.size()) {
             std::memcpy(source.data(), string[i], static_cast<std::size_t>(sizes[index]));
             source[static_cast<std::size_t>(sizes[index])] = 0;
-            if (std::strstr(source.data(), "ratioToScanlines") != nullptr && patchScanlineShader(source, gGains)) {
+            if (gSquare && std::strstr(source.data(), "gl_Position.xy = pos;") != nullptr && gVertexShaders.fetch_add(1) == 1 &&
+                replaceFirst(source.data(), source.size(), "gl_Position.xy = pos;", "gl_Position.xy = pos * vec2(0.875, 1.0);") != 0) {
+                parts[index] = source.data();
+                sizes[index] = static_cast<int>(std::strlen(source.data()));
+                patched = true;
+                journal("vertex shader %u narrowed to square pixels", shader);
+            } else if (std::strstr(source.data(), "ratioToScanlines") != nullptr && (gHasGains || smooth_patch) && patchScanlineShader(source, gHasGains, gGains, gSharpLevel)) {
                 parts[index] = source.data();
                 sizes[index] = static_cast<int>(std::strlen(source.data()));
                 patched = true;
@@ -1068,8 +1091,8 @@ CRTFX_EXPORT void glShaderSource(unsigned shader, int count, const char* const* 
         real(shader, count, string, length);
         return;
     }
-    journal("scanline shader patched: %.0f,%.0f,%.0f,%.0f", static_cast<double>(gGains[0]), static_cast<double>(gGains[1]), static_cast<double>(gGains[2]),
-            static_cast<double>(gGains[3]));
+    journal("scanline shader patched: gains %s %.0f,%.0f,%.0f,%.0f, smoothing level %d", gHasGains ? "on" : "off", static_cast<double>(gGains[0]), static_cast<double>(gGains[1]),
+            static_cast<double>(gGains[2]), static_cast<double>(gGains[3]), gSharpLevel);
     real(shader, count, parts.data(), sizes.data());
 }
 
@@ -1085,10 +1108,83 @@ CRTFX_EXPORT void glTexParameteri(unsigned target, unsigned pname, int param)
     constexpr int kNearest = 0x2600;
     constexpr int kLinear = 0x2601;
     if (gActive && gIsNes && (pname == kMagFilter || pname == kMinFilter) && gTexLogs.fetch_add(1) < 12) {
-        journal("glTexParameteri: target %#x pname %#x param %#x%s", target, pname, static_cast<unsigned>(param), gSharp && param == kLinear ? " -> nearest" : "");
+        journal("glTexParameteri: target %#x pname %#x param %#x%s", target, pname, static_cast<unsigned>(param), gSharpLevel == 3 && param == kLinear ? " -> nearest" : "");
     }
-    if (gSharp && (pname == kMagFilter || pname == kMinFilter) && param == kLinear) {
+    if (gSharpLevel == 3 && (pname == kMagFilter || pname == kMinFilter) && param == kLinear) {
         param = kNearest;
     }
     real(target, pname, param);
+}
+
+CRTFX_EXPORT void glTexImage2D(unsigned target, int level, int internalformat, int width, int height, int border, unsigned format, unsigned type, const void* pixels)
+{
+    using Fn = void (*)(unsigned, int, int, int, int, int, unsigned, unsigned, const void*);
+    static const Fn real = reinterpret_cast<Fn>(dlsym(RTLD_NEXT, "glTexImage2D"));
+    if (real == nullptr) {
+        return;
+    }
+    static std::atomic<int> logged{0};
+    if (gActive && gIsNes && logged.fetch_add(1) < 12) {
+        journal("glTexImage2D: level %d %dx%d format %#x", level, width, height, format);
+    }
+    real(target, level, internalformat, width, height, border, format, type, pixels);
+}
+
+CRTFX_EXPORT unsigned eglSwapBuffers(void* display, void* surface)
+{
+    using Swap = unsigned (*)(void*, void*);
+    using Read = void (*)(int, int, int, int, unsigned, unsigned, void*);
+    static const Swap real = reinterpret_cast<Swap>(dlsym(RTLD_NEXT, "eglSwapBuffers"));
+    static const char* const target = std::getenv("CRTFX_SHOT");
+    static const int wanted = std::getenv("CRTFX_SHOT_FRAME") != nullptr ? std::max(std::atoi(std::getenv("CRTFX_SHOT_FRAME")), 1) : 150;
+    static int frames = 0;
+    if (real == nullptr) {
+        return 0;
+    }
+    if (gActive && gIsNes && target != nullptr && target[0] != 0 && ++frames == wanted) {
+        static const Read read = reinterpret_cast<Read>(dlsym(RTLD_NEXT, "glReadPixels"));
+        constexpr int kWidth = 1280;
+        constexpr int kHeight = 720;
+        constexpr unsigned kRgba = 0x1908;
+        constexpr unsigned kUnsignedByte = 0x1401;
+        static std::array<std::uint8_t, static_cast<std::size_t>(kWidth) * kHeight * 4> pixels;
+        if (read != nullptr) {
+            read(0, 0, kWidth, kHeight, kRgba, kUnsignedByte, pixels.data());
+            const int fd = ::open(target, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0644);
+            if (fd >= 0) {
+                std::array<char, 32> header;
+                const int header_length = std::snprintf(header.data(), header.size(), "P6\n%d %d\n255\n", kWidth, kHeight);
+                static_cast<void>(::write(fd, header.data(), static_cast<std::size_t>(header_length)));
+                std::array<std::uint8_t, static_cast<std::size_t>(kWidth) * 3> row;
+                for (int y = kHeight - 1; y >= 0; --y) {
+                    const std::uint8_t* source = pixels.data() + static_cast<std::size_t>(y) * kWidth * 4;
+                    for (int x = 0; x < kWidth; ++x) {
+                        row[static_cast<std::size_t>(x) * 3] = source[x * 4];
+                        row[static_cast<std::size_t>(x) * 3 + 1] = source[x * 4 + 1];
+                        row[static_cast<std::size_t>(x) * 3 + 2] = source[x * 4 + 2];
+                    }
+                    static_cast<void>(::write(fd, row.data(), row.size()));
+                }
+                ::close(fd);
+                journal("screenshot written to %s at frame %d", target, frames);
+            }
+        }
+        journalSync();
+        ::_exit(0);
+    }
+    return real(display, surface);
+}
+
+CRTFX_EXPORT void glViewport(int x, int y, int width, int height)
+{
+    using Fn = void (*)(int, int, int, int);
+    static const Fn real = reinterpret_cast<Fn>(dlsym(RTLD_NEXT, "glViewport"));
+    if (real == nullptr) {
+        return;
+    }
+    static std::atomic<int> logged{0};
+    if (gActive && gIsNes && logged.fetch_add(1) < 16) {
+        journal("glViewport: %d,%d %dx%d", x, y, width, height);
+    }
+    real(x, y, width, height);
 }

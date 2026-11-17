@@ -556,13 +556,21 @@ void GuiMenu::openDisplaySettings()
 
 	const bool famicom = isFamicomPad();
 
-	auto sharp = std::make_shared< OptionListComponent<int> >(mWindow, "CRT SHARPNESS", false);
+	auto sharp = std::make_shared< OptionListComponent<int> >(mWindow, "CRT SMOOTHING", false);
 	const int currentSharp = Settings::getInstance()->getInt("DisplayCrtSharp");
 	sharp->add("STOCK", 0, currentSharp == 0);
-	sharp->add("SHARP", 1, currentSharp == 1);
+	sharp->add("SOFT", 1, currentSharp == 1);
+	sharp->add("SHARP", 2, currentSharp == 2);
+	sharp->add("PIXEL", 3, currentSharp == 3);
+	auto square = std::make_shared< OptionListComponent<int> >(mWindow, "CRT SIZE", false);
+	const int currentSquare = Settings::getInstance()->getInt("DisplayCrtSquare");
+	square->add("4:3", 0, currentSquare == 0);
+	square->add("PIXEL PERFECT", 1, currentSquare == 1);
 	if (famicom)
 	{
-		s->addWithLabel("CRT SHARPNESS", sharp);
+		s->addWithLabel("CRT SMOOTHING", sharp);
+		s->addWithLabel("CRT SIZE", square);
+		s->addSaveFunc([square] { Settings::getInstance()->setInt("DisplayCrtSquare", square->getSelected()); });
 		s->addSaveFunc([sharp] { Settings::getInstance()->setInt("DisplayCrtSharp", sharp->getSelected()); });
 	}
 
@@ -652,7 +660,7 @@ void GuiMenu::openDisplaySettings()
 		Settings::getInstance()->setBool("DisplayCrtScanlines", level > 0);
 	});
 
-	const auto updateEffects = [mode, filter, scanlines, sharp]
+	const auto updateEffects = [mode, filter, scanlines, sharp, square, famicom]
 	{
 		const bool crt = mode->getSelected() == "crt-filter";
 		const std::string chosen = filter->getSelected();
@@ -661,8 +669,13 @@ void GuiMenu::openDisplaySettings()
 		filter->setOpacity(crt ? 90 : 255);
 		sharp->setEnabled(crt);
 		sharp->setOpacity(crt ? 255 : 90);
-		scanlines->setEnabled(!scanlinesFixed);
-		scanlines->setOpacity(scanlinesFixed ? 90 : 255);
+		square->setEnabled(crt);
+		square->setOpacity(crt ? 255 : 90);
+		const bool scanlinesLocked = scanlinesFixed && !(crt && famicom);
+		if (crt && famicom && scanlines->getSelected() == 0)
+			scanlines->select(1);
+		scanlines->setEnabled(!scanlinesLocked);
+		scanlines->setOpacity(scanlinesLocked ? 90 : 255);
 	};
 	mode->setSelectedChangedCallback(updateEffects);
 	auto previousFilter = std::make_shared<std::string>(currentFilter);
