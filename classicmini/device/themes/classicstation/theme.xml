@@ -23,58 +23,215 @@
 
 		<helpsystem name="help">
 			<pos>0.02 0.94</pos>
-			<textColor>FFFFFF</textColor>
+			<textColor>${logoColor}</textColor>
 			<iconColor>FFFFFF</iconColor>
 			<fontSize>0.03</fontSize>
 		</helpsystem>
 	</view>
 
+	<view name="basic, detailed, video, grid">
+		<image name="menubar_top" extra="true">
+			<path>./menubar_top.png</path>
+			<pos>0 -0.033333</pos>
+			<size>1 0.166667</size>
+			<zIndex>5</zIndex>
+		</image>
+		<image name="menubar_bottom" extra="true">
+			<path>./menubar_bottom.png</path>
+			<pos>0 0.875</pos>
+			<size>1 0.166667</size>
+			<zIndex>5</zIndex>
+		</image>
+		<image name="bar_logo" extra="true">
+			<path>./assets/systems/logos/${system.theme}.svg</path>
+			<color>${logoColor}</color>
+			<pos>0.0602 0.9264</pos>
+			<maxSize>0.35 0.0778</maxSize>
+			<origin>0 0.5</origin>
+			<zIndex>20</zIndex>
+		</image>
+
+		<text name="logoText">
+			<pos>1 1</pos>
+			<size>0.1 0.05</size>
+		</text>
+
+		<image name="menu_strip" extra="true">
+			<path>./ui/menu_strip.png</path>
+			<pos>0.3125 -0.033333</pos>
+			<size>0.375 0.166667</size>
+			<zIndex>6</zIndex>
+		</image>
+
+		<container name="menuIcons">
+			<pos>0.3125 0.0361</pos>
+			<size>0.375 0.1</size>
+		</container>
+
+		<helpsystem name="help">
+			<pos>0.5 0.85</pos>
+			<origin>0.5 0.5</origin>
+			<iconTextSpacing>4</iconTextSpacing>
+			<entrySpacing>30</entrySpacing>
+			<textColor>${logoColor}</textColor>
+			<iconColor>FFFFFF</iconColor>
+			<fontSize>0.0311</fontSize>
+			<iconHeight>0.041667</iconHeight>
+		</helpsystem>
+
+		<helpsystem name="suspend_help">
+			<pos>0.5 0.929167</pos>
+			<origin>0.5 0.5</origin>
+			<iconTextSpacing>4</iconTextSpacing>
+			<entrySpacing>30</entrySpacing>
+			<textColor>${logoColor}</textColor>
+			<iconColor>FFFFFF</iconColor>
+			<fontSize>0.0311</fontSize>
+			<iconHeight>0.041667</iconHeight>
+		</helpsystem>
+
+		<container name="suspend_backdrop">
+			<visible>false</visible>
+		</container>
+
+		<image name="suspend_panel">
+			<path>./suspend_panel.png</path>
+			<pos>-0.001563 0.450000</pos>
+			<size>1.003125 0.554167</size>
+		</image>
+
+		<image name="suspend_cell">
+			<path>./suspend_cell.png</path>
+			<pos>0.120313 0.633333</pos>
+			<size>0.150000 0.233333</size>
+		</image>
+
+		<image name="suspend_cell_selected">
+			<path>./suspend_cell_selected.png</path>
+			<pos>0.120313 0.633333</pos>
+			<size>0.150000 0.233333</size>
+		</image>
+
+		<image name="suspend_cell_empty">
+			<path>./suspend_cell_empty.png</path>
+			<pos>0.115625 0.625</pos>
+			<size>0.159375 0.25</size>
+		</image>
+
+		<image name="suspend_cell_empty_selected">
+			<path>./suspend_cell_empty_selected.png</path>
+			<pos>0.115625 0.625</pos>
+			<size>0.159375 0.25</size>
+		</image>
+
+		<image name="suspend_cell_next">
+			<path>./suspend_cell.png</path>
+			<pos>0.323437 0.633333</pos>
+			<size>0.150000 0.233333</size>
+		</image>
+
+		<image name="suspend_shot">
+			<pos>0.132812 0.650000</pos>
+			<size>0.125000 0.166667</size>
+		</image>
+
+		<image name="suspend_frame">
+			<path>./suspend_frame.png</path>
+			<pos>0.132812 0.650000</pos>
+			<size>0.125000 0.166667</size>
+		</image>
+
+		<image name="suspend_frame_selected">
+			<path>./suspend_frame.png</path>
+			<pos>0.132812 0.650000</pos>
+			<size>0.125000 0.166667</size>
+		</image>
+
+		<image name="suspend_lock">
+			<path>./suspend_lock.png</path>
+			<pos>0.125000 0.783333</pos>
+			<size>0.037500 0.070833</size>
+		</image>
+
+		<text name="suspend_label">
+			<pos>0.132812 0.819444</pos>
+			<size>0.125000 0.036111</size>
+			<fontSize>0.025000</fontSize>
+			<color>000000</color>
+			<alignment>right</alignment>
+		</text>
+
+		<text name="suspend_title">
+			<pos>0.404688 0.5125</pos>
+			<size>0.46875 0.083333</size>
+			<fontSize>0.0583</fontSize>
+			<color>${logoColor}</color>
+			<alignment>left</alignment>
+		</text>
+
+		<text name="suspend_label_empty">
+			<pos>0.117188 0.722222</pos>
+			<size>0.15625 0.055556</size>
+			<fontSize>0.037</fontSize>
+			<color>000000</color>
+			<alignment>center</alignment>
+		</text>
+
+		<text name="suspend_notice">
+			<pos>0.546875 0.962500</pos>
+			<size>0.421875 0.038889</size>
+			<fontSize>0.027778</fontSize>
+			<color>${logoColor}</color>
+			<alignment>right</alignment>
+		</text>
+	</view>
+
 	<view name="basic, detailed, video">
 		<image name="row_1" extra="true">
 			<path>./list_row.png</path>
-			<pos>0.2898 0.2139</pos>
+			<pos>0.5375 0.1875</pos>
 			<size>0.4203 0.0681</size>
 			<zIndex>10</zIndex>
 		</image>
 		<image name="row_2" extra="true">
 			<path>./list_row.png</path>
-			<pos>0.2898 0.2931</pos>
+			<pos>0.5375 0.2667</pos>
 			<size>0.4203 0.0681</size>
 			<zIndex>10</zIndex>
 		</image>
 		<image name="row_3" extra="true">
 			<path>./list_row.png</path>
-			<pos>0.2898 0.3723</pos>
+			<pos>0.5375 0.3458</pos>
 			<size>0.4203 0.0681</size>
 			<zIndex>10</zIndex>
 		</image>
 		<image name="row_4" extra="true">
 			<path>./list_row.png</path>
-			<pos>0.2898 0.4514</pos>
+			<pos>0.5375 0.4250</pos>
 			<size>0.4203 0.0681</size>
 			<zIndex>10</zIndex>
 		</image>
 		<image name="row_5" extra="true">
 			<path>./list_row.png</path>
-			<pos>0.2898 0.5306</pos>
+			<pos>0.5375 0.5042</pos>
 			<size>0.4203 0.0681</size>
 			<zIndex>10</zIndex>
 		</image>
 		<image name="row_6" extra="true">
 			<path>./list_row.png</path>
-			<pos>0.2898 0.6098</pos>
+			<pos>0.5375 0.5833</pos>
 			<size>0.4203 0.0681</size>
 			<zIndex>10</zIndex>
 		</image>
 		<image name="row_7" extra="true">
 			<path>./list_row.png</path>
-			<pos>0.2898 0.6889</pos>
+			<pos>0.5375 0.6625</pos>
 			<size>0.4203 0.0681</size>
 			<zIndex>10</zIndex>
 		</image>
 
 		<textlist name="gamelist">
-			<pos>0.2867 0.2006</pos>
+			<pos>0.5344 0.1742</pos>
 			<size>0.4266 0.5819</size>
 			<horizontalMargin>0.0219</horizontalMargin>
 			<alignment>left</alignment>
@@ -84,6 +241,8 @@
 			<primaryColor>1C1C1C</primaryColor>
 			<secondaryColor>1C1C1C</secondaryColor>
 			<selectedColor>FFFFFF</selectedColor>
+			<favoriteIconPath>./heart_filled.png</favoriteIconPath>
+			<favoriteIconOffsetY>0.05</favoriteIconOffsetY>
 			<selectorImagePath>./list_selector.png</selectorImagePath>
 			<selectorColor>FFFFFF</selectorColor>
 			<selectorHeight>0.0806</selectorHeight>
@@ -91,37 +250,96 @@
 			<zIndex>20</zIndex>
 		</textlist>
 
+		<image name="cover_card" extra="true">
+			<path>./cover_card.png</path>
+			<pos>0.0344 0.157</pos>
+			<size>0.2039 0.5389</size>
+			<zIndex>25</zIndex>
+		</image>
+
 		<image name="md_image">
-			<pos>0.1445 0.5</pos>
-			<maxSize>0.25 0.45</maxSize>
+			<pos>0.1363 0.3958</pos>
+			<maxSize>0.182 0.4389</maxSize>
 			<origin>0.5 0.5</origin>
 			<zIndex>30</zIndex>
 		</image>
 
+		<rating name="md_rating">
+			<pos>0.0453 0.6278</pos>
+			<size>0.1172 0.0417</size>
+			<filledPath>./rating_heart_filled.png</filledPath>
+			<unfilledPath>./rating_heart_empty.png</unfilledPath>
+			<zIndex>40</zIndex>
+		</rating>
+
+		<playersicon name="md_playersicon">
+			<pos>0.1828125 0.6236</pos>
+			<size>0.04453 0.04583</size>
+			<onePath>./players_one.png</onePath>
+			<manyPath>./players_many.png</manyPath>
+			<zIndex>40</zIndex>
+		</playersicon>
+
+		<text name="md_name">
+			<pos>0.2641 0.1597</pos>
+			<size>0.2383 0.0903</size>
+			<fontSize>0.07</fontSize>
+			<color>FFFFFF</color>
+			<alignment>left</alignment>
+			<fitMinScale>0.5</fitMinScale>
+			<zIndex>40</zIndex>
+		</text>
+
+		<image name="md_marquee">
+			<pos>0.2641 0.2048</pos>
+			<maxSize>0.2383 0.0903</maxSize>
+			<origin>0 0.5</origin>
+			<visible>true</visible>
+			<zIndex>40</zIndex>
+		</image>
+
+		<image name="divider_1" extra="true">
+			<path>./divider.png</path>
+			<pos>0.2641 0.2583</pos>
+			<size>0.2383 0.0028</size>
+			<zIndex>40</zIndex>
+		</image>
+
+		<text name="md_info">
+			<pos>0.2641 0.2708</pos>
+			<size>0.2383 0.0778</size>
+			<fontSize>0.0306</fontSize>
+			<lineSpacing>1.15</lineSpacing>
+			<color>FFFFFF</color>
+			<alignment>left</alignment>
+			<fields>releasedate publisher genre</fields>
+			<separator>  ·  </separator>
+			<zIndex>40</zIndex>
+		</text>
+
+		<image name="divider_2" extra="true">
+			<path>./divider.png</path>
+			<pos>0.2641 0.3639</pos>
+			<size>0.2383 0.0028</size>
+			<zIndex>40</zIndex>
+		</image>
+
 		<text name="md_description">
-			<pos>0.7227 0.2083</pos>
-			<size>0.2305 0.45</size>
-			<fontSize>0.0278</fontSize>
-			<lineSpacing>1.2</lineSpacing>
+			<pos>0.2641 0.3778</pos>
+			<size>0.2383 0.4028</size>
+			<fontSize>0.0236</fontSize>
+			<lineSpacing>1.25</lineSpacing>
 			<color>FFFFFF</color>
 			<alignment>left</alignment>
 			<zIndex>40</zIndex>
 		</text>
-
-		<rating name="md_rating">
-			<pos>0.7227 0.72</pos>
-			<size>0.0703 0.025</size>
-			<filledPath>./rating_filled.png</filledPath>
-			<unfilledPath>./rating_empty.png</unfilledPath>
-			<zIndex>40</zIndex>
-		</rating>
 
 		<text name="md_lbl_rating, md_lbl_releasedate, md_lbl_developer, md_lbl_publisher, md_lbl_genre, md_lbl_players, md_lbl_lastplayed, md_lbl_playcount">
 			<pos>1 1</pos>
 			<size>0.1 0.05</size>
 		</text>
 
-		<text name="md_name, md_developer, md_publisher, md_genre, md_players, md_playcount">
+		<text name="md_developer, md_publisher, md_genre, md_players, md_playcount">
 			<pos>1 1</pos>
 			<size>0.1 0.05</size>
 		</text>
@@ -155,37 +373,11 @@
 	</view>
 
 	<view name="grid">
-		<image name="menubar_top" extra="true">
-			<path>./menubar_top.png</path>
-			<pos>0 -0.038889</pos>
-			<size>1 0.166667</size>
-			<zIndex>5</zIndex>
-		</image>
-		<image name="menubar_bottom" extra="true">
-			<path>./menubar_bottom.png</path>
-			<pos>0 0.868056</pos>
-			<size>1 0.166667</size>
-			<zIndex>5</zIndex>
-		</image>
 		<image name="title_bar" extra="true">
 			<path>./title_bar.png</path>
 			<pos>0.1078 0.2153</pos>
 			<size>0.7844 0.0736</size>
 			<zIndex>10</zIndex>
-		</image>
-
-		<container name="menuIcons">
-			<pos>0.3172 0.0639</pos>
-			<size>0.3672 0.0611</size>
-		</container>
-
-		<image name="bar_logo" extra="true">
-			<path>./assets/systems/logos/${system.theme}.svg</path>
-			<color>${logoColor}</color>
-			<pos>0.0602 0.9194</pos>
-			<maxSize>0.35 0.0778</maxSize>
-			<origin>0 0.5</origin>
-			<zIndex>20</zIndex>
 		</image>
 
 		<text name="logoText">
@@ -226,10 +418,6 @@
 		<gridtile name="selected">
 			<backgroundImage>./card_active.png</backgroundImage>
 		</gridtile>
-
-		<helpsystem name="help">
-			<pos>0.23 0.84</pos>
-		</helpsystem>
 
 		<image name="md_image">
 			<pos>1 1</pos>

@@ -3,10 +3,10 @@
 
 	<include>./../theme.xml</include>
 
-	<view name="grid">
+	<view name="basic, detailed, video, grid">
 		<image name="bar_logo" extra="true">
 			<path>./../assets/systems/logos/nes1.svg</path>
-			<pos>0.0602 0.8806</pos>
+			<pos>0.0602 0.8875</pos>
 			<maxSize>0.3211 0.0694</maxSize>
 			<origin>0 0</origin>
 		</image>
