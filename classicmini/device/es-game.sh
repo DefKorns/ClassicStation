@@ -19,6 +19,8 @@ shim=/tmp/es-shim
 profile=/var/lib/clover/profiles/0
 volatile=/var/cache/clover/volatile
 settings_file=$(dirname "$0")/home/.emulationstation/es_settings.cfg
+# shellcheck source=es-autofire.sh
+source "$(dirname "$0")/es-autofire.sh"
 
 esSetting() {
   sed -n "s|^<[a-z]* name=\"$1\" value=\"\([^\"]*\)\" */>.*|\1|p" "$settings_file" 2>/dev/null | head -n 1
@@ -143,9 +145,11 @@ mkdir -p "$shim"
 printf '#!/bin/sh\nexec retroarch-clover-child "$@"%s\n' "$(retroarchArgs)$(noFrameArg)" > "$shim/retroarch-clover"
 chmod +x "$shim/retroarch-clover"
 
+autofireForGames
 launched=$(cut -d. -f1 /proc/uptime)
 PATH="$shim:$PATH" sh -c "$cmd"
 status=$?
+autofireForUi
 if [ -n "$native" ] && [ -f "$floating.state" ]; then
   played=$(($(cut -d. -f1 /proc/uptime) - launched))
   if [ -n "$resume" ]; then
