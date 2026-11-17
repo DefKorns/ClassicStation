@@ -66,6 +66,12 @@ GuiMsgBox::GuiMsgBox(Window* window, const std::string& text,
 	addChild(&mGrid);
 }
 
+void GuiMsgBox::selectButton(size_t index)
+{
+	if(index < mButtons.size())
+		mButtonGrid->setCursorTo(mButtons[index]);
+}
+
 bool GuiMsgBox::input(InputConfig* config, Input input)
 {
 	// special case for when GuiMsgBox comes up to report errors before anything has been configured

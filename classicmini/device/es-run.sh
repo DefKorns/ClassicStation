@@ -59,6 +59,7 @@ fi
 sh "$es_dir/es-favorites.sh" /tmp/es-library "$es_dir/favorites.txt"
 sh "$es_dir/es-systems.sh" /tmp/es-library "$es_dir/es_systems.cfg" "$es_dir/home/.emulationstation/es_systems.cfg"
 [ -f /media/data/emulationstation/audio/bgm_home.wav ] || sh "$es_dir/es-tools.sh" audio import >/dev/null 2>&1
+sh "$es_dir/es-tools.sh" swap boot >/dev/null 2>&1
 while true; do
   rm -f /tmp/es-quit /tmp/es-restart /tmp/es-sysrestart /tmp/es-shutdown
   es_started=$(date +%s)
