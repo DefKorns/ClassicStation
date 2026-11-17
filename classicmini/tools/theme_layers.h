@@ -10,6 +10,7 @@
 #define CLASSICMINI_THEME_LAYERS_H
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdlib>
 #include <map>
@@ -77,6 +78,7 @@ namespace theme_layers
 	struct Options
 	{
 		int iconScale = 3;
+		int ratingMargin = 3;
 		int frameScale = 2;
 		int rowWidth = 538;
 		int rowHeight = 57;
@@ -88,6 +90,11 @@ namespace theme_layers
 		Rect cardWindow{49, 5, 148, 204};
 		int cardExtraTop = 56;
 		int barScale = 3;
+		int labelWidth = 596;
+		int detailCardWidth = 261;
+		int detailCardHeight = 388;
+		int dividerWidth = 305;
+		int labelHeight = 30;
 		int screenWidth = 1280;
 		int background = -1;
 	};
@@ -156,6 +163,32 @@ namespace theme_layers
 		Image result(area.w, area.h);
 		for(int row = 0; row < area.h; ++row)
 			std::copy_n(source.at(area.x, area.y + row), static_cast<std::size_t>(area.w) * 4, result.at(0, row));
+		return result;
+	}
+
+	inline Image solid(int width, int height, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha)
+	{
+		Image image(width, height);
+		for(int y = 0; y < height; ++y)
+			for(int x = 0; x < width; ++x)
+			{
+				unsigned char* pixel = image.at(x, y);
+				pixel[0] = red;
+				pixel[1] = green;
+				pixel[2] = blue;
+				pixel[3] = alpha;
+			}
+		return image;
+	}
+
+	inline Image pad(const Image& source, int margin)
+	{
+		if(margin < 0)
+			throw std::invalid_argument("negative padding");
+
+		Image result(source.width() + 2 * margin, source.height() + 2 * margin);
+		for(int row = 0; row < source.height(); ++row)
+			std::copy_n(source.at(0, row), static_cast<std::size_t>(source.width()) * 4, result.at(margin, row + margin));
 		return result;
 	}
 
@@ -289,6 +322,420 @@ namespace theme_layers
 		return result;
 	}
 
+	namespace detail
+	{
+		inline void put16(std::vector<unsigned char>& out, unsigned value)
+		{
+			out.push_back(static_cast<unsigned char>((value >> 8) & 0xff));
+			out.push_back(static_cast<unsigned char>(value & 0xff));
+		}
+
+		inline void put32(std::vector<unsigned char>& out, unsigned long value)
+		{
+			put16(out, static_cast<unsigned>((value >> 16) & 0xffff));
+			put16(out, static_cast<unsigned>(value & 0xffff));
+		}
+
+		inline unsigned long checksum(const std::vector<unsigned char>& data)
+		{
+			unsigned long sum = 0;
+			for(std::size_t i = 0; i < data.size(); i += 4)
+			{
+				unsigned long word = 0;
+				for(std::size_t k = 0; k < 4; ++k)
+					word = (word << 8) | (i + k < data.size() ? data[i + k] : 0);
+				sum = (sum + word) & 0xffffffffUL;
+			}
+			return sum;
+		}
+
+		inline bool litPixel(const unsigned char* pixel)
+		{
+			return pixel[3] >= 128 && !(pixel[0] > 230 && pixel[1] > 230 && pixel[2] > 230);
+		}
+
+		inline unsigned lowerPowerOfTwo(std::size_t value, unsigned& exponent)
+		{
+			unsigned power = 1;
+			exponent = 0;
+			while(power * 2 <= value)
+			{
+				power *= 2;
+				++exponent;
+			}
+			return power;
+		}
+	}
+
+	struct Glyph
+	{
+		std::vector<std::vector<std::pair<int, int>>> contours;
+		int xMax = 0;
+		int yMax = 0;
+		int advance = 0;
+	};
+
+	inline Glyph glyphFromIcon(const Image& icon, int unit)
+	{
+		Glyph glyph;
+		glyph.advance = icon.width() * unit;
+		for(int row = 0; row < icon.height(); ++row)
+		{
+			const int bottom = (icon.height() - 1 - row) * unit;
+			int runStart = -1;
+			for(int column = 0; column <= icon.width(); ++column)
+			{
+				const bool lit = column < icon.width() && detail::litPixel(icon.at(column, row));
+				if(lit && runStart < 0)
+					runStart = column;
+				if(!lit && runStart >= 0)
+				{
+					const int left = runStart * unit;
+					const int right = column * unit;
+					const int top = bottom + unit + unit / 40;
+					glyph.contours.push_back({{left, bottom}, {left, top}, {right, top}, {right, bottom}});
+					glyph.xMax = std::max(glyph.xMax, right);
+					glyph.yMax = std::max(glyph.yMax, top);
+					runStart = -1;
+				}
+			}
+		}
+		return glyph;
+	}
+
+	inline std::vector<unsigned char> buildGlyphFont(const std::vector<std::pair<unsigned, Glyph>>& characters, int unitsPerEm)
+	{
+		using namespace detail;
+		const std::size_t glyphCount = characters.size() + 1;
+
+		std::vector<unsigned char> glyf;
+		std::vector<unsigned long> ends;
+		unsigned maxPoints = 0;
+		unsigned maxContours = 0;
+		int xMax = 0;
+		int yMax = 0;
+		int advanceMax = 0;
+		for(const auto& entry : characters)
+		{
+			const Glyph& glyph = entry.second;
+			xMax = std::max(xMax, glyph.xMax);
+			yMax = std::max(yMax, glyph.yMax);
+			advanceMax = std::max(advanceMax, glyph.advance);
+			unsigned points = 0;
+			for(const auto& contour : glyph.contours)
+				points += static_cast<unsigned>(contour.size());
+			maxPoints = std::max(maxPoints, points);
+			maxContours = std::max(maxContours, static_cast<unsigned>(glyph.contours.size()));
+
+			put16(glyf, static_cast<unsigned>(glyph.contours.size()));
+			put16(glyf, 0);
+			put16(glyf, 0);
+			put16(glyf, static_cast<unsigned>(glyph.xMax));
+			put16(glyf, static_cast<unsigned>(glyph.yMax));
+			unsigned end = 0;
+			for(const auto& contour : glyph.contours)
+			{
+				end += static_cast<unsigned>(contour.size());
+				put16(glyf, end - 1);
+			}
+			put16(glyf, 0);
+			for(unsigned i = 0; i < points; ++i)
+				glyf.push_back(0x01);
+			int previousX = 0;
+			for(const auto& contour : glyph.contours)
+				for(const auto& point : contour)
+				{
+					put16(glyf, static_cast<unsigned>(point.first - previousX) & 0xffff);
+					previousX = point.first;
+				}
+			int previousY = 0;
+			for(const auto& contour : glyph.contours)
+				for(const auto& point : contour)
+				{
+					put16(glyf, static_cast<unsigned>(point.second - previousY) & 0xffff);
+					previousY = point.second;
+				}
+			while(glyf.size() % 4 != 0)
+				glyf.push_back(0);
+			ends.push_back(glyf.size());
+		}
+
+		std::vector<unsigned char> loca;
+		put32(loca, 0);
+		put32(loca, 0);
+		for(const unsigned long end : ends)
+			put32(loca, end);
+
+		std::vector<unsigned char> head;
+		put32(head, 0x00010000);
+		put32(head, 0x00010000);
+		put32(head, 0);
+		put32(head, 0x5F0F3CF5);
+		put16(head, 0x000B);
+		put16(head, static_cast<unsigned>(unitsPerEm));
+		for(int i = 0; i < 4; ++i)
+			put32(head, 0);
+		put16(head, 0);
+		put16(head, 0);
+		put16(head, static_cast<unsigned>(xMax));
+		put16(head, static_cast<unsigned>(yMax));
+		put16(head, 0);
+		put16(head, 8);
+		put16(head, 2);
+		put16(head, 1);
+		put16(head, 0);
+
+		std::vector<unsigned char> hhea;
+		put32(hhea, 0x00010000);
+		put16(hhea, static_cast<unsigned>(unitsPerEm));
+		put16(hhea, 0);
+		put16(hhea, 0);
+		put16(hhea, static_cast<unsigned>(advanceMax));
+		put16(hhea, 0);
+		put16(hhea, 0);
+		put16(hhea, static_cast<unsigned>(xMax));
+		put16(hhea, 1);
+		put16(hhea, 0);
+		put16(hhea, 0);
+		for(int i = 0; i < 4; ++i)
+			put16(hhea, 0);
+		put16(hhea, 0);
+		put16(hhea, static_cast<unsigned>(glyphCount));
+
+		std::vector<unsigned char> maxp;
+		put32(maxp, 0x00010000);
+		put16(maxp, static_cast<unsigned>(glyphCount));
+		put16(maxp, maxPoints);
+		put16(maxp, maxContours);
+		put16(maxp, 0);
+		put16(maxp, 0);
+		put16(maxp, 2);
+		for(int i = 0; i < 8; ++i)
+			put16(maxp, 0);
+
+		std::vector<unsigned char> hmtx;
+		put16(hmtx, 0);
+		put16(hmtx, 0);
+		for(const auto& entry : characters)
+		{
+			put16(hmtx, static_cast<unsigned>(entry.second.advance));
+			put16(hmtx, 0);
+		}
+
+		std::vector<std::pair<unsigned, unsigned>> mapping;
+		for(std::size_t i = 0; i < characters.size(); ++i)
+			mapping.push_back({characters[i].first, static_cast<unsigned>(i + 1)});
+		std::sort(mapping.begin(), mapping.end());
+		const std::size_t segments = mapping.size() + 1;
+		unsigned selector = 0;
+		const unsigned power = lowerPowerOfTwo(segments, selector);
+		std::vector<unsigned char> cmap;
+		put16(cmap, 0);
+		put16(cmap, 1);
+		put16(cmap, 3);
+		put16(cmap, 1);
+		put32(cmap, 12);
+		put16(cmap, 4);
+		put16(cmap, static_cast<unsigned>(16 + segments * 8));
+		put16(cmap, 0);
+		put16(cmap, static_cast<unsigned>(segments * 2));
+		put16(cmap, power * 2);
+		put16(cmap, selector);
+		put16(cmap, static_cast<unsigned>(segments * 2 - power * 2));
+		for(const auto& entry : mapping)
+			put16(cmap, entry.first);
+		put16(cmap, 0xFFFF);
+		put16(cmap, 0);
+		for(const auto& entry : mapping)
+			put16(cmap, entry.first);
+		put16(cmap, 0xFFFF);
+		for(const auto& entry : mapping)
+			put16(cmap, (entry.second - entry.first) & 0xffff);
+		put16(cmap, 1);
+		for(std::size_t i = 0; i < segments; ++i)
+			put16(cmap, 0);
+
+		const std::string family = "ClassicStation Players";
+		const std::vector<std::pair<unsigned, std::string>> names{{1, family}, {2, "Regular"}, {4, family}, {6, "ClassicStationPlayers-Regular"}};
+		std::vector<unsigned char> nameStrings;
+		std::vector<unsigned char> nameRecords;
+		for(const auto& entry : names)
+		{
+			put16(nameRecords, 3);
+			put16(nameRecords, 1);
+			put16(nameRecords, 0x0409);
+			put16(nameRecords, entry.first);
+			put16(nameRecords, static_cast<unsigned>(entry.second.size() * 2));
+			put16(nameRecords, static_cast<unsigned>(nameStrings.size()));
+			for(const char letter : entry.second)
+			{
+				nameStrings.push_back(0);
+				nameStrings.push_back(static_cast<unsigned char>(letter));
+			}
+		}
+		std::vector<unsigned char> nameTable;
+		put16(nameTable, 0);
+		put16(nameTable, static_cast<unsigned>(names.size()));
+		put16(nameTable, static_cast<unsigned>(6 + nameRecords.size()));
+		nameTable.insert(nameTable.end(), nameRecords.begin(), nameRecords.end());
+		nameTable.insert(nameTable.end(), nameStrings.begin(), nameStrings.end());
+
+		const std::vector<std::pair<std::string, std::vector<unsigned char>>> tables{
+			{"cmap", cmap}, {"glyf", glyf}, {"head", head}, {"hhea", hhea}, {"hmtx", hmtx}, {"loca", loca}, {"maxp", maxp}, {"name", nameTable}};
+
+		std::vector<unsigned char> file;
+		put32(file, 0x00010000);
+		put16(file, static_cast<unsigned>(tables.size()));
+		unsigned tableSelector = 0;
+		const unsigned tablePower = lowerPowerOfTwo(tables.size(), tableSelector);
+		put16(file, tablePower * 16);
+		put16(file, tableSelector);
+		put16(file, static_cast<unsigned>(tables.size() * 16 - tablePower * 16));
+		unsigned long offset = static_cast<unsigned long>(12 + tables.size() * 16);
+		std::size_t headOffset = 0;
+		for(const auto& table : tables)
+		{
+			file.insert(file.end(), table.first.begin(), table.first.end());
+			put32(file, checksum(table.second));
+			put32(file, offset);
+			put32(file, table.second.size());
+			if(table.first == "head")
+				headOffset = offset;
+			offset += static_cast<unsigned long>((table.second.size() + 3) / 4 * 4);
+		}
+		for(const auto& table : tables)
+		{
+			file.insert(file.end(), table.second.begin(), table.second.end());
+			while(file.size() % 4 != 0)
+				file.push_back(0);
+		}
+
+		const unsigned long adjustment = (0xB1B0AFBAUL - checksum(file)) & 0xffffffffUL;
+		file[headOffset + 8] = static_cast<unsigned char>((adjustment >> 24) & 0xff);
+		file[headOffset + 9] = static_cast<unsigned char>((adjustment >> 16) & 0xff);
+		file[headOffset + 10] = static_cast<unsigned char>((adjustment >> 8) & 0xff);
+		file[headOffset + 11] = static_cast<unsigned char>(adjustment & 0xff);
+		return file;
+	}
+
+	inline std::vector<unsigned char> buildPlayersFont(const Image& onePlayer, const Image& twoPlayers)
+	{
+		return buildGlyphFont({{'1', glyphFromIcon(onePlayer, 100)}, {'2', glyphFromIcon(twoPlayers, 100)}}, 1100);
+	}
+
+	inline const unsigned char* firstOpaque(const Image& source)
+	{
+		for(int y = 0; y < source.height(); ++y)
+			for(int x = 0; x < source.width(); ++x)
+				if(source.at(x, y)[3] == 255)
+					return source.at(x, y);
+		throw std::runtime_error("sprite without an opaque pixel");
+	}
+
+	inline Image heartIcon(bool filled, int scale, int canvas)
+	{
+		static const char* const shape[] = {
+			"..ooo...ooo..",
+			".orrrooorrro.",
+			"orrhrrrrrrrro",
+			"orhhrrrrrrrdo",
+			"orrrrrrrrrrdo",
+			"orrrrrrrrrrdo",
+			".orrrrrrrrdo.",
+			"..orrrrrrdo..",
+			"...orrrrdo...",
+			"....orrdo....",
+			".....oro.....",
+			"......o......"};
+		constexpr int columns = 13;
+		constexpr int rows = 12;
+
+		const auto colour = [filled](char code, unsigned char* out)
+		{
+			static const unsigned char full[4][3] = {{22, 14, 20}, {226, 28, 28}, {255, 214, 214}, {170, 16, 26}};
+			static const unsigned char empty[4][3] = {{22, 14, 20}, {34, 34, 48}, {70, 70, 96}, {24, 24, 34}};
+			const int index = code == 'o' ? 0 : code == 'r' ? 1 : code == 'h' ? 2 : 3;
+			const unsigned char* source = (filled ? full : empty)[index];
+			out[0] = source[0];
+			out[1] = source[1];
+			out[2] = source[2];
+			out[3] = 255;
+		};
+
+		Image icon(canvas, canvas);
+		const int left = (canvas - (columns + 1) * scale) / 2;
+		const int top = (canvas - (rows + 1) * scale) / 2;
+		const auto paint = [&](int column, int row, const unsigned char* rgba)
+		{
+			for(int dy = 0; dy < scale; ++dy)
+				for(int dx = 0; dx < scale; ++dx)
+					std::copy_n(rgba, 4, icon.at(left + column * scale + dx, top + row * scale + dy));
+		};
+
+		static const unsigned char shadow[4] = {0, 0, 0, 90};
+		for(int row = 0; row < rows; ++row)
+			for(int column = 0; column < columns; ++column)
+				if(shape[row][column] != '.')
+					paint(column + 1, row + 1, shadow);
+		for(int row = 0; row < rows; ++row)
+			for(int column = 0; column < columns; ++column)
+				if(shape[row][column] != '.')
+				{
+					unsigned char rgba[4];
+					colour(shape[row][column], rgba);
+					paint(column, row, rgba);
+				}
+		return icon;
+	}
+
+	inline Image centered(const Image& source, int width, int height)
+	{
+		if(width < source.width() || height < source.height())
+			throw std::invalid_argument("canvas smaller than the image");
+
+		Image result(width, height);
+		const int left = (width - source.width()) / 2;
+		const int top = (height - source.height()) / 2;
+		for(int row = 0; row < source.height(); ++row)
+			std::copy_n(source.at(0, row), static_cast<std::size_t>(source.width()) * 4, result.at(left, top + row));
+		return result;
+	}
+
+	inline Image networkIcon()
+	{
+		constexpr int size = 24;
+		static const unsigned char black[4] = {0, 0, 0, 255};
+		static const unsigned char white[4] = {255, 255, 255, 255};
+		static const unsigned char blue[4] = {0x60, 0xA0, 0xFF, 255};
+
+		Image icon(size, size);
+		for(int y = 0; y < size; ++y)
+			for(int x = 0; x < size; ++x)
+			{
+				const double px = x + 0.5;
+				const double py = y + 0.5;
+				const double outer = std::hypot(px - 12.0, py - 12.0);
+				const double dx = px - 11.5;
+				const double dy = py - 11.5;
+				const double inner = std::hypot(dx, dy);
+				const unsigned char* colour = nullptr;
+				if(outer <= 9.4)
+					colour = black;
+				if(inner <= 8.3)
+					colour = white;
+				if(inner <= 6.8)
+				{
+					colour = blue;
+					const double meridian = (dx * dx) / (3.4 * 3.4) + (dy * dy) / (6.8 * 6.8);
+					if(std::abs(dx) < 0.75 || std::abs(dy) < 0.75 || std::abs(std::abs(dy) - 3.9) < 0.6 || std::abs(meridian - 1.0) < 0.2)
+						colour = white;
+				}
+				if(colour)
+					std::copy_n(colour, 4, icon.at(x, y));
+			}
+		return icon;
+	}
+
 	struct FrameSpec
 	{
 		const char* sprite;
@@ -307,7 +754,7 @@ namespace theme_layers
 
 	inline std::vector<std::string> requiredSprites(Family family)
 	{
-		return {"icon_Resume_on", "icon_Resume_off", rowFrameSpec(family).sprite, selectorFrameSpec().sprite, "caption_title", "game_card", "game_card_active", "menubar_U", "menubar_L"};
+		return {"icon_Resume_on", "icon_Resume_off", "icon_Resume_lock", rowFrameSpec(family).sprite, selectorFrameSpec().sprite, "caption_title", "game_card", "game_card_active", "menubar_U", "menubar_L"};
 	}
 
 	inline std::vector<Layer> buildLayers(const Image& sheet, const Atlas& atlas, Family family, const Options& options)
@@ -330,8 +777,8 @@ namespace theme_layers
 				}
 			layers.push_back({"background", fill});
 		}
-		layers.push_back({"rating_filled", scale(sprite(sheet, atlas, "icon_Resume_on"), options.iconScale)});
-		layers.push_back({"rating_empty", scale(sprite(sheet, atlas, "icon_Resume_off"), options.iconScale)});
+		layers.push_back({"rating_filled", pad(scale(sprite(sheet, atlas, "icon_Resume_on"), options.iconScale), options.ratingMargin)});
+		layers.push_back({"rating_empty", pad(scale(sprite(sheet, atlas, "icon_Resume_off"), options.iconScale), options.ratingMargin)});
 
 		const auto frame = [&](const FrameSpec& spec, int width, int height)
 		{
@@ -349,7 +796,137 @@ namespace theme_layers
 		if(family == Family::A)
 			clearArea(bottomBar, findBakedLogo(bottomBar, 22, 340));
 		layers.push_back({"menubar_bottom", centerCrop(scale(bottomBar, options.barScale), options.screenWidth)});
+		layers.push_back({"cover_card", ninePatch(scale(sprite(sheet, atlas, "game_card"), options.cardScale), Insets{4 * options.cardScale, 4 * options.cardScale, 4 * options.cardScale, 18 * options.cardScale}, options.detailCardWidth, options.detailCardHeight)});
+		layers.push_back({"label_bar", frame(FrameSpec{"caption_title", Insets{3, 3, 3, 3}}, options.labelWidth, options.labelHeight)});
+		for(const char* slot : {"empty:icon_Resume_off", "saved:icon_Resume_on", "locked:icon_Resume_lock"})
+		{
+			const std::string spec = slot;
+			const std::size_t colon = spec.find(':');
+			layers.push_back({"slot_" + spec.substr(0, colon), pad(scale(sprite(sheet, atlas, spec.substr(colon + 1)), options.iconScale), options.ratingMargin)});
+		}
+		layers.push_back({"heart_filled", heartIcon(true, 2, 34)});
+		layers.push_back({"heart_empty", heartIcon(false, 2, 34)});
+		layers.push_back({"rating_heart_filled", heartIcon(true, 2, 30)});
+		layers.push_back({"rating_heart_empty", heartIcon(false, 2, 30)});
+		layers.push_back({"divider", solid(options.dividerWidth, 2, 255, 255, 255, 220)});
+		const auto has = [&](const char* name) { return atlas.find(std::string(name) + ".png") != atlas.end(); };
+		if(has("resumebg") && has("resumebg_tail") && has("icon_Resume") && has("icon_numer_1") && has("icon_numer_4") && has("resume_card") && has("resume_card_active") && has("resume_card_empty") && has("resume_screen_frame") && has("icon_lock"))
+		{
+			constexpr int panelWidth = 1284;
+			constexpr int tailRise = 45;
+			Image panel(panelWidth, 354 + tailRise);
+			const auto place = [&panel](const Image& source, int centerX, int centerY)
+			{
+				const int left = centerX - source.width() / 2;
+				const int top = centerY - source.height() / 2;
+				for(int y = 0; y < source.height(); ++y)
+					for(int x = 0; x < source.width(); ++x)
+					{
+						const int px = left + x;
+						const int py = top + y;
+						if(px < 0 || py < 0 || px >= panel.width() || py >= panel.height())
+							continue;
+						const unsigned char* from = source.at(x, y);
+						unsigned char* to = panel.at(px, py);
+						const int alpha = from[3];
+						for(int channel = 0; channel < 3; ++channel)
+							to[channel] = static_cast<unsigned char>((from[channel] * alpha + to[channel] * (255 - alpha)) / 255);
+						to[3] = static_cast<unsigned char>(alpha + to[3] * (255 - alpha) / 255);
+					}
+			};
+			for(int y = tailRise + 15; y < tailRise + 354 - 15; ++y)
+				for(int x = 15; x < panelWidth - 15; ++x)
+				{
+					unsigned char* pixel = panel.at(x, y);
+					pixel[0] = pixel[1] = pixel[2] = 0;
+					pixel[3] = 255;
+				}
+			place(scale(sprite(sheet, atlas, "resumebg"), 3), panelWidth / 2, tailRise + 177);
+			place(scale(sprite(sheet, atlas, "resumebg_tail"), 3), panelWidth / 2, 27);
+			place(scale(sprite(sheet, atlas, "icon_Resume"), 3), 482, 78);
+			static const char* const numbers[] = {"icon_numer_1", "icon_numer_2", "icon_numer_3", "icon_numer_4"};
+			for(int slot = 0; slot < 4; ++slot)
+				place(scale(sprite(sheet, atlas, numbers[slot]), 3), 128 + slot * 260, 151);
+			layers.push_back({"suspend_panel", panel});
+			layers.push_back({"suspend_cell", scale(sprite(sheet, atlas, "resume_card"), 3)});
+			layers.push_back({"suspend_cell_selected", scale(sprite(sheet, atlas, "resume_card_active"), 3)});
+			const Image emptyCell = scale(sprite(sheet, atlas, "resume_card_empty"), 3);
+			Image emptySelected = emptyCell;
+			const Image cursorSprite = sprite(sheet, atlas, "cursor_1");
+			const unsigned char* ring = firstOpaque(cursorSprite);
+			for(int y = 0; y < emptySelected.height(); ++y)
+				for(int x = 0; x < emptySelected.width(); ++x)
+					if(x < 6 || y < 6 || x >= emptySelected.width() - 6 || y >= emptySelected.height() - 6)
+						std::copy_n(ring, 4, emptySelected.at(x, y));
+			layers.push_back({"suspend_cell_empty", emptyCell});
+			layers.push_back({"suspend_cell_empty_selected", emptySelected});
+			layers.push_back({"suspend_frame", sprite(sheet, atlas, "resume_screen_frame")});
+			layers.push_back({"suspend_lock", scale(sprite(sheet, atlas, "icon_lock"), 3)});
+		}
+		if(atlas.find("icon_1P.png") != atlas.end() && atlas.find("icon_1P-2P.png") != atlas.end())
+		{
+			layers.push_back({"players_one", scale(sprite(sheet, atlas, "icon_1P"), 3)});
+			layers.push_back({"players_many", scale(sprite(sheet, atlas, "icon_1P-2P"), 3)});
+		}
 		return layers;
+	}
+
+	struct UiIcon
+	{
+		std::string path;
+		Image image;
+	};
+
+	inline Image menuSelected(int width, int height, int border, const unsigned char* ring, const unsigned char* fill)
+	{
+		Image result(width, height);
+		for(int y = 0; y < height; ++y)
+			for(int x = 0; x < width; ++x)
+			{
+				const bool onBorder = x < border || y < border || x >= width - border || y >= height - border;
+				std::copy_n(onBorder ? ring : fill, 4, result.at(x, y));
+			}
+		return result;
+	}
+
+	inline std::vector<UiIcon> buildUiIcons(const Image& sheet, const Atlas& atlas)
+	{
+		std::vector<UiIcon> icons;
+		const auto has = [&](const std::string& name) { return atlas.find(name + ".png") != atlas.end(); };
+		const auto add = [&](const std::string& path, const std::string& name, int factor, int minWidth, int minHeight)
+		{
+			if(!has(name))
+				return;
+			const Image source = scale(sprite(sheet, atlas, name), factor);
+			icons.push_back({path, centered(source, std::max(minWidth, source.width()), std::max(minHeight, source.height()))});
+		};
+		add("menu_display.png", "btn_display", 3, 0, 0);
+		add("menu_system.png", "btn_option", 3, 0, 0);
+		icons.push_back({"menu_network.png", scale(networkIcon(), 3)});
+		add("menu_library.png", "btn_copyright", 3, 0, 0);
+		add("menu_help.png", "manual", 3, 0, 0);
+		add("help/button_a.png", "icon_A_light", 3, 30, 30);
+		add("help/button_b.png", "icon_B_light", 3, 30, 30);
+		add("help/button_start.png", "icon_start_light", 3, 30, 30);
+		add("help/button_select.png", "icon_select_light", 3, 30, 30);
+		add("help/dpad_all.png", "Icon_direction_light", 3, 30, 30);
+		add("help/dpad_updown.png", "Icon_direction_Lengthwise_light", 3, 30, 30);
+		add("help/dpad_leftright.png", "icon_direction_lateral_light", 3, 30, 30);
+		add("help/menu_plus.png", "icon_direction_up_light", 3, 30, 30);
+		add("help/plus.png", "icon_direction_down_light", 3, 30, 30);
+		if(has("menubar_U_2") && has("btn_menubar_active") && has("cursor_1"))
+		{
+			const Image band = sprite(sheet, atlas, "menubar_U_2");
+			Image strip(480, 120);
+			for(int y = 0; y < strip.height(); ++y)
+				for(int x = 0; x < strip.width(); ++x)
+					std::copy_n(band.at(0, y / 3), 4, strip.at(x, y));
+			icons.push_back({"menu_strip.png", strip});
+			const Image active = sprite(sheet, atlas, "btn_menubar_active");
+			const Image cursor = sprite(sheet, atlas, "cursor_1");
+			icons.push_back({"menu_selected.png", menuSelected(108, 82, 6, firstOpaque(cursor), firstOpaque(active))});
+		}
+		return icons;
 	}
 }
 

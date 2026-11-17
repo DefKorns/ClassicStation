@@ -100,6 +100,7 @@ namespace
 
 		Options options;
 		std::string consoleLogoPath;
+		std::string playersFontPath;
 		for(int i = 5; i < argc; ++i)
 		{
 			const std::string flag = argv[i];
@@ -112,6 +113,8 @@ namespace
 				options.frameScale = std::atoi(value.c_str());
 			else if(flag == "--row" && parseSize(value, options.rowWidth, options.rowHeight))
 				continue;
+			else if(flag == "--players-font")
+				playersFontPath = value;
 			else if(flag == "--console-logo")
 				consoleLogoPath = value;
 			else if(flag == "--background")
@@ -136,12 +139,23 @@ namespace
 		for(const Layer& layer : buildLayers(sheet, atlas, family, options))
 			savePng(outDir + "/" + layer.name + ".png", layer.image);
 
+		makeDirectory(outDir + "/ui");
+		makeDirectory(outDir + "/ui/help");
+		for(const UiIcon& icon : buildUiIcons(sheet, atlas))
+			savePng(outDir + "/ui/" + icon.path, icon.image);
+
 		if(family == Family::A)
 		{
 			const Image bar = sprite(sheet, atlas, "menubar_L");
 			const Rect logo = findBakedLogo(bar, 22, 340);
 			if(logo.w > 0 && !consoleLogoPath.empty())
 				writeFile(consoleLogoPath, logoSvg(bar, logo));
+		}
+
+		if(!playersFontPath.empty())
+		{
+			const std::vector<unsigned char> font = buildPlayersFont(sprite(sheet, atlas, "icon_1P"), sprite(sheet, atlas, "icon_1P-2P"));
+			writeFile(playersFontPath, std::string(font.begin(), font.end()));
 		}
 		return 0;
 	}

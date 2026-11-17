@@ -140,6 +140,62 @@ namespace
 		check(centerCrop(source, 40).width() == 20, "a narrower image is left alone");
 	}
 
+	unsigned be16(const std::vector<unsigned char>& data, std::size_t at)
+	{
+		return (static_cast<unsigned>(data[at]) << 8) | data[at + 1];
+	}
+
+	unsigned long be32(const std::vector<unsigned char>& data, std::size_t at)
+	{
+		return (static_cast<unsigned long>(be16(data, at)) << 16) | be16(data, at + 2);
+	}
+
+	std::size_t tableAt(const std::vector<unsigned char>& font, const char* tag)
+	{
+		const unsigned count = be16(font, 4);
+		for(unsigned i = 0; i < count; ++i)
+			if(std::string(font.begin() + 12 + i * 16, font.begin() + 16 + i * 16) == tag)
+				return be32(font, 12 + i * 16 + 8);
+		return 0;
+	}
+
+	void buildsAValidGlyphFont()
+	{
+		Image block(3, 2);
+		for(int y = 0; y < 2; ++y)
+			for(int x = 0; x < 3; ++x)
+			{
+				unsigned char* pixel = block.at(x, y);
+				const bool hole = x == 1 && y == 0;
+				pixel[0] = hole ? 255 : 117;
+				pixel[1] = hole ? 255 : 117;
+				pixel[2] = hole ? 255 : 117;
+				pixel[3] = 255;
+			}
+
+		const std::vector<unsigned char> font = buildPlayersFont(block, block);
+		check(be32(font, 0) == 0x00010000, "font is a TrueType file");
+		check(be16(font, 4) == 8, "eight tables");
+		check(tableAt(font, "head") != 0 && be32(font, tableAt(font, "head") + 12) == 0x5F0F3CF5, "head magic number");
+		check(be16(font, tableAt(font, "head") + 18) == 1100, "units per em");
+		check(be16(font, tableAt(font, "maxp") + 4) == 3, "notdef plus two glyphs");
+
+		const std::size_t cmap = tableAt(font, "cmap");
+		check(be16(font, cmap + 12) == 4, "cmap format 4");
+		const unsigned segments = be16(font, cmap + 18) / 2;
+		check(segments == 3, "two characters and the terminator");
+		check(be16(font, cmap + 26) == '1' && be16(font, cmap + 28) == '2' && be16(font, cmap + 30) == 0xFFFF, "end codes");
+
+		const std::size_t glyf = tableAt(font, "glyf");
+		const std::size_t loca = tableAt(font, "loca");
+		check(be32(font, loca) == 0 && be32(font, loca + 4) == 0, "notdef is empty");
+		check(be16(font, glyf + be32(font, loca + 4)) == 3, "block with a hole is three runs");
+		unsigned long sum = 0;
+		for(std::size_t i = 0; i < font.size(); i += 4)
+			sum = (sum + be32(font, i)) & 0xffffffffUL;
+		check(sum == 0xB1B0AFBAUL, "whole file checksum");
+	}
+
 	void findsAndClearsBakedLogo()
 	{
 		Image bar(100, 30);
@@ -177,6 +233,7 @@ namespace
 		Atlas atlas;
 		atlas["icon_Resume_on.png"] = Rect{0, 0, 6, 6};
 		atlas["icon_Resume_off.png"] = Rect{6, 0, 6, 6};
+		atlas["icon_Resume_lock.png"] = Rect{12, 0, 6, 6};
 		atlas["resume_card.png"] = Rect{0, 10, 64, 56};
 		atlas["caption_title.png"] = Rect{70, 10, 100, 22};
 		atlas["btn_init_on.png"] = Rect{0, 70, 152, 32};
@@ -188,14 +245,24 @@ namespace
 		for(const Family family : {Family::A, Family::B})
 		{
 			const std::vector<Layer> layers = buildLayers(sheet, atlas, family, Options{});
-			check(layers.size() == 9, "nine layers");
-			check(layers[0].name == "rating_filled" && layers[0].image.width() == 18 && layers[0].image.height() == 18, "rating icon scaled by 3");
+			check(layers.size() == 19, "nineteen layers without the player badges");
+			check(layers[0].name == "rating_filled" && layers[0].image.width() == 24 && layers[0].image.height() == 24, "rating icon scaled by 3 with a margin");
 			check(layers[2].name == "list_row" && layers[2].image.width() == 538 && layers[2].image.height() == 57, "row frame size");
 			check(layers[3].name == "list_selector" && layers[3].image.width() == 546 && layers[3].image.height() == 66, "selector frame size");
 			check(layers[4].name == "title_bar" && layers[4].image.width() == 1004 && layers[4].image.height() == 53, "title bar size");
 			check(layers[5].name == "card" && layers[5].image.width() == 246 && layers[5].image.height() == 326, "card scaled by 3 with the extra top");
 			check(layers[7].name == "menubar_top" && layers[7].image.width() == 360 && layers[7].image.height() == 120, "menu bar scaled by 3");
 			check(layers[5].image.at(60, 80)[3] == 0 && layers[5].image.at(5, 100)[3] != 0, "card window is transparent and its border is not");
+			check(layers[9].name == "cover_card" && layers[9].image.width() == 261 && layers[9].image.height() == 388, "cover card is a nine-patch of the detail size");
+			check(layers[10].name == "label_bar" && layers[10].image.width() == 596 && layers[10].image.height() == 30, "label bar size");
+			check(layers[11].name == "slot_empty" && layers[12].name == "slot_saved" && layers[13].name == "slot_locked" && layers[13].image.width() == 24, "three slot icons with the rating margin");
+			check(layers[14].name == "heart_filled" && layers[15].name == "heart_empty" && layers[14].image.width() == 34 && layers[14].image.height() == 34, "two hearts on a 34 pixel canvas");
+			check(layers[14].image.at(17, 14)[0] > 200 && layers[14].image.at(17, 14)[1] < 60 && layers[15].image.at(17, 14)[0] < 60, "the filled heart is red and the empty one is dark");
+			check(layers[14].image.at(0, 0)[3] == 0, "the canvas corner stays transparent");
+			check(layers[16].name == "rating_heart_filled" && layers[16].image.width() == 30 && layers[17].name == "rating_heart_empty" && layers[18].name == "divider" && layers[18].image.width() == 305 && layers[18].image.height() == 2, "rating hearts at 30 pixels and the divider");
+			const std::vector<UiIcon> icons = buildUiIcons(sheet, atlas);
+			check(icons.size() == 1 && icons[0].path == "menu_network.png" && icons[0].image.width() == 72, "only the generated network icon without the button sprites");
+			check(icons[0].image.at(0, 0)[3] == 0 && icons[0].image.at(36, 36)[3] == 255, "the network icon is round with transparent corners");
 		}
 
 		check(std::string(rowFrameSpec(Family::A).sprite) == "resume_card", "family A row frame");
@@ -246,6 +313,7 @@ int main()
 	cropsAndScales();
 	ninePatchKeepsCorners();
 	centerCropsToExactWidth();
+	buildsAValidGlyphFont();
 	findsAndClearsBakedLogo();
 	buildsLayersForBothFamilies();
 
