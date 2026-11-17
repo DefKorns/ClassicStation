@@ -110,6 +110,11 @@ void Settings::setDefaults()
 	mStringMap["DisplayFrame"] = "";
 	mBoolMap["DisplayCrtSmooth"] = false;
 	mBoolMap["DisplayCrtScanlines"] = false;
+	mStringMap["DisplayFilter"] = "";
+	mIntMap["DisplayScanlineLevel"] = 0;
+	mIntMap["DisplayCrtSharp"] = 0;
+	mIntMap["DisplayCrtSquare"] = 0;
+	mIntMap["DisplaySmoothness"] = 0;
 	mStringMap["GamelistViewStyle"] = "automatic";
 	mStringMap["SaveGamelistsMode"] = "on exit";
 

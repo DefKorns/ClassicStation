@@ -45,6 +45,9 @@ namespace DebugMode
 
 	inline bool isEnabled() { return markerExists(markerPath); }
 	inline bool setEnabled(bool enabled) { return setMarker(markerPath, enabled); }
+	constexpr const char* journalPath = "/var/lib/hakchi/emulationstation/crtfx_journal";
+	inline bool isJournalEnabled() { return markerExists(journalPath); }
+	inline bool setJournalEnabled(bool enabled) { return setMarker(journalPath, enabled); }
 	inline bool isUnlocked() { return markerExists(developerPath); }
 	inline bool unlock() { return setMarker(developerPath, true); }
 }

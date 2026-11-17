@@ -78,7 +78,7 @@ mkdir -p "$es_dir"
 for item in "$es_payload"/*; do
   cp -a "$item" "$es_dir/" && rm -rf "${item:?}"
 done
-chmod 755 "$es_dir/emulationstation" "$es_dir/padstate" "$es_dir"/*.sh
+chmod 755 "$es_dir/emulationstation" "$es_dir/padstate" "$es_dir/libcrtfx.so" "$es_dir"/*.sh
 rm -rf "${es_dir:?}/library" "${es_dir:?}/library.stamp" "${es_dir:?}/library.stamp.count"
 rm -f "${es_dir:?}/boot_failures" "${es_dir:?}/no_boot"
 [ "$(cat "$es_dir/boot_default" 2>/dev/null)" = stock ] && rm -f "${es_dir:?}/boot_default"

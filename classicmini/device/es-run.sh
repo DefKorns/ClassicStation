@@ -33,7 +33,7 @@ stopPowerWatch(){
 }
 
 restore_ui=1
-trap 'autofireForGames; [ ! -f /tmp/es-stopping ] && stopPowerWatch; [ "$restore_ui" = 1 ] && [ ! -f /tmp/es-stopping ] && { type stockUistart >/dev/null 2>&1 && stockUistart || uistart; }' EXIT
+trap 'autofireForGames; [ ! -f /tmp/es-stopping ] && stopPowerWatch; [ "$restore_ui" = 1 ] && [ ! -f /tmp/es-stopping ] && { drawSplash clover; type stockUistart >/dev/null 2>&1 && stockUistart || uistart; }' EXIT
 uistop
 autofireForUi
 stopPowerWatch
