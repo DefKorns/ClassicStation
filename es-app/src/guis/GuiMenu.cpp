@@ -592,7 +592,7 @@ void GuiMenu::openDisplaySettings()
 	if (famicom)
 	{
 		filter->add("OFF", "nearest", currentFilter == "nearest");
-		filter->add("PHOSPHOR", "phosphor", currentFilter == "phosphor");
+		filter->add("ON", "linear", currentFilter == "linear");
 	}
 	else
 	{
@@ -601,6 +601,7 @@ void GuiMenu::openDisplaySettings()
 		filter->add("HORIZONTAL LINEAR", "hlinear", currentFilter == "hlinear");
 		filter->add("SHARP", "sharp", currentFilter == "sharp");
 		filter->add("COMPOSITE", "composite", currentFilter == "composite");
+		filter->add("PHOSPHOR", "phosphor", currentFilter == "phosphor");
 	}
 	s->addWithLabel("FILTER", filter);
 	if (!famicom)
