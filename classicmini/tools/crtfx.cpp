@@ -40,6 +40,7 @@ struct Journal {
 
 Journal gJournal{-1, PTHREAD_MUTEX_INITIALIZER, std::chrono::steady_clock::time_point()};
 bool gActive = false;
+bool gIsNes = false;
 std::array<char, 160> gSessionPath;
 std::atomic<std::uint64_t> gFrames{0};
 std::atomic<std::uint64_t> gClaims{0};
@@ -58,12 +59,11 @@ void makeDirectory(const char* file)
 {
     std::array<char, 160> dir;
     std::snprintf(dir.data(), dir.size(), "%s", file);
-    char* slash = std::strrchr(dir.data(), '/');
-    if (slash == nullptr || slash == dir.data()) {
-        return;
+    for (char* slash = std::strchr(dir.data() + 1, '/'); slash != nullptr; slash = std::strchr(slash + 1, '/')) {
+        *slash = 0;
+        ::mkdir(dir.data(), 0755);
+        *slash = '/';
     }
-    *slash = '\0';
-    ::mkdir(dir.data(), 0755);
 }
 
 void journalOpen(const char* path)
@@ -100,6 +100,12 @@ void journal(const char* format, ...)
     const ssize_t written = ::write(gJournal.fd, line.data(), static_cast<std::size_t>(used) + 1);
     pthread_mutex_unlock(&gJournal.lock);
     static_cast<void>(written);
+}
+
+bool isKachikachi(const char* exe)
+{
+    const char* slash = std::strrchr(exe, '/');
+    return std::strcmp(slash != nullptr ? slash + 1 : exe, "kachikachi") == 0;
 }
 
 bool isTarget(const char* exe)
@@ -332,7 +338,7 @@ void gainsSelect()
         journal("no gains requested");
         return;
     }
-    if (gBuild == nullptr) {
+    if (gBuild == nullptr && !gIsNes) {
         return;
     }
     std::copy(v, v + 4, gGains.begin());
@@ -852,6 +858,41 @@ void maskStep(const unsigned char* task, int claimed, std::uint64_t claims)
     tMaskLine = (claimed >= 0 && claimed < static_cast<int>(height) && height <= 224) ? claimed : -1;
 }
 
+constexpr std::size_t kShaderMax = 2048;
+
+std::size_t replaceFirst(char* text, std::size_t size, const char* needle, const char* replacement)
+{
+    char* const at = std::strstr(text, needle);
+    if (at == nullptr) {
+        return 0;
+    }
+    const std::size_t old_length = std::strlen(needle);
+    const std::size_t new_length = std::strlen(replacement);
+    const std::size_t tail = std::strlen(at + old_length) + 1;
+    const std::size_t head = static_cast<std::size_t>(at - text);
+    if (head + new_length + tail > size) {
+        return 0;
+    }
+    std::memmove(at + new_length, at + old_length, tail);
+    std::memcpy(at, replacement, new_length);
+    return head + new_length + tail - 1;
+}
+
+bool patchScanlineShader(std::array<char, kShaderMax>& source, const std::array<float, 4>& gains)
+{
+    std::array<char, 64> high;
+    std::array<char, 64> low;
+    std::snprintf(high.data(), high.size(), "(%.4f + (%.4f * texel))", static_cast<double>(gains[0] / 100.0F), static_cast<double>(gains[1] / 100.0F));
+    std::snprintf(low.data(), low.size(), "(%.4f + (%.4f * texel))", static_cast<double>(gains[2] / 100.0F), static_cast<double>(gains[3] / 100.0F));
+    std::array<char, kShaderMax> patched = source;
+    if (replaceFirst(patched.data(), patched.size(), "(1.2 - (0.2 * texel))", high.data()) == 0 ||
+        replaceFirst(patched.data(), patched.size(), "(0.85 + (0.1 * texel))", low.data()) == 0) {
+        return false;
+    }
+    source = patched;
+    return true;
+}
+
 }  // namespace
 
 __attribute__((constructor)) static void onLoad()
@@ -862,6 +903,7 @@ __attribute__((constructor)) static void onLoad()
     if (length <= 0 || !isTarget(exe.data())) {
         return;
     }
+    gIsNes = isKachikachi(exe.data());
     gJournal.origin = std::chrono::steady_clock::now();
     const char* path = std::getenv("CRTFX_JOURNAL");
     if (path != nullptr && path[0] != 0) {
@@ -869,6 +911,21 @@ __attribute__((constructor)) static void onLoad()
     }
     gActive = true;
     journal("loaded in %s pid %d", exe.data(), static_cast<int>(::getpid()));
+    if (gIsNes && gJournal.fd >= 0) {
+        std::array<char, 512> line;
+        line.fill(0);
+        const int fd = ::open("/proc/self/cmdline", O_RDONLY | O_CLOEXEC);
+        if (fd >= 0) {
+            const ssize_t count = ::read(fd, line.data(), line.size() - 1);
+            ::close(fd);
+            for (ssize_t i = 0; i + 1 < count; ++i) {
+                if (line[static_cast<std::size_t>(i)] == 0) {
+                    line[static_cast<std::size_t>(i)] = ' ';
+                }
+            }
+        }
+        journal("cmdline: %.300s", line.data());
+    }
     if (gJournal.fd >= 0) {
         sessionOpen();
     }
@@ -964,4 +1021,50 @@ CRTFX_EXPORT int SDL_AtomicAdd(void* atomic, int value)
         maskStep(task, previous, claims);
     }
     return previous;
+}
+
+CRTFX_EXPORT void glShaderSource(unsigned shader, int count, const char* const* string, const int* length)
+{
+    using Fn = void (*)(unsigned, int, const char* const*, const int*);
+    static const Fn real = reinterpret_cast<Fn>(dlsym(RTLD_NEXT, "glShaderSource"));
+    if (real == nullptr) {
+        return;
+    }
+    if (gActive && gIsNes) {
+        journal("glShaderSource: shader %u count %d first \"%.40s\"", shader, count, (string != nullptr && count > 0 && string[0] != nullptr) ? string[0] : "?");
+    }
+    constexpr int kMaxStrings = 4;
+    if (!gActive || !gIsNes || !gHasGains || count < 1 || count > kMaxStrings || string == nullptr) {
+        real(shader, count, string, length);
+        return;
+    }
+    std::array<const char*, kMaxStrings> parts;
+    std::array<int, kMaxStrings> sizes;
+    std::array<char, kShaderMax> source;
+    bool patched = false;
+    for (int i = 0; i < count; ++i) {
+        if (string[i] == nullptr) {
+            real(shader, count, string, length);
+            return;
+        }
+        const std::size_t index = static_cast<std::size_t>(i);
+        parts[index] = string[i];
+        sizes[index] = (length != nullptr && length[i] >= 0) ? length[i] : static_cast<int>(std::strlen(string[i]));
+        if (!patched && static_cast<std::size_t>(sizes[index]) < source.size()) {
+            std::memcpy(source.data(), string[i], static_cast<std::size_t>(sizes[index]));
+            source[static_cast<std::size_t>(sizes[index])] = 0;
+            if (std::strstr(source.data(), "ratioToScanlines") != nullptr && patchScanlineShader(source, gGains)) {
+                parts[index] = source.data();
+                sizes[index] = static_cast<int>(std::strlen(source.data()));
+                patched = true;
+            }
+        }
+    }
+    if (!patched) {
+        real(shader, count, string, length);
+        return;
+    }
+    journal("scanline shader patched: %.0f,%.0f,%.0f,%.0f", static_cast<double>(gGains[0]), static_cast<double>(gGains[1]), static_cast<double>(gGains[2]),
+            static_cast<double>(gGains[3]));
+    real(shader, count, parts.data(), sizes.data());
 }
