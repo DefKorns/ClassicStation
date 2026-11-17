@@ -22,10 +22,14 @@
 		</text>
 
 		<helpsystem name="help">
-			<pos>0.02 0.94</pos>
+			<pos>0.5 0.85</pos>
+			<origin>0.5 0.5</origin>
+			<iconTextSpacing>4</iconTextSpacing>
+			<entrySpacing>30</entrySpacing>
 			<textColor>${logoColor}</textColor>
 			<iconColor>FFFFFF</iconColor>
-			<fontSize>0.03</fontSize>
+			<fontSize>0.0311</fontSize>
+			<iconHeight>0.041667</iconHeight>
 		</helpsystem>
 	</view>
 
@@ -154,9 +158,9 @@
 		</image>
 
 		<text name="suspend_label">
-			<pos>0.132812 0.819444</pos>
-			<size>0.125000 0.036111</size>
-			<fontSize>0.025000</fontSize>
+			<pos>0.132813 0.822222</pos>
+			<size>0.125 0.033333</size>
+			<fontSize>0.0333</fontSize>
 			<color>000000</color>
 			<alignment>right</alignment>
 		</text>
