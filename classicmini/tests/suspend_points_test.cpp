@@ -7,7 +7,9 @@
   * (at your option) any later version.
   */
 #include "SuspendPoints.h"
+#include "SuspendSlotState.h"
 
+#include <array>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -64,10 +66,33 @@ namespace
 		struct stat info;
 		return ::stat(path.c_str(), &info) == 0;
 	}
+	void slotStatesFollowThePoints()
+	{
+		SuspendPoint empty;
+		SuspendPoint saved;
+		saved.valid = true;
+		SuspendPoint locked;
+		locked.valid = true;
+		locked.locked = true;
+		SuspendPoint strayLock;
+		strayLock.locked = true;
+
+		check(slotState(empty) == SlotState::Empty, "an empty point is an empty slot");
+		check(slotState(saved) == SlotState::Saved, "a valid point is a saved slot");
+		check(slotState(locked) == SlotState::Locked, "a locked valid point is a locked slot");
+		check(slotState(strayLock) == SlotState::Empty, "a lock flag without a point stays empty");
+
+		const std::array<SuspendPoint, SuspendPoints::MaxSlots> points{{empty, saved, locked, strayLock}};
+		const SlotStates states = slotStates(points);
+		check(states[0] == SlotState::Empty && states[1] == SlotState::Saved && states[2] == SlotState::Locked && states[3] == SlotState::Empty, "four slots map one to one");
+	}
+
 }
 
 int main()
 {
+	slotStatesFollowThePoints();
+
 	char pattern[] = "/tmp/sp_test_XXXXXX";
 	const std::string root = ::mkdtemp(pattern);
 	const std::string profile = root + "/profile";

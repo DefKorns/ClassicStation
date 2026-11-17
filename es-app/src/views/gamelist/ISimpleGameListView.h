@@ -9,6 +9,7 @@
 #include "guis/GuiSuspendPoints.h"
 #include "views/gamelist/IGameListView.h"
 #include "SuspendPoints.h"
+#include "SuspendSlotState.h"
 #include <stack>
 #include <string>
 
@@ -58,6 +59,7 @@ protected:
 
 	void refreshFloating();
 	virtual void onFloatingChanged() {}
+	SlotStates suspendStates(const FileData* game) const;
 	bool isFloating(const FileData* file) const;
 	bool jumpToFloating();
 	bool canJumpTo(const FileData* game);

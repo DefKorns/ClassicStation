@@ -9,6 +9,7 @@
 #include "guis/GuiSuspendPoints.h"
 
 #include "MenuColors.h"
+#include "HelpStyle.h"
 
 #include "guis/GuiMsgBox.h"
 #include "UiSound.h"
@@ -87,9 +88,11 @@ GuiSuspendPoints::GuiSuspendPoints(Window* window, std::string title, std::strin
 	  mOnResume(std::move(onResume)), mOnChanged(std::move(onChanged)),
 	  mPanel(window, ":/suspend_card.png", CardCorner), mCell(window, ":/suspend_card.png", CardCorner),
 	  mCellSelected(window, ":/suspend_card_sel.png", CardCorner),
+	  mCellEmpty(window, ":/suspend_card.png", CardCorner), mCellEmptySelected(window, ":/suspend_card_sel.png", CardCorner),
 	  mFrame(window, ":/suspend_frame.png", CardCorner), mFrameSelected(window, ":/suspend_frame_sel.png", CardCorner),
 	  mHeading(window, "", Font::get(FONT_SIZE_MEDIUM), TextColor),
 	  mNotice(window, "", Font::get(FONT_SIZE_SMALL), MutedColor, ALIGN_RIGHT),
+	  mEmptyLabel(window, "No Data", Font::get(FONT_SIZE_SMALL), TextColor, ALIGN_CENTER),
 	  mLock(window)
 {
 	mLock.setImage(":/suspend_lock.png");
@@ -105,6 +108,8 @@ GuiSuspendPoints::GuiSuspendPoints(Window* window, std::string title, std::strin
 
 void GuiSuspendPoints::loadTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view)
 {
+	mTheme = theme;
+	mView = view;
 	constexpr unsigned int textProperties = ThemeFlags::COLOR | ThemeFlags::FONT_PATH | ThemeFlags::FONT_SIZE;
 	const float width = static_cast<float>(Renderer::getScreenWidth());
 	const float height = static_cast<float>(Renderer::getScreenHeight());
@@ -125,10 +130,17 @@ void GuiSuspendPoints::loadTheme(const std::shared_ptr<ThemeData>& theme, const 
 	mPanel.load(theme, view, "suspend_panel");
 	mCell.load(theme, view, "suspend_cell");
 	mCellSelected.load(theme, view, "suspend_cell_selected");
+	if(const ThemeData::ThemeElement* backdrop = theme->getElement(view, "suspend_backdrop", "container"))
+		if(backdrop->has("visible"))
+			mDimsBackground = backdrop->get<bool>("visible");
+	mHasEmptyCell = theme->getElement(view, "suspend_cell_empty", "image") != nullptr;
+	mCellEmpty.load(theme, view, "suspend_cell_empty");
+	mCellEmptySelected.load(theme, view, mHasEmptyCell && theme->getElement(view, "suspend_cell_empty_selected", "image") ? "suspend_cell_empty_selected" : "suspend_cell_empty");
 	mFrame.load(theme, view, "suspend_frame");
 	mFrameSelected.load(theme, view, "suspend_frame_selected");
 	mPanelTheme = boxRect("suspend_panel");
 	mCellTheme = boxRect("suspend_cell");
+	mCellEmptyTheme = boxRect("suspend_cell_empty");
 	mShotTheme = rectOf("suspend_shot", "image");
 	mLabelTheme = rectOf("suspend_label", "text");
 	mFrameTheme = boxRect("suspend_frame");
@@ -145,6 +157,8 @@ void GuiSuspendPoints::loadTheme(const std::shared_ptr<ThemeData>& theme, const 
 
 	mHeading.applyTheme(theme, view, "suspend_title", textProperties | ThemeFlags::POSITION | ThemeFlags::SIZE);
 	mNotice.applyTheme(theme, view, "suspend_notice", textProperties | ThemeFlags::POSITION | ThemeFlags::SIZE);
+	mEmptyLabel.applyTheme(theme, view, "suspend_label_empty", textProperties | ThemeFlags::POSITION | ThemeFlags::SIZE);
+	mEmptyLabelBase = Vector2f(mEmptyLabel.getPosition().x(), mEmptyLabel.getPosition().y());
 	for(auto& label : mLabels)
 		label->applyTheme(theme, view, "suspend_label", textProperties);
 }
@@ -181,6 +195,7 @@ void GuiSuspendPoints::layout()
 	const Rect label = mLabelTheme.set ? mLabelTheme : Rect(width * CellsLeft, height * (CellsTop + ShotHeight + 0.01f),
 		width * CellWidth, height * 0.07f);
 
+	mCellEmptyRect = mCellEmptyTheme.set ? mCellEmptyTheme : mCellRect;
 	mFrameRect = mFrameTheme.set ? mFrameTheme : mCellRect;
 	mFrameSelectedRect = mFrameSelectedTheme.set ? mFrameSelectedTheme : mFrameRect;
 	mLockRect = mLockTheme.set ? mLockTheme : Rect(mCellRect.x + mCellRect.w - Bleed - height * 0.06f,
@@ -192,6 +207,8 @@ void GuiSuspendPoints::layout()
 	mPanel.setSize(mPanelRect.w, mPanelRect.h);
 	mCell.setSize(mCellRect.w, mCellRect.h);
 	mCellSelected.setSize(mCellRect.w, mCellRect.h);
+	mCellEmpty.setSize(mCellEmptyRect.w, mCellEmptyRect.h);
+	mCellEmptySelected.setSize(mCellEmptyRect.w, mCellEmptyRect.h);
 	mFrame.setSize(mFrameRect.w, mFrameRect.h);
 	mFrameSelected.setSize(mFrameSelectedRect.w, mFrameSelectedRect.h);
 
@@ -217,15 +234,14 @@ void GuiSuspendPoints::refresh()
 		mFloating = SuspendPoint();
 
 	mSlots = mPoints.slots(mCode);
-	mHeading.setText("SUSPEND POINT LIST  -  " + mTitle);
+	mHeading.setText("Suspend Point List");
 
 	for(std::size_t index = 0; index < mSlots.size(); ++index)
 	{
 		const SuspendPoint& point = mSlots[index];
 		if(point.valid)
 			mShots[index]->setImage(point.thumbnail);
-		const std::string state = point.valid ? clock(point.playtime) : "EMPTY";
-		mLabels[index]->setText(std::to_string(index + 1) + "   " + state);
+		mLabels[index]->setText(point.valid ? clock(point.playtime) : std::string());
 	}
 	updateHelpPrompts();
 }
@@ -395,6 +411,16 @@ void GuiSuspendPoints::render(const Transform4x4f& parentTrans)
 		const float shift = static_cast<float>(index) * mCellStep;
 		const bool selected = static_cast<int>(index) + 1 == mSelected;
 
+		if(!mSlots[index].valid && mHasEmptyCell)
+		{
+			Transform4x4f emptyTrans = trans;
+			emptyTrans.translate(Vector3f(mCellEmptyRect.x + shift, mCellEmptyRect.y, 0.0f));
+			(selected ? mCellEmptySelected : mCellEmpty).render(emptyTrans);
+			mEmptyLabel.setPosition(mEmptyLabelBase.x() + shift, mEmptyLabelBase.y(), 0.0f);
+			mEmptyLabel.render(trans);
+			continue;
+		}
+
 		Transform4x4f cellTrans = trans;
 		cellTrans.translate(Vector3f(mCellRect.x + shift, mCellRect.y, 0.0f));
 		(selected ? mCellSelected : mCell).render(cellTrans);
@@ -422,6 +448,17 @@ void GuiSuspendPoints::render(const Transform4x4f& parentTrans)
 			Renderer::drawRect(mGaugeRect.x + shift, mGaugeRect.y, filled, mGaugeRect.h, mGaugeColor, mGaugeColor);
 		}
 	}
+}
+
+HelpStyle GuiSuspendPoints::getHelpStyle()
+{
+	HelpStyle style;
+	if(mTheme)
+	{
+		style.applyTheme(mTheme, mView);
+		style.applyTheme(mTheme, mView, "suspend_help");
+	}
+	return style;
 }
 
 std::vector<HelpPrompt> GuiSuspendPoints::getHelpPrompts()

@@ -15,9 +15,9 @@ HelpStyle::HelpStyle()
 		font = nullptr;
 }
 
-void HelpStyle::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view)
+void HelpStyle::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element)
 {
-	auto elem = theme->getElement(view, "help", "helpsystem");
+	auto elem = theme->getElement(view, element, "helpsystem");
 	if(!elem)
 		return;
 
@@ -32,6 +32,15 @@ void HelpStyle::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::s
 
 	if(elem->has("iconColor"))
 		iconColor = elem->get<unsigned int>("iconColor");
+
+	if(elem->has("iconHeight"))
+		iconHeight = elem->get<float>("iconHeight") * (float)Renderer::getScreenHeight();
+
+	if(elem->has("iconTextSpacing"))
+		iconTextSpacing = elem->get<float>("iconTextSpacing");
+
+	if(elem->has("entrySpacing"))
+		entrySpacing = elem->get<float>("entrySpacing");
 
 	if(elem->has("fontPath") || elem->has("fontSize"))
 		font = Font::getFromTheme(elem, ThemeFlags::ALL, font);

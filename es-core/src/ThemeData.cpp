@@ -156,6 +156,23 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "unfilledPath", PATH },
 		{ "visible", BOOLEAN },
 		{ "zIndex", FLOAT } } },
+	{ "slots", {
+		{ "pos", RESOLUTION_PAIR },
+		{ "size", RESOLUTION_PAIR },
+		{ "origin", NORMALIZED_PAIR },
+		{ "emptyPath", PATH },
+		{ "savedPath", PATH },
+		{ "lockedPath", PATH },
+		{ "visible", BOOLEAN },
+		{ "zIndex", FLOAT } } },
+	{ "playersicon", {
+		{ "pos", RESOLUTION_PAIR },
+		{ "size", RESOLUTION_PAIR },
+		{ "origin", NORMALIZED_PAIR },
+		{ "onePath", PATH },
+		{ "manyPath", PATH },
+		{ "visible", BOOLEAN },
+		{ "zIndex", FLOAT } } },
 	{ "sound", {
 		{ "path", PATH } } },
 	{ "helpsystem", {
@@ -164,7 +181,10 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "textColor", COLOR },
 		{ "iconColor", COLOR },
 		{ "fontPath", PATH },
-		{ "fontSize", RESOLUTION_FLOAT } } },
+		{ "fontSize", RESOLUTION_FLOAT },
+		{ "iconHeight", RESOLUTION_FLOAT },
+		{ "iconTextSpacing", FLOAT },
+		{ "entrySpacing", FLOAT } } },
 	{ "video", {
 		{ "pos", RESOLUTION_PAIR },
 		{ "size", RESOLUTION_PAIR },

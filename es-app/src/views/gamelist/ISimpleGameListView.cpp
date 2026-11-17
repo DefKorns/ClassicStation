@@ -270,6 +270,13 @@ bool ISimpleGameListView::jumpToFloating()
 	return true;
 }
 
+SlotStates ISimpleGameListView::suspendStates(const FileData* game) const
+{
+	if(game == nullptr || game->getType() != GAME)
+		return SlotStates{};
+	return slotStates(mSuspendPoints.slots(gameCode(game)));
+}
+
 bool ISimpleGameListView::openSuspendPoints()
 {
 	FileData* game = getCursor();

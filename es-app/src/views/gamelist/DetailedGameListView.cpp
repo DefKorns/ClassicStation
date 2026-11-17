@@ -16,7 +16,7 @@ DetailedGameListView::DetailedGameListView(Window* window, FileData* root) :
 
 	mRating(window), mReleaseDate(window), mDeveloper(window), mPublisher(window),
 	mGenre(window), mPlayers(window), mLastPlayed(window), mPlayCount(window),
-	mName(window), mCode(window), mInfo(window)
+	mName(window), mCode(window), mInfo(window), mSlots(window), mPlayersIcon(window)
 {
 	//mHeaderImage.setPosition(mSize.x() * 0.25f, 0);
 
@@ -62,6 +62,14 @@ DetailedGameListView::DetailedGameListView(Window* window, FileData* root) :
 	mInfo.setDefaultZIndex(40);
 	mInfo.setVisible(false);
 	addChild(&mInfo);
+
+	mSlots.setDefaultZIndex(40);
+	mSlots.setVisible(false);
+	addChild(&mSlots);
+
+	mPlayersIcon.setDefaultZIndex(40);
+	mPlayersIcon.setVisible(false);
+	addChild(&mPlayersIcon);
 
 	// metadata labels + values
 	mLblRating.setText("Rating: ");
@@ -151,6 +159,16 @@ void DetailedGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& them
 	mInfoFields.clear();
 	const ThemeData::ThemeElement* info = theme->getElement(getName(), "md_info", "text");
 	mInfo.setVisible(info != nullptr);
+
+	const ThemeData::ThemeElement* slots = theme->getElement(getName(), "md_slots", "slots");
+	mSlots.setVisible(slots != nullptr);
+	if(slots)
+		mSlots.applyTheme(theme, getName(), "md_slots", ThemeFlags::ALL);
+
+	const ThemeData::ThemeElement* playersIcon = theme->getElement(getName(), "md_playersicon", "playersicon");
+	mPlayersIcon.setVisible(playersIcon != nullptr);
+	if(playersIcon)
+		mPlayersIcon.applyTheme(theme, getName(), "md_playersicon", ThemeFlags::ALL);
 	if(info)
 	{
 		mInfo.applyTheme(theme, getName(), "md_info", ALL ^ ThemeFlags::TEXT);
@@ -256,11 +274,14 @@ void DetailedGameListView::updateInfoPanel()
 	{
 		//mImage.setImage("");
 		//mDescription.setText("");
+		mSlots.setStates(SlotStates{});
 		fadingOut = true;
 	}else{
 		mThumbnail.setImageAsync(file->getThumbnailPath());
 		mImage.setImageAsync(file->getImagePath());
-		mMarquee.setImageAsync(file->getMarqueePath());
+		const std::string marquee = file->getMarqueePath();
+		const bool hasLogo = marquee.find("-marquee.") != std::string::npos;
+		mMarquee.setImageAsync(hasLogo ? marquee : std::string());
 		mDescription.setText(file->metadata.get("desc"));
 
 		mRating.setValue(file->metadata.get("rating"));
@@ -269,9 +290,11 @@ void DetailedGameListView::updateInfoPanel()
 		mPublisher.setValue(file->metadata.get("publisher"));
 		mGenre.setValue(file->metadata.get("genre"));
 		mPlayers.setValue(file->metadata.get("players"));
-		mName.setValue(file->metadata.get("name"));
+		mPlayersIcon.setPlayers(file->metadata.get("players"));
+		mName.setValue(hasLogo ? std::string() : file->metadata.get("name"));
 		mCode.setText(file->getType() == GAME ? file->metadata.get("code") : std::string());
 		mInfo.setText(buildInfo(file));
+		mSlots.setStates(suspendStates(file));
 
 		if(file->getType() == GAME)
 		{
@@ -290,6 +313,8 @@ void DetailedGameListView::updateInfoPanel()
 	comps.push_back(&mName);
 	comps.push_back(&mCode);
 	comps.push_back(&mInfo);
+	comps.push_back(&mSlots);
+	comps.push_back(&mPlayersIcon);
 	std::vector<TextComponent*> labels = getMDLabels();
 	comps.insert(comps.cend(), labels.cbegin(), labels.cend());
 
@@ -373,4 +398,10 @@ std::vector<GuiComponent*> DetailedGameListView::getMDValues()
 void DetailedGameListView::onFocusLost() {
 	mDescription.restart();
 	mList.stopScrolling(true);
+}
+
+void DetailedGameListView::onFloatingChanged()
+{
+	FileData* file = (mList.size() == 0 || mList.isScrolling()) ? NULL : mList.getSelected();
+	mSlots.setStates(suspendStates(file));
 }

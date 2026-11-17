@@ -9,6 +9,7 @@
 #include "components/MenuIconBar.h"
 
 #include "renderers/Renderer.h"
+#include "resources/ResourceManager.h"
 
 namespace
 {
@@ -27,7 +28,7 @@ MenuIconBar::MenuIconBar(Window* window) : GuiComponent(window), mFrame(window, 
 	for (const char* path : IconPaths)
 	{
 		mIcons.emplace_back(new ImageComponent(window));
-		mIcons.back()->setImage(path);
+		mIcons.back()->setImage(ResourceManager::getInstance()->preferPng(path));
 		mIcons.back()->setOrigin(0.5f, 0.5f);
 	}
 	layout();
@@ -69,8 +70,8 @@ void MenuIconBar::layout()
 		mIcons[index]->setPosition(left + step * (static_cast<float>(index) + 0.5f), centerY);
 	}
 
-	const float boxWidth = mThemed ? size * 1.43f : step * 0.9f;
-	const float boxHeight = mThemed ? size * 1.28f : step * 0.8f;
+	const float boxWidth = mThemed ? size * 1.5f : step * 0.9f;
+	const float boxHeight = mThemed ? size * 1.1389f : step * 0.8f;
 	const float centerX = left + step * (static_cast<float>(mSelected) + 0.5f);
 	mFrame.setSize(boxWidth + 2 * bleed, boxHeight + 2 * bleed);
 	mFrame.setPosition(centerX - boxWidth / 2 - bleed, centerY - boxHeight / 2 - bleed);

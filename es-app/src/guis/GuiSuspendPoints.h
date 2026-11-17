@@ -49,6 +49,8 @@ public:
 	void update(int deltaTime) override;
 	void render(const Transform4x4f& parentTrans) override;
 	std::vector<HelpPrompt> getHelpPrompts() override;
+	HelpStyle getHelpStyle() override;
+	bool dimsBackground() const override { return mDimsBackground; }
 
 private:
 	void refresh();
@@ -69,6 +71,8 @@ private:
 	bool isSaveKey(InputConfig* config, const Input& input) const;
 	const SuspendPoint& selectedPoint() const;
 
+	std::shared_ptr<ThemeData> mTheme;
+	std::string mView;
 	std::string mTitle;
 	std::string mCode;
 	SuspendPoints mPoints;
@@ -84,6 +88,10 @@ private:
 
 	Rect mPanelTheme;
 	Rect mCellTheme;
+	Rect mCellEmptyTheme;
+	Rect mCellEmptyRect;
+	bool mHasEmptyCell = false;
+	bool mDimsBackground = true;
 	Rect mShotTheme;
 	Rect mLabelTheme;
 	Rect mFrameTheme;
@@ -103,10 +111,14 @@ private:
 	SuspendBox mPanel;
 	SuspendBox mCell;
 	SuspendBox mCellSelected;
+	SuspendBox mCellEmpty;
+	SuspendBox mCellEmptySelected;
 	SuspendBox mFrame;
 	SuspendBox mFrameSelected;
 	TextComponent mHeading;
 	TextComponent mNotice;
+	TextComponent mEmptyLabel;
+	Vector2f mEmptyLabelBase;
 	ImageComponent mLock;
 	std::vector<std::unique_ptr<ImageComponent>> mShots;
 	std::vector<std::unique_ptr<TextComponent>> mLabels;

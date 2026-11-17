@@ -133,6 +133,7 @@ public:
 	void updateHelpPrompts();
 
 	virtual HelpStyle getHelpStyle();
+	virtual bool dimsBackground() const { return true; }
 
 	// Returns true if the component is busy doing background processing (e.g. HTTP downloads)
 	bool isProcessing() const;

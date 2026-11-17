@@ -85,7 +85,7 @@ void HelpComponent::updateGrid()
 	std::vector< std::shared_ptr<TextComponent> > labels;
 
 	float width = 0;
-	const float height = Math::round(font->getLetterHeight() * 1.25f);
+	const float height = mStyle.iconHeight > 0.0f ? mStyle.iconHeight : Math::round(font->getLetterHeight() * 1.25f);
 	for(auto it = mPrompts.cbegin(); it != mPrompts.cend(); it++)
 	{
 		auto icon = std::make_shared<ImageComponent>(mWindow);
@@ -97,7 +97,7 @@ void HelpComponent::updateGrid()
 		auto lbl = std::make_shared<TextComponent>(mWindow, capitalizeWords(it->second), font, mStyle.textColor);
 		labels.push_back(lbl);
 
-		width += icon->getSize().x() + lbl->getSize().x() + ICON_TEXT_SPACING + ENTRY_SPACING;
+		width += icon->getSize().x() + lbl->getSize().x() + mStyle.iconTextSpacing + mStyle.entrySpacing;
 	}
 
 	mGrid->setSize(width, height);
@@ -105,7 +105,7 @@ void HelpComponent::updateGrid()
 	{
 		const int col = i*4;
 		mGrid->setColWidthPerc(col, icons.at(i)->getSize().x() / width);
-		mGrid->setColWidthPerc(col + 1, ICON_TEXT_SPACING / width);
+		mGrid->setColWidthPerc(col + 1, mStyle.iconTextSpacing / width);
 		mGrid->setColWidthPerc(col + 2, labels.at(i)->getSize().x() / width);
 
 		mGrid->setEntry(icons.at(i), Vector2i(col, 0), false, false);
@@ -135,7 +135,7 @@ std::shared_ptr<TextureResource> HelpComponent::getIconTexture(const char* name)
 		return nullptr;
 	}
 
-	std::shared_ptr<TextureResource> tex = TextureResource::get(pathLookup->second);
+	std::shared_ptr<TextureResource> tex = TextureResource::get(ResourceManager::getInstance()->preferPng(pathLookup->second));
 	mIconCache[std::string(name)] = tex;
 	return tex;
 }

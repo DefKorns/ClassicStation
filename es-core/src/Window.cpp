@@ -217,7 +217,8 @@ void Window::render()
 		bottom->render(transform);
 		if(bottom != top)
 		{
-			mBackgroundOverlay->render(transform);
+			if(top->dimsBackground())
+				mBackgroundOverlay->render(transform);
 			top->render(transform);
 		}
 	}

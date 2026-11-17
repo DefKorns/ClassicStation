@@ -4,6 +4,8 @@
 
 #include "components/DateTimeComponent.h"
 #include "components/RatingComponent.h"
+#include "components/PlayersIconComponent.h"
+#include "components/SuspendSlotsComponent.h"
 #include "components/PagedTextComponent.h"
 #include "views/gamelist/BasicGameListView.h"
 
@@ -19,6 +21,8 @@ public:
 	virtual void launch(FileData* game) override;
 
 	void onFocusLost() override;
+
+	void onFloatingChanged() override;
 
 private:
 	void updateInfoPanel();
@@ -43,6 +47,8 @@ private:
 	TextComponent mName;
 	TextComponent mCode;
 	TextComponent mInfo;
+	SuspendSlotsComponent mSlots;
+	PlayersIconComponent mPlayersIcon;
 	std::vector<std::string> mInfoFields;
 	std::string mInfoSeparator = " ";
 	std::string mPlayersOne = "player";
