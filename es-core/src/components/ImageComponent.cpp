@@ -266,44 +266,9 @@ void ImageComponent::update(int deltaTime)
 		{
 			mScrollOffset = 0.0f;
 			updateVertices();
-			return;
 		}
-
-		if(mKickSeen != sKickCount)
-		{
-			mKickSeen = sKickCount;
-			const float direction = static_cast<float>(sKickDirection);
-			if(mBoostMs == 0)
-			{
-				mBoostMs = CursorScrollMs;
-				mBoostSpeed = direction * CursorScrollSpeed;
-			}
-			else
-			{
-				mBoostMs = CursorScrollMs - CursorScrollDelayMs;
-				mBoostSpeed = Math::max(-CursorScrollMax, Math::min(CursorScrollMax, mBoostSpeed + direction * CursorScrollAccel));
-			}
-			mScrollDirection = sKickDirection;
-		}
-
-		float target = static_cast<float>(mScrollDirection) * BaseScrollSpeed;
-		mBoostMs = Math::max(0, mBoostMs - deltaTime);
-		if(mBoostMs > 0 && mBoostMs < CursorScrollMs - CursorScrollDelayMs)
-			target += mBoostSpeed;
 		else
-		{
-			if(mBoostSpeed > 0.0f)
-				mBoostSpeed = Math::max(0.0f, mBoostSpeed - CursorScrollDecel);
-			else
-				mBoostSpeed = Math::min(0.0f, mBoostSpeed + CursorScrollDecel);
-			target += mBoostSpeed;
-		}
-		mScrollFactor += (target / BaseScrollSpeed - mScrollFactor) * ScrollSmoothing;
-
-		mScrollOffset = std::fmod(mScrollOffset + mScrollSpeed * mScrollFactor * sScrollCoast * static_cast<float>(deltaTime) / 1000.0f, 1.0f);
-		if(mScrollOffset < 0.0f)
-			mScrollOffset += 1.0f;
-		updateVertices();
+			advanceScroll(deltaTime);
 	}
 
 	if(mAsyncPending && mTexture)
@@ -315,6 +280,45 @@ void ImageComponent::update(int deltaTime)
 			resize();
 		}
 	}
+}
+
+void ImageComponent::advanceScroll(int deltaTime)
+{
+	if(mKickSeen != sKickCount)
+	{
+		mKickSeen = sKickCount;
+		const float direction = static_cast<float>(sKickDirection);
+		if(mBoostMs == 0)
+		{
+			mBoostMs = CursorScrollMs;
+			mBoostSpeed = direction * CursorScrollSpeed;
+		}
+		else
+		{
+			mBoostMs = CursorScrollMs - CursorScrollDelayMs;
+			mBoostSpeed = Math::max(-CursorScrollMax, Math::min(CursorScrollMax, mBoostSpeed + direction * CursorScrollAccel));
+		}
+		mScrollDirection = sKickDirection;
+	}
+
+	float target = static_cast<float>(mScrollDirection) * BaseScrollSpeed;
+	mBoostMs = Math::max(0, mBoostMs - deltaTime);
+	if(mBoostMs > 0 && mBoostMs < CursorScrollMs - CursorScrollDelayMs)
+		target += mBoostSpeed;
+	else
+	{
+		if(mBoostSpeed > 0.0f)
+			mBoostSpeed = Math::max(0.0f, mBoostSpeed - CursorScrollDecel);
+		else
+			mBoostSpeed = Math::min(0.0f, mBoostSpeed + CursorScrollDecel);
+		target += mBoostSpeed;
+	}
+	mScrollFactor += (target / BaseScrollSpeed - mScrollFactor) * ScrollSmoothing;
+
+	mScrollOffset = std::fmod(mScrollOffset + mScrollSpeed * mScrollFactor * sScrollCoast * static_cast<float>(deltaTime) / 1000.0f, 1.0f);
+	if(mScrollOffset < 0.0f)
+		mScrollOffset += 1.0f;
+	updateVertices();
 }
 
 void ImageComponent::setResize(float width, float height)

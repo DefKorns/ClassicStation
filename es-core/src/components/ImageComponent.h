@@ -92,7 +92,8 @@ private:
 	bool mFlipX, mFlipY, mTargetIsMax, mTargetIsMin;
 	float mScrollSpeed = 0.0f;
 	float mScrollOffset = 0.0f;
-	bool mHideOnSuspend = false;	float mScrollFactor = 1.0f;	float mBoostSpeed = 0.0f;
+	bool mHideOnSuspend = false;
+	void advanceScroll(int deltaTime);	float mScrollFactor = 1.0f;	float mBoostSpeed = 0.0f;
 	int mBoostMs = 0;
 	int mScrollDirection = 1;
 	int mKickSeen = 0;
