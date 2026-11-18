@@ -33,6 +33,7 @@ public:
 	static Vector2f getDefaultTileSize();
 	Vector2f getSelectedTileSize() const;
 	bool isSelected() const;
+	static void setUnselectedBrightness(float brightness);
 
 	void reset();
 

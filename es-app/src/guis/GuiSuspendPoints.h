@@ -42,7 +42,7 @@ class GuiSuspendPoints : public GuiComponent
 public:
 	GuiSuspendPoints(Window* window, std::string title, std::string code, SuspendPoints points,
 		std::function<void(int)> onResume, std::function<void()> onChanged);
-
+	~GuiSuspendPoints() override;
 	void loadTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view);
 
 	bool input(InputConfig* config, Input input) override;
@@ -51,12 +51,14 @@ public:
 	std::vector<HelpPrompt> getHelpPrompts() override;
 	HelpStyle getHelpStyle() override;
 	bool dimsBackground() const override { return mDimsBackground; }
-
 private:
 	void refresh();
 	void saveSelected(SuspendPoints::SaveMode mode);
 	void notify(const std::string& text);
 	void close();
+	void closeAnimated();
+	bool animated() const;
+	float slideOffset() const;
 	void renderSlot(const Transform4x4f& trans, std::size_t index, bool selected, bool hidden);
 	void renderLifted(const Transform4x4f& trans);
 	void renderFloating(const Transform4x4f& trans);
@@ -100,6 +102,9 @@ private:
 	int mTarget = 1;
 	int mHeldMs = 0;
 	int mNoticeMs = 0;
+	int mSlideMs = 0;
+	bool mStarted = false;
+	bool mClosing = false;
 
 	Rect mPanelTheme;
 	Rect mCellTheme;

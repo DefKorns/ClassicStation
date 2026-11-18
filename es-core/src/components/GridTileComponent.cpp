@@ -4,6 +4,24 @@
 #include "resources/TextureResource.h"
 #include "ThemeData.h"
 
+namespace
+{
+	float sUnselectedBrightness = 1.0f;
+
+	unsigned int scaled(unsigned int color, float factor)
+	{
+		const auto channel = [&](int shift) {
+			return static_cast<unsigned int>(static_cast<float>((color >> shift) & 0xFF) * factor + 0.5f) << shift;
+		};
+		return channel(24) | channel(16) | channel(8) | (color & 0xFF);
+	}
+}
+
+void GridTileComponent::setUnselectedBrightness(float brightness)
+{
+	sUnselectedBrightness = brightness;
+}
+
 GridTileComponent::GridTileComponent(Window* window) : GuiComponent(window), mBackground(window, ":/frame.png"), mBadge(window)
 {
 	mBadge.setImage(":/suspend_marker.png");
@@ -54,6 +72,10 @@ void GridTileComponent::render(const Transform4x4f& parentTrans)
 
 		Renderer::setMatrix(trans);
 		Renderer::drawRect(-size.x() / 2.0f, -size.y() / 2.0f, size.x(), size.y(), backing, backing);
+		const float brightness = mSelected ? 1.0f : sUnselectedBrightness;
+		mImage->setColorShift(scaled(mCurrentProperties.mImageColor, brightness));
+		mBackground.setCenterColor(scaled(mCurrentProperties.mBackgroundCenterColor, brightness));
+		mBackground.setEdgeColor(scaled(mCurrentProperties.mBackgroundEdgeColor, brightness));
 		if(mCurrentProperties.mImageOnTop)
 		{
 			mBackground.render(trans);

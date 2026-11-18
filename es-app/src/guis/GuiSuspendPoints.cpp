@@ -13,8 +13,11 @@
 
 #include "guis/GuiMsgBox.h"
 #include "UiSound.h"
+#include "Settings.h"
 #include "InputConfig.h"
 #include "Window.h"
+#include "views/ViewController.h"
+#include "components/GridTileComponent.h"
 #include "renderers/Renderer.h"
 #include "resources/Font.h"
 #include <algorithm>
@@ -36,6 +39,9 @@ namespace
 		"suspend_float_wing_left_a", "suspend_float_wing_left_b", "suspend_float_balloon", "suspend_float_balloon_icon",
 		"suspend_float_arrow_left", "suspend_float_arrow_right", "suspend_float_ring"
 	};
+	constexpr int SlideMs = 200;
+	constexpr int WallInMs = 250;
+	constexpr int MaxStepMs = 33;
 	constexpr int NoticeMs = 1500;
 	constexpr unsigned int GaugeColor = 0xF0F0F0FF;
 	constexpr unsigned int TextColor = 0xF0F0F0FF;
@@ -125,6 +131,14 @@ GuiSuspendPoints::GuiSuspendPoints(Window* window, std::string title, std::strin
 	if(!mCardFocus && nearestSaved(1) != 0)
 		mSelected = nearestSaved(1);
 	updateHelpPrompts();
+	ImageComponent::setBackdropVisible(1.0f);
+}
+
+GuiSuspendPoints::~GuiSuspendPoints()
+{
+	ImageComponent::setScrollCoast(1.0f);
+	ImageComponent::setBackdropVisible(1.0f);
+	GridTileComponent::setUnselectedBrightness(1.0f);
 }
 
 void GuiSuspendPoints::loadTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view)
@@ -343,6 +357,33 @@ void GuiSuspendPoints::close()
 	delete this;
 }
 
+bool GuiSuspendPoints::animated() const
+{
+	return Settings::getInstance()->getBool("SuspendAnimations");
+}
+
+void GuiSuspendPoints::closeAnimated()
+{
+	if(!animated())
+	{
+		close();
+		return;
+	}
+	mClosing = true;
+	mSlideMs = 0;
+}
+
+float GuiSuspendPoints::slideOffset() const
+{
+	if(!animated())
+		return 0.0f;
+	const float progress = std::min(1.0f, static_cast<float>(mSlideMs) / static_cast<float>(SlideMs));
+	const float height = static_cast<float>(Renderer::getScreenHeight());
+	if(mClosing)
+		return height * (progress <= 0.0f ? 0.0f : std::pow(2.0f, 10.0f * (progress - 1.0f)));
+	return height * (progress >= 1.0f ? 0.0f : std::pow(2.0f, -10.0f * progress));
+}
+
 bool GuiSuspendPoints::isSaveKey(InputConfig* config, const Input& input) const
 {
 	return config->isMappedTo("a", input);
@@ -449,6 +490,9 @@ bool GuiSuspendPoints::moveInput(InputConfig* config, const Input& input)
 
 bool GuiSuspendPoints::input(InputConfig* config, Input input)
 {
+	if(mClosing)
+		return true;
+
 	if(mMoving)
 		return moveInput(config, input);
 
@@ -544,7 +588,7 @@ bool GuiSuspendPoints::input(InputConfig* config, Input input)
 	else if(config->isMappedLike("up", input) || config->isMappedTo("b", input))
 	{
 		UiSound::play("se_sys_cancel.wav");
-		close();
+		closeAnimated();
 	}
 
 	return true;
@@ -553,6 +597,33 @@ bool GuiSuspendPoints::input(InputConfig* config, Input input)
 void GuiSuspendPoints::update(int deltaTime)
 {
 	mFloatMs += deltaTime;
+	const int duration = mClosing ? SlideMs : WallInMs;
+	const int step = mStarted ? std::min(deltaTime, MaxStepMs) : 0;
+	mStarted = true;
+	if(mSlideMs < duration)
+		mSlideMs += step;
+	if(mClosing && mSlideMs >= SlideMs)
+	{
+		close();
+		return;
+	}
+	if(animated())
+	{
+		const float progress = std::min(1.0f, static_cast<float>(mSlideMs) / static_cast<float>(duration));
+		const float visible = mClosing ? progress : 1.0f - progress * progress * (3.0f - 2.0f * progress);
+		ImageComponent::setBackdropVisible(visible);
+		GridTileComponent::setUnselectedBrightness(0.5f + 0.5f * visible);
+		if(mClosing || mSlideMs < WallInMs)
+		{
+			ImageComponent::setScrollCoast(visible);
+			ViewController::get()->update(deltaTime);
+		}
+	}
+	else
+	{
+		ImageComponent::setBackdropVisible(0.0f);
+		GridTileComponent::setUnselectedBrightness(0.5f);
+	}
 	if(mNoticeMs > 0)
 	{
 		mNoticeMs -= deltaTime;
@@ -577,7 +648,11 @@ void GuiSuspendPoints::render(const Transform4x4f& parentTrans)
 	const float width = static_cast<float>(Renderer::getScreenWidth());
 	const float height = static_cast<float>(Renderer::getScreenHeight());
 
-	const Transform4x4f trans = parentTrans * getTransform();
+	const Transform4x4f base = parentTrans * getTransform();
+	Renderer::setMatrix(base);
+
+	Transform4x4f trans = base;
+	trans.translate(Vector3f(0.0f, slideOffset(), 0.0f));
 	Renderer::setMatrix(trans);
 	Transform4x4f panelTrans = trans;
 	panelTrans.translate(Vector3f(mPanelRect.x, mPanelRect.y, 0.0f));
@@ -596,8 +671,8 @@ void GuiSuspendPoints::render(const Transform4x4f& parentTrans)
 	if(mFloating.valid && !mMoving)
 		renderFloating(trans);
 
-	if(mHasSaveData && !mMoving && selectedPoint().valid)
-		renderWarning(trans);
+	if(mHasSaveData && !mMoving && !mClosing && selectedPoint().valid)
+		renderWarning(base);
 
 	if(mMoving)
 	{
