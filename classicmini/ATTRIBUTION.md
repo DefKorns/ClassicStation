@@ -19,6 +19,10 @@ All licensed under the [SIL Open Font License 1.1](https://openfontlicense.org).
   [MPL 2.0](https://www.mozilla.org/MPL/2.0/): downloaded by the hmod build as `device/resources/cacert.pem`.
 - [es-theme-simple](https://github.com/RetroPie/es-theme-simple) by Nils Bonenberger,
   [CC BY-NC-SA](https://creativecommons.org/licenses/by-nc-sa/4.0/): downloaded by `hmod/stage.sh`.
+- System card art in the classicstation theme (`assets/systems/cards/`): console illustrations and logos by
+  u/br1ans (the "Hakchi Folders ALL HD" set shared on Reddit), the pixel-art consoles of the "Additional Icon Pack 2.22
+  for Hakchi/CE/NESC/SNESC" by faustbear (free to use, share and modify with credit), and arcade bezels used for
+  the All Games, Last Played and Random cards.
 - The single `awk` pass that resolves covers in `device/es-library.sh` comes from code shared by DNA64
   (<https://github.com/dna64>).
 
