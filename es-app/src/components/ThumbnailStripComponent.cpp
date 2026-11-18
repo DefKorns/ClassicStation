@@ -15,7 +15,6 @@
 
 namespace
 {
-	constexpr float Gap = 0.0f;
 	constexpr int ArrowFrameMs = 33;
 	constexpr int ArrowSequence[] = { 0, 1, 1, 1, 2, 2, 2, 1, 1, 1, 0, 0, 0 };
 	constexpr int ArrowSequenceLength = sizeof(ArrowSequence) / sizeof(ArrowSequence[0]);
@@ -45,7 +44,6 @@ void ThumbnailStripComponent::applyTheme(const std::shared_ptr<ThemeData>& theme
 	const Vector2f screen(static_cast<float>(Renderer::getScreenWidth()), static_cast<float>(Renderer::getScreenHeight()));
 	mCentre = strip->get<Vector2f>("pos") * screen;
 	mThumbSize = strip->get<Vector2f>("size") * screen;
-	mStep = mThumbSize.x() + Gap;
 	if(strip->has("visibleCount"))
 		mFullCount = std::max(1, static_cast<int>(strip->get<float>("visibleCount")));
 
@@ -60,6 +58,7 @@ void ThumbnailStripComponent::setEntries(std::vector<std::string> paths)
 	mPaths = std::move(paths);
 	for(auto& assigned : mAssigned)
 		assigned = -1;
+	mWidths.assign(mPaths.size(), 0.0f);
 	mPosition = 0.0f;
 }
 
@@ -90,18 +89,45 @@ void ThumbnailStripComponent::render(const Transform4x4f& parentTrans)
 	const Transform4x4f trans = parentTrans * getTransform();
 	const int base = static_cast<int>(std::floor(mPosition + 0.5f));
 	const int half = count / 2;
-	const int fullReach = std::min(half, std::min(FullReach, mFullCount / 2));
-	const int reach = std::min(half, fullReach + FadeReach);
+	const int reach = std::min(half, MaxReach);
 	const float bottom = mCentre.y() + mThumbSize.y() / 2.0f;
+	const float limit = std::min(static_cast<float>(mFullCount / 2) * mThumbSize.x(), static_cast<float>(MaxReach) * mThumbSize.x() / 2.0f);
+	const float fadeSpan = static_cast<float>(FadeItems) * mThumbSize.x();
+
+	const auto wrap = [&](int offset) { return (((base + offset) % count) + count) % count; };
+	const auto slotOf = [&](int offset) { return (((base + offset) % Slots) + Slots) % Slots; };
+	const auto widthOf = [&](int offset) {
+		const float width = mWidths[static_cast<std::size_t>(wrap(offset))];
+		return width > 0.0f ? width : mThumbSize.x();
+	};
+
+	std::vector<float> centre(static_cast<std::size_t>(2 * reach + 1), 0.0f);
+	for(int offset = 1; offset <= reach; ++offset)
+	{
+		centre[static_cast<std::size_t>(reach + offset)] = centre[static_cast<std::size_t>(reach + offset - 1)] + (widthOf(offset - 1) + widthOf(offset)) / 2.0f;
+		centre[static_cast<std::size_t>(reach - offset)] = centre[static_cast<std::size_t>(reach - offset + 1)] - (widthOf(-offset + 1) + widthOf(-offset)) / 2.0f;
+	}
+	const float shift = mPosition - static_cast<float>(base);
+	float origin = 0.0f;
+	if(reach >= 1)
+		origin = shift >= 0.0f ? shift * centre[static_cast<std::size_t>(reach + 1)] : -shift * centre[static_cast<std::size_t>(reach - 1)];
+
+	float total = 0.0f;
+	for(int index = 0; index < count; ++index)
+		total += mWidths[static_cast<std::size_t>(index)] > 0.0f ? mWidths[static_cast<std::size_t>(index)] : mThumbSize.x();
+	const bool fits = reach >= half && total <= 2.0f * limit;
 
 	for(int offset = -reach; offset <= reach; ++offset)
 	{
 		if(offset == -half && count == 2 * half)
 			continue;
-		const int index = base + offset;
-		const int wrapped = ((index % count) + count) % count;
-		const int slot = ((index % Slots) + Slots) % Slots;
+		const float middle = centre[static_cast<std::size_t>(reach + offset)] - origin;
+		const float inner = std::fabs(middle) - widthOf(offset) / 2.0f;
+		if(!fits && inner >= limit)
+			continue;
 
+		const int wrapped = wrap(offset);
+		const int slot = slotOf(offset);
 		ImageComponent& image = *mImages[slot];
 		if(mAssigned[slot] != wrapped)
 		{
@@ -109,11 +135,12 @@ void ThumbnailStripComponent::render(const Transform4x4f& parentTrans)
 			image.setImageAsync(mPaths[wrapped], false, true);
 			mAssigned[slot] = wrapped;
 		}
+		if(image.getSize().x() > 0.0f)
+			mWidths[static_cast<std::size_t>(wrapped)] = image.getSize().x();
 
-		const float distance = static_cast<float>(index) - mPosition;
-		const float fade = std::max(0.0f, std::min(1.0f, (static_cast<float>(fullReach + FadeReach + 1) - std::fabs(distance)) / static_cast<float>(FadeReach + 1)));
+		const float fade = fits ? 1.0f : std::max(0.0f, std::min(1.0f, (limit - inner) / fadeSpan));
 		image.setOpacity(static_cast<unsigned char>(255.0f * fade));
-		image.setPosition(mCentre.x() + distance * mStep, bottom);
+		image.setPosition(mCentre.x() + middle, bottom);
 		image.render(trans);
 	}
 

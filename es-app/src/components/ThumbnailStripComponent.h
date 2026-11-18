@@ -32,21 +32,21 @@ public:
 	void render(const Transform4x4f& parentTrans) override;
 
 private:
-	static constexpr int FullReach = 15;
-	static constexpr int FadeReach = 3;
-	static constexpr int Slots = 2 * (FullReach + FadeReach) + 1;
+	static constexpr int MaxReach = 16;
+	static constexpr int FadeItems = 3;
+	static constexpr int Slots = 2 * MaxReach + 1;
 	static constexpr int ArrowFrames = 3;
 
 	std::vector<std::string> mPaths;
 	std::vector<std::unique_ptr<ImageComponent>> mImages;
 	std::vector<int> mAssigned;
+	std::vector<float> mWidths;
 	std::vector<std::unique_ptr<ImageComponent>> mArrow;
 
 	bool mEnabled = false;
 	float mPosition = 0.0f;
 	Vector2f mCentre;
 	Vector2f mThumbSize;
-	float mStep = 32.0f;
 	int mFullCount = 21;
 	int mElapsedMs = 0;
 };
