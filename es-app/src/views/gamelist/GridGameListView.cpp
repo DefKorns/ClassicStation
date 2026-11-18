@@ -774,3 +774,4 @@ void GridGameListView::syncFloatingCard()
 	mFloatingCard.setScreenshot(mFloating.thumbnail);
 	mFloatingCard.setHighlighted(mGrid.size() > 0 && isFloating(mGrid.getSelected()));
 }
+	mFloatingCard.setPlaytime(mFloating.playtime);

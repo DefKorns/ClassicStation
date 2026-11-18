@@ -11,6 +11,7 @@
 #define ES_APP_COMPONENTS_FLOATING_CARD_COMPONENT_H
 
 #include "components/ImageComponent.h"
+#include "components/TextComponent.h"
 #include "GuiComponent.h"
 #include "ThemeData.h"
 
@@ -26,6 +27,7 @@ public:
 	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view);
 
 	void setScreenshot(const std::string& path);
+	void setPlaytime(long seconds);
 	void setShown(bool shown) { mShown = shown; }
 	void setHighlighted(bool highlighted) { mHighlighted = highlighted; }
 	void erase();
@@ -38,16 +40,18 @@ private:
 
 	enum Part
 	{
-		CardLarge, CardLargeActive, ScreenLarge, FrameLarge,
-		WingLargeLeftA, WingLargeLeftB, WingLargeRightA, WingLargeRightB, ArrowA, ArrowB,
+		CardLarge, ScreenLarge,
+		HiCard, HiActive, HiFrame, HiWingRightA, HiWingRightB, HiWingLeftA, HiWingLeftB, HiRing,
 		CardSmall, ScreenSmall, FrameSmall, IconBack,
 		WingSmallLeftA, WingSmallLeftB, WingSmallRightA, WingSmallRightB,
 		SmokeLarge, SmokeSmall = SmokeLarge + SmokeFrames, PartCount = SmokeSmall + SmokeFrames
 	};
 
 	ImageComponent& part(Part which) { return *mParts[which]; }
+	void renderHighlighted(const Transform4x4f& trans, bool wingB);
 
 	std::vector<std::unique_ptr<ImageComponent>> mParts;
+	TextComponent mTime;
 	bool mShown = false;
 	bool mHighlighted = false;
 	int mElapsedMs = 0;
