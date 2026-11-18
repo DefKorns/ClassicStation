@@ -162,6 +162,7 @@ DemoMode::DemoMode(Window* window)
 DemoMode::~DemoMode()
 {
 	setDemoProgress(0.0f);
+	setDemoHelpHidden(false);
 }
 
 void DemoMode::cancel()
@@ -176,6 +177,15 @@ void DemoMode::cancel()
 	{
 		mActive = false;
 		mCooldownMs = 0;
+		return;
+	}
+
+	if(mTag)
+	{
+		mStage = Stage::Idle;
+		mActive = false;
+		mCooldownMs = 0;
+		setDemoHelpHidden(false);
 		return;
 	}
 
@@ -224,6 +234,7 @@ void DemoMode::advanceStage(int deltaTime)
 	{
 	case Stage::Hide:
 		setDemoProgress(eased(amount));
+		setDemoHelpHidden(amount >= 0.5f);
 		if(done)
 		{
 			startBlocks();
@@ -232,7 +243,7 @@ void DemoMode::advanceStage(int deltaTime)
 		}
 		break;
 	case Stage::Rise:
-		setDemoProgress(1.0f);
+		setDemoProgress(mTag ? 0.0f : 1.0f);
 		runTicks(deltaTime);
 		if(done)
 		{
@@ -241,12 +252,12 @@ void DemoMode::advanceStage(int deltaTime)
 		}
 		break;
 	case Stage::Run:
-		setDemoProgress(1.0f);
+		setDemoProgress(mTag ? 0.0f : 1.0f);
 		runTicks(deltaTime);
 		mStageMs = 0;
 		break;
 	case Stage::Sink:
-		setDemoProgress(1.0f);
+		setDemoProgress(mTag ? 0.0f : 1.0f);
 		runTicks(deltaTime);
 		if(done)
 		{
@@ -256,12 +267,14 @@ void DemoMode::advanceStage(int deltaTime)
 		break;
 	case Stage::Show:
 		setDemoProgress(1.0f - eased(amount));
+		setDemoHelpHidden(1.0f - eased(amount) >= 0.5f);
 		if(done)
 		{
 			mStage = Stage::Idle;
 			mActive = false;
 			mCooldownMs = 0;
 			setDemoProgress(0.0f);
+			setDemoHelpHidden(false);
 		}
 		break;
 	case Stage::Idle:
@@ -789,8 +802,13 @@ void DemoMode::update(int deltaTime, bool ready, float coverTop)
 		{
 			mBlocks = true;
 			mActive = true;
-			mStage = Stage::Hide;
+			mStage = mTag ? Stage::Run : Stage::Hide;
 			mStageMs = 0;
+			if(mTag)
+			{
+				startBlocks();
+				setDemoHelpHidden(true);
+			}
 			return;
 		}
 		mBlocks = false;

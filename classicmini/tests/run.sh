@@ -16,6 +16,8 @@
 #
 export MSYS_NO_PATHCONV=1
 
+sh "$(dirname "$0")/theme_variables_test.sh" || exit 1
+
 repo=$(cd "$(dirname "$0")/../.." && { pwd -W 2>/dev/null || pwd; })
 image=${ES_TOOLCHAIN_IMAGE:-ghcr.io/defkorns/classicmini-es-toolchain:v0.1.0}
 

@@ -12,12 +12,23 @@ namespace
 {
 	float sSuspendProgress = 0.0f;
 	float sDemoProgress = 0.0f;
+	bool sDemoHelpHidden = false;
 	constexpr float DemoTravel = 600.0f / 720.0f;
 }
 
 void GuiComponent::setDemoProgress(float progress)
 {
 	sDemoProgress = progress;
+}
+
+void GuiComponent::setDemoHelpHidden(bool hidden)
+{
+	sDemoHelpHidden = hidden;
+}
+
+bool GuiComponent::demoHelpHidden()
+{
+	return sDemoHelpHidden;
 }
 
 float GuiComponent::demoProgress()

@@ -52,6 +52,8 @@
 		<overclockZ>6</overclockZ>
 		<overclockColor>FFFFFF</overclockColor>
 		<detailText>FFFFFF</detailText>
+		<barLogoPath>./../assets/systems/logos/nes1.svg</barLogoPath>
+		<barLogoTint>FFFFFF</barLogoTint>
 		<dividerColor>FFFFFF</dividerColor>
 		<cardSize>0.196875 0.383333</cardSize>
 		<makerText>757575</makerText>

@@ -223,7 +223,7 @@ void Window::render()
 		}
 	}
 
-	if(!mRenderedHelpPrompts && GuiComponent::demoProgress() < 0.5f)
+	if(!mRenderedHelpPrompts && !GuiComponent::demoHelpHidden())
 		mHelp->render(transform);
 
 	if(Settings::getInstance()->getBool("DrawFramerate") && !mFrameDataText.empty())
@@ -341,7 +341,7 @@ void Window::renderFullScreenImage(const std::string& path)
 
 void Window::renderHelpPromptsEarly()
 {
-	if(GuiComponent::demoProgress() < 0.5f)
+	if(!GuiComponent::demoHelpHidden())
 		mHelp->render(Transform4x4f::Identity());
 	mRenderedHelpPrompts = true;
 }

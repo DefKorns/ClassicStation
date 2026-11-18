@@ -48,6 +48,7 @@ demo_sprites=${sprites_dir%/sprites}/layout/asset/sprite
 if [ "$kind" = snes ] && [ -d "$demo_sprites/mario" ] && [ ! -f "$theme_dir/demo/luigi_run01.png" ]; then
   mkdir -p "$theme_dir/demo" && cp "$demo_sprites"/mario/mario_run0[1-3].png "$demo_sprites"/luigi/luigi_run0[1-3].png "$theme_dir/demo/"
 fi
+[ "$kind" = snes ] && rm -f "$theme_dir"/demo/block_*.png "$theme_dir"/demo/mario_[0-4].png "$theme_dir"/demo/luigi_[0-4].png
 if [ "$kind" = nes ] && [ -f "$sprites_dir/characters_sbm.png" ]; then
   [ -f "$theme_dir/demo/block_2.png" ] || "$es_dir/theme_layers" demo "$sprites_dir/characters_sbm.png" "$theme_dir/demo" >/dev/null 2>&1
 else

@@ -138,6 +138,8 @@ public:
 	static void setSuspendProgress(float progress);
 	static void setDemoProgress(float progress);
 	static float demoProgress();
+	static void setDemoHelpHidden(bool hidden);
+	static bool demoHelpHidden();
 	static Transform4x4f demoLift(const Transform4x4f& trans);
 
 	// Returns true if the component is busy doing background processing (e.g. HTTP downloads)
