@@ -28,6 +28,12 @@ struct SystemViewData
 	std::shared_ptr<GuiComponent> logo;
 	std::shared_ptr<TextComponent> maker;
 	std::shared_ptr<TextComponent> year;
+	unsigned int makerColor = 0;
+	unsigned int makerActiveColor = 0;
+	unsigned int makerShownColor = 0;
+	unsigned int yearColor = 0;
+	unsigned int yearActiveColor = 0;
+	unsigned int yearShownColor = 0;
 	std::vector<GuiComponent*> backgroundExtras;
 };
 

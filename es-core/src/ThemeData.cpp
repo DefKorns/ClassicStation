@@ -62,6 +62,7 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "backgroundCenterColor", COLOR },
 		{ "backgroundEdgeColor", COLOR } } },
 	{ "text", {
+		{ "activeColor", COLOR },
 		{ "pos", RESOLUTION_PAIR },
 		{ "size", RESOLUTION_PAIR },
 		{ "origin", NORMALIZED_PAIR },

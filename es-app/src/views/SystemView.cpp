@@ -115,6 +115,14 @@ void SystemView::populate()
 				e.data.maker = std::make_shared<TextComponent>(mWindow);
 				e.data.maker->applyTheme(theme, "system", "systemCardMaker", ThemeFlags::ALL ^ ThemeFlags::TEXT);
 				e.data.maker->setText((*it)->getManufacturer());
+				const ThemeData::ThemeElement* makerElem = theme->getElement("system", "systemCardMaker", "text");
+				e.data.makerColor = makerElem->has("color") ? makerElem->get<unsigned int>("color") : 0xFFFFFFFFu;
+				e.data.makerActiveColor = makerElem->has("activeColor") ? makerElem->get<unsigned int>("activeColor") : e.data.makerColor;
+				e.data.makerShownColor = e.data.makerColor;
+				const ThemeData::ThemeElement* yearElem = theme->getElement("system", "systemCardYear", "text");
+				e.data.yearColor = yearElem->has("color") ? yearElem->get<unsigned int>("color") : 0xFFFFFFFFu;
+				e.data.yearActiveColor = yearElem->has("activeColor") ? yearElem->get<unsigned int>("activeColor") : e.data.yearColor;
+				e.data.yearShownColor = e.data.yearColor;
 				e.data.year = std::make_shared<TextComponent>(mWindow);
 				e.data.year->applyTheme(theme, "system", "systemCardYear", ThemeFlags::ALL ^ ThemeFlags::TEXT);
 				e.data.year->setText((*it)->getYear());
@@ -662,11 +670,30 @@ void SystemView::renderCarousel(const Transform4x4f& trans)
 		comp->setOpacity((unsigned char)opacity);
 		comp->render(logoTrans);
 
-		const SystemViewData& data = mEntries.at(index).data;
+		SystemViewData& data = mEntries.at(index).data;
 		if (mCarousel.hasCards && data.maker && data.year)
 		{
 			Transform4x4f footerTrans = cardTrans;
 			footerTrans.translate(Vector3f(-mCarousel.cardSize.x() / 2.0f, -mCarousel.cardSize.y() / 2.0f, 0));
+			const auto mix = [active](unsigned int from, unsigned int to, int shift)
+			{
+				const float a = static_cast<float>((from >> shift) & 0xFF);
+				const float b = static_cast<float>((to >> shift) & 0xFF);
+				return static_cast<unsigned int>(a + (b - a) * active + 0.5f) << shift;
+			};
+			const auto blend = [&mix](unsigned int from, unsigned int to) { return mix(from, to, 24) | mix(from, to, 16) | mix(from, to, 8) | (from & 0xFF); };
+			const unsigned int makerShown = blend(data.makerColor, data.makerActiveColor);
+			if(makerShown != data.makerShownColor)
+			{
+				data.maker->setColor(makerShown);
+				data.makerShownColor = makerShown;
+			}
+			const unsigned int yearShown = blend(data.yearColor, data.yearActiveColor);
+			if(yearShown != data.yearShownColor)
+			{
+				data.year->setColor(yearShown);
+				data.yearShownColor = yearShown;
+			}
 			data.maker->render(footerTrans);
 			Transform4x4f chipTrans = footerTrans;
 			chipTrans.translate(Vector3f(data.year->getPosition().x(), data.year->getPosition().y(), 0));
