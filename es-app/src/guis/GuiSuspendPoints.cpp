@@ -335,11 +335,13 @@ bool GuiSuspendPoints::moveInput(InputConfig* config, const Input& input)
 	{
 		mTarget = std::max(1, mTarget - 1);
 		UiSound::play("se_sys_cursor.wav");
+		updateHelpPrompts();
 	}
 	else if(config->isMappedLike("right", input))
 	{
 		mTarget = std::min(SuspendPoints::MaxSlots + 1, mTarget + 1);
 		UiSound::play("se_sys_cursor.wav");
+		updateHelpPrompts();
 	}
 	else if(config->isMappedTo("a", input))
 	{
@@ -487,13 +489,6 @@ void GuiSuspendPoints::render(const Transform4x4f& parentTrans)
 	mHeading.render(trans);
 	mNotice.render(trans);
 
-	if(mMoving)
-	{
-		Transform4x4f trashTrans = trans;
-		trashTrans.translate(Vector3f(mTrashRect.x, mTrashRect.y, 0.0f));
-		(mTarget > SuspendPoints::MaxSlots ? mTrashOpen : mTrash).render(trashTrans);
-	}
-
 	for(std::size_t index = 0; index < mSlots.size(); ++index)
 	{
 		const bool hidden = mMoving && static_cast<int>(index) + 1 == mMoveFrom;
@@ -502,7 +497,12 @@ void GuiSuspendPoints::render(const Transform4x4f& parentTrans)
 	}
 
 	if(mMoving)
+	{
+		Transform4x4f trashTrans = trans;
+		trashTrans.translate(Vector3f(mTrashRect.x, mTrashRect.y, 0.0f));
+		(mTarget > SuspendPoints::MaxSlots ? mTrashOpen : mTrash).render(trashTrans);
 		renderLifted(trans);
+	}
 }
 
 void GuiSuspendPoints::renderSlot(const Transform4x4f& trans, std::size_t index, bool selected, bool hidden)
@@ -591,7 +591,7 @@ std::vector<HelpPrompt> GuiSuspendPoints::getHelpPrompts()
 	if(mMoving)
 	{
 		prompts.push_back(HelpPrompt("left/right", "select"));
-		prompts.push_back(HelpPrompt("a", "move/delete"));
+		prompts.push_back(HelpPrompt("a", mTarget > SuspendPoints::MaxSlots ? "delete" : "move"));
 		prompts.push_back(HelpPrompt("b", "back"));
 		return prompts;
 	}

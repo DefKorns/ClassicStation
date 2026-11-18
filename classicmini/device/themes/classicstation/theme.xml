@@ -57,8 +57,7 @@
 		</image>
 
 		<text name="logoText">
-			<pos>1 1</pos>
-			<size>0.1 0.05</size>
+			<visible>false</visible>
 		</text>
 
 		<image name="menu_strip" extra="true">
@@ -186,13 +185,13 @@
 
 		<image name="suspend_trash">
 			<path>./suspend_trash.png</path>
-			<pos>0.848438 0.744444</pos>
+			<pos>0.885938 0.744444</pos>
 			<size>0.075 0.2</size>
 		</image>
 
 		<image name="suspend_trash_open">
 			<path>./suspend_trash_open.png</path>
-			<pos>0.848438 0.744444</pos>
+			<pos>0.885938 0.744444</pos>
 			<size>0.075 0.2</size>
 		</image>
 
@@ -579,8 +578,7 @@
 		</image>
 
 		<text name="logoText">
-			<pos>1 1</pos>
-			<size>0.1 0.05</size>
+			<visible>false</visible>
 		</text>
 
 		<text name="md_name">
