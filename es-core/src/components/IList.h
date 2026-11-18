@@ -128,6 +128,7 @@ public:
 	}
 
 	inline int getCursorIndex() const { return mCursor; }
+	inline bool isFastScrolling() const { return mScrollVelocity != 0 && mScrollTier >= mTierList.count - 1; }
 
 	inline const std::string& getSelectedName()
 	{

@@ -191,6 +191,9 @@ MDResolveHandle::MDResolveHandle(const ScraperSearchResult& result, const Scrape
 		mFuncs.push_back(ResolvePair(downloadImageAsync(result.imageUrl, imgPath), [this, imgPath]
 		{
 			mResult.mdl.set("image", imgPath);
+			const std::string thumbnail = thumbnailPathFor(imgPath);
+			if(saveThumbnail(imgPath, thumbnail, 30, 40))
+				mResult.mdl.set("thumbnail", thumbnail);
 			mResult.imageUrl = "";
 		}));
 	}
@@ -342,6 +345,37 @@ bool resizeImage(const std::string& path, int maxWidth, int maxHeight)
 	return saved;
 }
 
+std::string thumbnailPathFor(const std::string& imagePath)
+{
+	const size_t dot = imagePath.find_last_of('.');
+	return (dot == std::string::npos ? imagePath : imagePath.substr(0, dot)) + "-thumb.png";
+}
+
+bool saveThumbnail(const std::string& source, const std::string& target, int maxWidth, int maxHeight)
+{
+	FREE_IMAGE_FORMAT format = FreeImage_GetFileType(source.c_str(), 0);
+	if(format == FIF_UNKNOWN)
+		format = FreeImage_GetFIFFromFilename(source.c_str());
+	if(format == FIF_UNKNOWN || !FreeImage_FIFSupportsReading(format))
+		return false;
+
+	FIBITMAP* image = FreeImage_Load(format, source.c_str());
+	if(image == NULL)
+		return false;
+
+	const float width = (float)FreeImage_GetWidth(image);
+	const float height = (float)FreeImage_GetHeight(image);
+	const float scale = std::min((float)maxWidth / width, (float)maxHeight / height);
+	FIBITMAP* rescaled = FreeImage_Rescale(image, std::max(1, (int)(width * scale)), std::max(1, (int)(height * scale)), FILTER_BILINEAR);
+	FreeImage_Unload(image);
+	if(rescaled == NULL)
+		return false;
+
+	const bool saved = FreeImage_Save(FIF_PNG, rescaled, target.c_str()) != 0;
+	FreeImage_Unload(rescaled);
+	return saved;
+}
+
 std::string getSaveAsPath(const ScraperSearchParams& params, const std::string& suffix, const std::string& extension)
 {
 	const std::string subdirectory = params.system->getName();
@@ -370,6 +404,7 @@ bool isScrapedKeyEnabled(const std::string& key)
 		{ "name", "ScrapeName" },
 		{ "desc", "ScrapeDescription" },
 		{ "image", "ScrapeImage" },
+		{ "thumbnail", "ScrapeImage" },
 		{ "marquee", "ScrapeMarquee" },
 		{ "rating", "ScrapeRatings" },
 		{ "releasedate", "ScrapeDetails" },

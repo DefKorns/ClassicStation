@@ -6,11 +6,14 @@
 #include "views/ViewController.h"
 #include "CollectionSystemManager.h"
 #include "Settings.h"
+#include "resources/ResourceManager.h"
+#include "scrapers/Scraper.h"
 #include "SystemData.h"
 #include "components/VideoVlcComponent.h"
 #include "guis/GuiInfoPopup.h"
 #include "guis/GuiMenu.h"
 #include "utils/FileSystemUtil.h"
+#include "utils/StringUtil.h"
 #include "FileSorts.h"
 #include "Window.h"
 #include <cstdlib>
@@ -33,7 +36,7 @@ GridGameListView::GridGameListView(Window* window, FileData* root) :
 
 	mRating(window), mReleaseDate(window), mDeveloper(window), mPublisher(window),
 	mGenre(window), mPlayers(window), mLastPlayed(window), mPlayCount(window),
-	mName(window), mCode(window), mInfo(window), mIconBar(window), mFloatingCard(window)
+	mName(window), mCode(window), mInfo(window), mIconBar(window), mFloatingCard(window), mThumbnails(window), mLetters(window)
 {
 	const float padding = 0.01f;
 
@@ -141,6 +144,12 @@ GridGameListView::GridGameListView(Window* window, FileData* root) :
 	addChild(&mIconBar);
 	mFloatingCard.setDefaultZIndex(65);
 	mFloatingCard.setZIndex(65);
+	mThumbnails.setDefaultZIndex(30);
+	mThumbnails.setZIndex(30);
+	addChild(&mThumbnails);
+	mLetters.setVisible(false);
+	mLetters.setHorizontalAlignment(ALIGN_CENTER);
+	addChild(&mLetters);
 	mDefaultHeaderStatus = true;
 
 	initMDLabels();
@@ -242,10 +251,32 @@ void GridGameListView::populateList(const std::vector<FileData*>& files)
 	mHeaderText.setText(mRoot->getSystem()->getFullName());
 	if (files.size() > 0)
 	{
+		std::vector<std::string> thumbnails;
 		for (auto it = files.cbegin(); it != files.cend(); it++)
 		{
-			mGrid.add((*it)->getName(), getImagePath(*it), *it);
+			const std::string image = getImagePath(*it);
+			mGrid.add((*it)->getName(), image, *it);
+
+			std::string thumbnail = (*it)->metadata.get("thumbnail");
+			if (thumbnail.empty())
+				thumbnail = image;
+			if (image.find("/downloaded_images/") != std::string::npos && thumbnail.find("/downloaded_images/") == std::string::npos)
+			{
+				const std::string scraped = thumbnailPathFor(image);
+				if (Utils::FileSystem::exists(scraped) || saveThumbnail(image, scraped, 30, 40))
+					thumbnail = scraped;
+			}
+			if (thumbnail == image && image.size() > 4 && image.compare(image.size() - 4, 4, ".png") == 0)
+			{
+				const std::string small = image.substr(0, image.size() - 4) + "_small.png";
+				if (Utils::FileSystem::exists(small))
+					thumbnail = small;
+			}
+			if (thumbnail.empty() || !ResourceManager::getInstance()->fileExists(thumbnail))
+				thumbnail = ":/cartridge.svg";
+			thumbnails.push_back(thumbnail);
 		}
+		mThumbnails.setEntries(std::move(thumbnails));
 	}
 	else
 	{
@@ -266,6 +297,9 @@ void GridGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& theme)
 	ISimpleGameListView::onThemeChanged(theme);
 	mIconBar.applyTheme(theme, getName());
 	mFloatingCard.applyTheme(theme, getName());
+	mThumbnails.applyTheme(theme, getName());
+	mLetters.applyTheme(theme, getName(), "md_letters", ThemeFlags::ALL ^ ThemeFlags::TEXT);
+	mLetters.setZIndex(45);
 
 	using namespace ThemeFlags;
 
@@ -663,6 +697,24 @@ std::vector<HelpPrompt> GridGameListView::getHelpPrompts()
 
 void GridGameListView::update(int deltaTime)
 {
+	mThumbnails.setPosition(mGrid.getVisualCursor());
+	const bool fast = mGrid.size() > 0 && mGrid.isFastScrolling();
+	mLetters.setVisible(fast);
+	if(fast)
+	{
+		mLetters.setText(Utils::String::toUpper(mGrid.getSelectedName().substr(0, 2)));
+		mName.setVisible(false);
+		mCode.setVisible(false);
+		mFavorite.setVisible(false);
+		mLettersShown = true;
+	}
+	else if(mLettersShown)
+	{
+		mLettersShown = false;
+		mName.setVisible(true);
+		mCode.setVisible(true);
+		updateInfoPanel();
+	}
 	mFloatingCard.update(deltaTime);
 	ISimpleGameListView::update(deltaTime);
 	mVideo->update(deltaTime);

@@ -948,8 +948,8 @@
 		</image>
 
 		<text name="md_code">
-			<pos>0.7406 0.2014</pos>
-			<size>0.1531 0.0917</size>
+			<pos>0.7602 0.2014</pos>
+			<size>0.1328 0.0917</size>
 			<fontSize>0.0306</fontSize>
 			<color>8A8A8A</color>
 			<alignment>right</alignment>
@@ -958,9 +958,49 @@
 
 		<image name="md_favorite">
 			<path>./heart_filled.png</path>
-			<pos>0.1086 0.2236</pos>
+			<pos>0.782 0.2236</pos>
 			<size>0.0266 0.0472</size>
 			<zIndex>41</zIndex>
+		</image>
+
+		<text name="md_letters">
+			<pos>0.0992 0.2014</pos>
+			<size>0.8016 0.0917</size>
+			<fontSize>0.0667</fontSize>
+			<color>FFFFFF</color>
+			<alignment>center</alignment>
+		</text>
+
+		<image name="thumbnail_strip">
+			<pos>0.5023 0.7653</pos>
+			<size>0.0234 0.0556</size>
+		</image>
+
+		<image name="thumbnail_arrow_a">
+			<path>./thumbnail_arrow_a.png</path>
+			<color>33CCFF</color>
+			<pos>0.5023 0.7153</pos>
+			<size>0.025 0.0222</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>31</zIndex>
+		</image>
+
+		<image name="thumbnail_arrow_b">
+			<path>./thumbnail_arrow_b.png</path>
+			<color>33CCFF</color>
+			<pos>0.5023 0.7153</pos>
+			<size>0.025 0.0222</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>31</zIndex>
+		</image>
+
+		<image name="thumbnail_arrow_c">
+			<path>./thumbnail_arrow_c.png</path>
+			<color>33CCFF</color>
+			<pos>0.5023 0.7153</pos>
+			<size>0.025 0.0222</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>31</zIndex>
 		</image>
 
 		<image name="md_image">

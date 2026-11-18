@@ -671,6 +671,7 @@ namespace theme_layers
 				{"floating_large_wing_a", "resume_wingL_1", 3}, {"floating_large_wing_b", "resume_wingL_2", 3},
 				{"floating_balloon", "registration_frame", 3}, {"floating_balloon_icon", "registration_icon", 3},
 				{"floating_arrow_left", "arrow_left", 3}, {"floating_arrow_right", "arrow_right", 3},
+				{"thumbnail_arrow_a", "dot_cursor_v_1", 2}, {"thumbnail_arrow_b", "dot_cursor_v_2", 2}, {"thumbnail_arrow_c", "dot_cursor_v_3", 2},
 				{"warning_popup", "popup_warning", 3}, {"warning_icon", "icon_casette_nes", 3},
 				{"floating_smoke_1", "smoke_64_1", 3}, {"floating_smoke_2", "smoke_64_2", 3}, {"floating_smoke_3", "smoke_64_3", 3}, {"floating_smoke_4", "smoke_64_4", 3}, {"floating_smoke_5", "smoke_64_5", 3},
 				{"floating_smoke_small_1", "smoke_32_1", 3}, {"floating_smoke_small_2", "smoke_32_2", 3}, {"floating_smoke_small_3", "smoke_32_3", 3}, {"floating_smoke_small_4", "smoke_32_4", 3}, {"floating_smoke_small_5", "smoke_32_5", 3}

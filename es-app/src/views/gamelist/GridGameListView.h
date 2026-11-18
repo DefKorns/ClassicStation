@@ -4,6 +4,7 @@
 
 #include "components/DateTimeComponent.h"
 #include "components/FloatingCardComponent.h"
+#include "components/ThumbnailStripComponent.h"
 #include "components/MenuIconBar.h"
 #include "components/RatingComponent.h"
 #include "components/PagedTextComponent.h"
@@ -102,6 +103,9 @@ private:
 
 	MenuIconBar mIconBar;
 	FloatingCardComponent mFloatingCard;
+	ThumbnailStripComponent mThumbnails;
+	TextComponent mLetters;
+	bool mLettersShown = false;
 	bool mHeaderFocus = false;
 	std::shared_ptr<bool> mAlive = std::make_shared<bool>(true);
 };

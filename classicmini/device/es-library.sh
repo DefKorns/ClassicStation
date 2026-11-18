@@ -280,6 +280,8 @@ readGames | while IFS=$us read -r menu code exe ext icon name desc year players 
   small=$game_dir/${code}_small.png
   [ -f "$small" ] || small=$icon
   [ -n "$cover" ] && small=$cover
+  thumb=$game_dir/${code}_small.png
+  [ -f "$thumb" ] || thumb=$small
   case $default_covers in *" $code "*) [ -z "$cover" ] && { icon=; small=; } ;; esac
 
   {
@@ -293,6 +295,7 @@ readGames | while IFS=$us read -r menu code exe ext icon name desc year players 
     [ -n "$genre" ] && echo "    <genre>$genre</genre>"
     echo "    <code>$code</code>"
     [ -n "$small" ] && echo "    <marquee>$(xmlPath "$small")</marquee>"
+    [ -n "$thumb" ] && echo "    <thumbnail>$(xmlPath "$thumb")</thumbnail>"
     echo "  </game>"
   } >> "$parts/$system.xml"
 done

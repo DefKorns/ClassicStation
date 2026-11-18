@@ -75,7 +75,8 @@ public:
 		mOverlayFactory = std::move(factory);
 		mOverlayUpdater = std::move(updater);
 	}
-	void setMarkFunction(std::function<bool(const T&)> markFunction) { mMarkFunction = std::move(markFunction); }
+	float getVisualCursor() const { return static_cast<float>(mCursor) + (mCameraMoving && !isVerticalConst() ? mCameraDirection * (1.0f - mCamera) : 0.0f); }
+		void setMarkFunction(std::function<bool(const T&)> markFunction) { mMarkFunction = std::move(markFunction); }
 	void refreshMarks() { updateTiles(false, false); }
 
 	bool input(InputConfig* config, Input input) override;
@@ -102,6 +103,7 @@ private:
 	bool isScrollLoop();
 
 	bool isVertical() { return mScrollDirection == SCROLL_VERTICALLY; };
+	bool isVerticalConst() const { return mScrollDirection == SCROLL_VERTICALLY; }
 
 
 	// IMAGES & ENTRIES
@@ -293,7 +295,6 @@ void ImageGridComponent<T>::render(const Transform4x4f& parentTrans)
 	if (selectedTile != NULL)
 		selectedTile->render(tileTrans);
 
-	listRenderTitleOverlay(trans);
 
 	GuiComponent::renderChildren(trans);
 }

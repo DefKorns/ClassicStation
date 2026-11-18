@@ -175,4 +175,8 @@ std::vector<PlatformIds::PlatformId> getScrapePlatforms(const ScraperSearchParam
 //Returns true if successful, false otherwise.
 bool resizeImage(const std::string& path, int maxWidth, int maxHeight);
 
+//Writes a PNG copy of [source] that fits in maxWidth x maxHeight, keeping the aspect ratio.
+bool saveThumbnail(const std::string& source, const std::string& target, int maxWidth, int maxHeight);
+std::string thumbnailPathFor(const std::string& imagePath);
+
 #endif // ES_APP_SCRAPERS_SCRAPER_H
