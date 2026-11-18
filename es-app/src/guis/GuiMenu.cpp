@@ -1023,6 +1023,11 @@ void GuiMenu::openUISettings()
 	s->addWithLabel("ON-SCREEN HELP", show_help);
 	s->addSaveFunc([show_help] { Settings::getInstance()->setBool("ShowHelpPrompts", show_help->getState()); });
 
+	auto menu_animations = std::make_shared<SwitchComponent>(mWindow);
+	menu_animations->setState(Settings::getInstance()->getBool("MenuAnimations"));
+	s->addWithLabel("HEADER ANIMATIONS", menu_animations);
+	s->addSaveFunc([menu_animations] { Settings::getInstance()->setBool("MenuAnimations", menu_animations->getState()); });
+
 	// enable filters (ForceDisableFilters)
 	auto enable_filter = std::make_shared<SwitchComponent>(mWindow);
 	enable_filter->setState(!Settings::getInstance()->getBool("ForceDisableFilters"));

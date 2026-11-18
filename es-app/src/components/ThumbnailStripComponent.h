@@ -47,6 +47,7 @@ private:
 	Vector2f mCentre;
 	Vector2f mThumbSize;
 	float mStep = 32.0f;
+	int mFullCount = 21;
 	int mElapsedMs = 0;
 };
 

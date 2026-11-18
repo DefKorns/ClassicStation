@@ -20,12 +20,15 @@
 class DiskSpaceIndicator : public GuiComponent
 {
 public:
-	DiskSpaceIndicator(Window* window, std::string mountPoint, const std::string& iconPath);
+	enum class Source { Mount, Swap };
+
+	DiskSpaceIndicator(Window* window, std::string mountPoint, const std::string& iconPath, Source source = Source::Mount);
 
 	bool applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& textElement, const std::string& iconElement);
 	void useDefaultLayout();
 	void placeLeftOf(const DiskSpaceIndicator& neighbour);
 	float getLeftEdge() const { return mLeftEdge; }
+	bool isActive() const { return mActive; }
 
 	void update(int deltaTime) override;
 	void render(const Transform4x4f& parentTrans) override;
@@ -34,6 +37,8 @@ private:
 	void refresh();
 
 	std::string mMountPoint;
+	Source mSource;
+	bool mActive = true;
 	std::string mIconPath;
 	bool mThemed = false;
 	bool mThemedIcon = false;

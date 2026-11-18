@@ -15,8 +15,10 @@
 
 namespace
 {
-	constexpr float Gap = 3.0f;
-	constexpr int ArrowFrameMs = 150;
+	constexpr float Gap = 0.0f;
+	constexpr int ArrowFrameMs = 33;
+	constexpr int ArrowSequence[] = { 0, 1, 1, 1, 2, 2, 2, 1, 1, 1, 0, 0, 0 };
+	constexpr int ArrowSequenceLength = sizeof(ArrowSequence) / sizeof(ArrowSequence[0]);
 	const char* const ArrowNames[] = { "thumbnail_arrow_a", "thumbnail_arrow_b", "thumbnail_arrow_c" };
 }
 
@@ -44,6 +46,8 @@ void ThumbnailStripComponent::applyTheme(const std::shared_ptr<ThemeData>& theme
 	mCentre = strip->get<Vector2f>("pos") * screen;
 	mThumbSize = strip->get<Vector2f>("size") * screen;
 	mStep = mThumbSize.x() + Gap;
+	if(strip->has("visibleCount"))
+		mFullCount = std::max(1, static_cast<int>(strip->get<float>("visibleCount")));
 
 	for(int frame = 0; frame < ArrowFrames; ++frame)
 		mArrow[frame]->applyTheme(theme, view, ArrowNames[frame], ThemeFlags::ALL);
@@ -86,7 +90,7 @@ void ThumbnailStripComponent::render(const Transform4x4f& parentTrans)
 	const Transform4x4f trans = parentTrans * getTransform();
 	const int base = static_cast<int>(std::floor(mPosition + 0.5f));
 	const int half = count / 2;
-	const int fullReach = std::min(half, FullReach);
+	const int fullReach = std::min(half, std::min(FullReach, mFullCount / 2));
 	const int reach = std::min(half, fullReach + FadeReach);
 	const float bottom = mCentre.y() + mThumbSize.y() / 2.0f;
 
@@ -113,6 +117,6 @@ void ThumbnailStripComponent::render(const Transform4x4f& parentTrans)
 		image.render(trans);
 	}
 
-	ImageComponent& arrow = *mArrow[(mElapsedMs / ArrowFrameMs) % ArrowFrames];
+	ImageComponent& arrow = *mArrow[ArrowSequence[(mElapsedMs / ArrowFrameMs) % ArrowSequenceLength]];
 	arrow.render(trans);
 }

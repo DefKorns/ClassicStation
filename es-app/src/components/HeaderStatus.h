@@ -13,6 +13,7 @@
 #include "GuiComponent.h"
 #include "ThemeData.h"
 #include "components/DiskSpaceIndicator.h"
+#include "components/ImageComponent.h"
 #include <memory>
 #include <string>
 
@@ -27,10 +28,20 @@ public:
 	void render(const Transform4x4f& parentTrans) override;
 
 private:
+	void refreshOverclock();
+	void placeDefaultOverclock();
+
 	DiskSpaceIndicator mDisk;
 	DiskSpaceIndicator mNand;
+	DiskSpaceIndicator mSwap;
+	ImageComponent mOverclock;
 	bool mDiskShown = false;
 	bool mNandShown = false;
+	bool mSwapShown = false;
+	bool mOverclockShown = false;
+	bool mOverclockActive = false;
+	bool mOverclockDefault = false;
+	int mOverclockElapsedMs = 0;
 };
 
 #endif // ES_APP_COMPONENTS_HEADER_STATUS_H

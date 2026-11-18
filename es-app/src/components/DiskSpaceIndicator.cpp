@@ -13,6 +13,7 @@
 #include "resources/Font.h"
 #include <utility>
 #include <cstdio>
+#include <fstream>
 #include <sys/statvfs.h>
 
 namespace
@@ -41,6 +42,27 @@ namespace
 		return static_cast<double>(stats.f_bavail) * static_cast<double>(stats.f_frsize);
 	}
 
+	bool swapFreeBytes(double& bytes)
+	{
+		std::ifstream swaps("/proc/swaps");
+		std::string line;
+		std::getline(swaps, line);
+		if(!std::getline(swaps, line))
+			return false;
+
+		std::ifstream info("/proc/meminfo");
+		while(std::getline(info, line))
+		{
+			unsigned long kilobytes = 0;
+			if(std::sscanf(line.c_str(), "SwapFree: %lu kB", &kilobytes) == 1)
+			{
+				bytes = static_cast<double>(kilobytes) * 1024.0;
+				return true;
+			}
+		}
+		return false;
+	}
+
 	std::string freeSpaceLabel(double bytes)
 	{
 		if(bytes < 0.0)
@@ -55,8 +77,8 @@ namespace
 	}
 }
 
-DiskSpaceIndicator::DiskSpaceIndicator(Window* window, std::string mountPoint, const std::string& iconPath)
-	: GuiComponent(window), mMountPoint(std::move(mountPoint)), mIconPath(iconPath), mIcon(window), mText(window, "", Font::get(fontSize()), TextColor)
+DiskSpaceIndicator::DiskSpaceIndicator(Window* window, std::string mountPoint, const std::string& iconPath, Source source)
+	: GuiComponent(window), mMountPoint(std::move(mountPoint)), mSource(source), mIconPath(iconPath), mIcon(window), mText(window, "", Font::get(fontSize()), TextColor)
 {
 	useDefaultLayout();
 }
@@ -101,7 +123,11 @@ void DiskSpaceIndicator::placeLeftOf(const DiskSpaceIndicator& neighbour)
 
 void DiskSpaceIndicator::refresh()
 {
-	const double bytes = freeBytes(mMountPoint);
+	double bytes = 0.0;
+	if(mSource == Source::Swap)
+		mActive = swapFreeBytes(bytes);
+	else
+		bytes = freeBytes(mMountPoint);
 	const std::string label = freeSpaceLabel(bytes);
 	const bool low = bytes >= 0.0 && bytes < LowSpaceBytes;
 
@@ -138,6 +164,8 @@ void DiskSpaceIndicator::update(int deltaTime)
 
 void DiskSpaceIndicator::render(const Transform4x4f& parentTrans)
 {
+	if(!mActive)
+		return;
 	if(!mThemed || mThemedIcon)
 		mIcon.render(parentTrans);
 	mText.render(parentTrans);

@@ -302,6 +302,7 @@ void SystemView::update(int deltaTime)
 	listUpdate(deltaTime);
 	GuiComponent::update(deltaTime);
 	mHeaderStatus.update(deltaTime);
+	mIconBar.update(deltaTime);
 }
 
 void SystemView::onCursorChanged(const CursorState& /*state*/)

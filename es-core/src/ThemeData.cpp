@@ -17,6 +17,7 @@ std::vector<std::string> ThemeData::sSupportedFeatures { { "video" }, { "carouse
 
 std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> ThemeData::sElementMap {
 	{ "image", {
+		{ "visibleCount", FLOAT },
 		{ "pos", RESOLUTION_PAIR },
 		{ "size", RESOLUTION_PAIR },
 		{ "maxSize", RESOLUTION_PAIR },
