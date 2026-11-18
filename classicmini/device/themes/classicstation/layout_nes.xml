@@ -11,5 +11,19 @@
 		<slotsX>0.021875</slotsX>
 		<playersY>0.386111</playersY>
 		<playersSize>0.04453 0.045833</playersSize>
+		<helpText>DB2B00</helpText>
+		<titleText>FFFFFF</titleText>
+		<spaceText>FFFFFF</spaceText>
+		<barLogo>true</barLogo>
+		<tilePadding>0.0383 0.0847</tilePadding>
+		<thumbPos>0.5023 0.7653</thumbPos>
+		<thumbSize>0.0234 0.0556</thumbSize>
+		<arrowPos>0.5023 0.7153</arrowPos>
+		<barLogoColor>DB2B00</barLogoColor>
+		<nandIconPos>0.859375 0.061111</nandIconPos>
+		<nandTextPos>0.871875 0.041667</nandTextPos>
+		<diskIconPos>0.859375 0.105556</diskIconPos>
+		<diskTextPos>0.871875 0.086111</diskTextPos>
+		<imageOnTop>false</imageOnTop>
 	</variables>
 </theme>

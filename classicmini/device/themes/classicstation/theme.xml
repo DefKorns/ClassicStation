@@ -28,7 +28,7 @@
 			<origin>0.5 0.5</origin>
 			<iconTextSpacing>4</iconTextSpacing>
 			<entrySpacing>30</entrySpacing>
-			<textColor>${logoColor}</textColor>
+			<textColor>${helpText}</textColor>
 			<iconColor>FFFFFF</iconColor>
 			<fontSize>0.0311</fontSize>
 			<iconHeight>${helpIcon}</iconHeight>
@@ -49,8 +49,9 @@
 			<zIndex>5</zIndex>
 		</image>
 		<image name="bar_logo" extra="true">
+			<visible>${barLogo}</visible>
 			<path>./assets/systems/logos/${system.theme}.svg</path>
-			<color>${logoColor}</color>
+			<color>${barLogoColor}</color>
 			<pos>0.0602 0.9264</pos>
 			<maxSize>0.35 0.0778</maxSize>
 			<origin>0 0.5</origin>
@@ -78,40 +79,42 @@
 			<origin>0.5 0.5</origin>
 			<iconTextSpacing>4</iconTextSpacing>
 			<entrySpacing>30</entrySpacing>
-			<textColor>${logoColor}</textColor>
+			<textColor>${helpText}</textColor>
 			<iconColor>FFFFFF</iconColor>
 			<fontSize>0.0311</fontSize>
 			<iconHeight>${helpIcon}</iconHeight>
 		</helpsystem>
 
 		<image name="nandSpaceIcon">
-			<pos>0.859375 0.061111</pos>
+			<pos>${nandIconPos}</pos>
+			<color>${barLogoColor}</color>
 			<size>0.019531 0.034722</size>
 			<origin>0.5 0.5</origin>
 			<zIndex>70</zIndex>
 		</image>
 
 		<text name="nandSpace">
-			<pos>0.871875 0.041667</pos>
+			<pos>${nandTextPos}</pos>
 			<size>0.0625 0.038889</size>
 			<fontSize>0.0306</fontSize>
-			<color>FFFFFF</color>
+			<color>${spaceText}</color>
 			<alignment>left</alignment>
 			<zIndex>70</zIndex>
 		</text>
 
 		<image name="diskSpaceIcon">
-			<pos>0.859375 0.105556</pos>
+			<pos>${diskIconPos}</pos>
+			<color>${barLogoColor}</color>
 			<size>0.019531 0.034722</size>
 			<origin>0.5 0.5</origin>
 			<zIndex>70</zIndex>
 		</image>
 
 		<text name="diskSpace">
-			<pos>0.871875 0.086111</pos>
+			<pos>${diskTextPos}</pos>
 			<size>0.0625 0.038889</size>
 			<fontSize>0.0306</fontSize>
-			<color>FFFFFF</color>
+			<color>${spaceText}</color>
 			<alignment>left</alignment>
 			<zIndex>70</zIndex>
 		</text>
@@ -121,7 +124,7 @@
 			<origin>0.5 0.5</origin>
 			<iconTextSpacing>4</iconTextSpacing>
 			<entrySpacing>30</entrySpacing>
-			<textColor>${logoColor}</textColor>
+			<textColor>${helpText}</textColor>
 			<iconColor>FFFFFF</iconColor>
 			<fontSize>0.0311</fontSize>
 			<iconHeight>0.041667</iconHeight>
@@ -413,7 +416,7 @@
 			<pos>0.2641 0.1597</pos>
 			<size>0.2383 0.0903</size>
 			<fontSize>0.07</fontSize>
-			<color>FFFFFF</color>
+			<color>${titleText}</color>
 			<alignment>left</alignment>
 			<fitMinScale>0.5</fitMinScale>
 			<zIndex>40</zIndex>
@@ -585,8 +588,9 @@
 			<zIndex>5</zIndex>
 		</image>
 		<image name="bar_logo" extra="true">
+			<visible>${barLogo}</visible>
 			<path>./assets/systems/logos/${system.theme}.svg</path>
-			<color>${logoColor}</color>
+			<color>${barLogoColor}</color>
 			<pos>0.0602 0.9264</pos>
 			<maxSize>0.35 0.0778</maxSize>
 			<origin>0 0.5</origin>
@@ -634,7 +638,7 @@
 			<pos>${titleX} 0.2014</pos>
 			<size>${titleW} 0.0917</size>
 			<fontSize>0.05</fontSize>
-			<color>FFFFFF</color>
+			<color>${titleText}</color>
 			<alignment>center</alignment>
 			<backgroundColor>00000000</backgroundColor>
 			<zIndex>50</zIndex>
@@ -657,7 +661,7 @@
 			<pos>${titleX} 0.2014</pos>
 			<size>${titleW} 0.0917</size>
 			<fontSize>0.05</fontSize>
-			<color>FFFFFF</color>
+			<color>${titleText}</color>
 			<alignment>center</alignment>
 			<zIndex>20</zIndex>
 		</text>
@@ -679,7 +683,8 @@
 		</imagegrid>
 
 		<gridtile name="default">
-			<padding>0.0383 0.0847</padding>
+			<padding>${tilePadding}</padding>
+			<imageOnTop>${imageOnTop}</imageOnTop>
 			<imageColor>FFFFFF</imageColor>
 			<backgroundCornerSize>0.04375 0.0847</backgroundCornerSize>
 			<backgroundBleed>${tileBleed} 0</backgroundBleed>
@@ -968,19 +973,19 @@
 			<pos>${titleX} 0.2014</pos>
 			<size>${titleW} 0.0917</size>
 			<fontSize>0.0667</fontSize>
-			<color>FFFFFF</color>
+			<color>${titleText}</color>
 			<alignment>center</alignment>
 		</text>
 
 		<image name="thumbnail_strip">
-			<pos>0.5023 0.7653</pos>
-			<size>0.0234 0.0556</size>
+			<pos>${thumbPos}</pos>
+			<size>${thumbSize}</size>
 		</image>
 
 		<image name="thumbnail_arrow_a">
 			<path>./thumbnail_arrow_a.png</path>
 			<color>33CCFF</color>
-			<pos>0.5023 0.7153</pos>
+			<pos>${arrowPos}</pos>
 			<size>0.025 0.0222</size>
 			<origin>0.5 0.5</origin>
 			<zIndex>31</zIndex>
@@ -989,7 +994,7 @@
 		<image name="thumbnail_arrow_b">
 			<path>./thumbnail_arrow_b.png</path>
 			<color>33CCFF</color>
-			<pos>0.5023 0.7153</pos>
+			<pos>${arrowPos}</pos>
 			<size>0.025 0.0222</size>
 			<origin>0.5 0.5</origin>
 			<zIndex>31</zIndex>
@@ -998,7 +1003,7 @@
 		<image name="thumbnail_arrow_c">
 			<path>./thumbnail_arrow_c.png</path>
 			<color>33CCFF</color>
-			<pos>0.5023 0.7153</pos>
+			<pos>${arrowPos}</pos>
 			<size>0.025 0.0222</size>
 			<origin>0.5 0.5</origin>
 			<zIndex>31</zIndex>

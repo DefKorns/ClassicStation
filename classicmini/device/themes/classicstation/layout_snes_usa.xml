@@ -1,0 +1,29 @@
+<theme>
+	<formatVersion>3</formatVersion>
+
+	<variables>
+		<titleX>0.0922</titleX>
+		<titleW>0.8156</titleW>
+		<helpY>0.8458</helpY>
+		<helpIcon>0.05</helpIcon>
+		<gridX>0</gridX>
+		<tileBleed>-0.0016</tileBleed>
+		<slotsX>0.015625</slotsX>
+		<playersY>0.377778</playersY>
+		<playersSize>0.051563 0.058333</playersSize>
+		<helpText>FFFFFF</helpText>
+		<titleText>000000</titleText>
+		<spaceText>4D4F53</spaceText>
+		<barLogo>false</barLogo>
+		<tilePadding>0.009375 0.0847</tilePadding>
+		<thumbPos>0.5023 0.7708</thumbPos>
+		<thumbSize>0.025 0.0444</thumbSize>
+		<arrowPos>0.5023 0.7264</arrowPos>
+		<barLogoColor>4D4F53</barLogoColor>
+		<nandIconPos>0.09 0.083333</nandIconPos>
+		<nandTextPos>0.1025 0.0639</nandTextPos>
+		<diskIconPos>0.18 0.083333</diskIconPos>
+		<diskTextPos>0.1925 0.0639</diskTextPos>
+		<imageOnTop>true</imageOnTop>
+	</variables>
+</theme>

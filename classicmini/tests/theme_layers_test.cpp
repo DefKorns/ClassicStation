@@ -196,7 +196,7 @@ namespace
 			check(layers[4].name == "title_bar" && layers[4].image.width() == 1004 && layers[4].image.height() == 53, "title bar size");
 			check(layers[5].name == "card" && layers[5].image.width() == 246 && layers[5].image.height() == (family == Family::B ? 320 : 326), "card scaled by 3 with the extra top");
 			check(layers[7].name == "menubar_top" && layers[7].image.width() == 360 && layers[7].image.height() == 120, "menu bar scaled by 3");
-			check(layers[5].image.at(60, 80)[3] == 0 && layers[5].image.at(5, 100)[3] != 0, "card window is transparent and its border is not");
+			check((family == Family::B ? layers[5].image.at(60, 80)[3] != 0 : layers[5].image.at(60, 80)[3] == 0) && layers[5].image.at(5, 100)[3] != 0, "card window is transparent on family A and kept on family B, the border is not");
 			check(layers[9].name == "cover_card" && layers[9].image.width() == 261 && layers[9].image.height() == 388, "cover card is a nine-patch of the detail size");
 			check(layers[10].name == "label_bar" && layers[10].image.width() == 596 && layers[10].image.height() == 30, "label bar size");
 			check(layers[11].name == "slot_empty" && layers[12].name == "slot_saved" && layers[13].name == "slot_locked" && layers[13].image.width() == 24, "three slot icons with the rating margin");
@@ -207,6 +207,15 @@ namespace
 			const std::vector<UiIcon> icons = buildUiIcons(sheet, atlas);
 			check(icons.size() == 1 && icons[0].path == "menu_network.png" && icons[0].image.width() == 72, "only the generated network icon without the button sprites");
 			check(icons[0].image.at(0, 0)[3] == 0 && icons[0].image.at(36, 36)[3] == 255, "the network icon is round with transparent corners");
+		}
+
+		{
+			Atlas withSave = atlas;
+			withSave["Icon_Save.png"] = Rect{0, 0, 18, 14};
+			bool found = false;
+			for(const Layer& layer : buildLayers(sheet, withSave, Family::B, Options{}))
+				found = found || (layer.name == "save_icon" && layer.image.width() == 54 && layer.image.height() == 42);
+			check(found, "the save icon is scaled by 3");
 		}
 
 		check(std::string(rowFrameSpec(Family::A).sprite) == "resume_card", "family A row frame");

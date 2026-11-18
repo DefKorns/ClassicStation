@@ -100,6 +100,7 @@ namespace theme_layers
 		int labelHeight = 30;
 		int screenWidth = 1280;
 		int background = -1;
+		Image wall;
 	};
 
 	inline Atlas parseAtlas(const std::string& json)
@@ -252,9 +253,9 @@ namespace theme_layers
 		return crop(sheet, found->second);
 	}
 
-	inline bool differsFromBackground(const unsigned char* pixel, const unsigned char* background)
+	inline bool differsFromBackground(const unsigned char* pixel, const unsigned char* background, int threshold = 60)
 	{
-		return std::abs(pixel[0] - background[0]) + std::abs(pixel[1] - background[1]) + std::abs(pixel[2] - background[2]) > 60;
+		return std::abs(pixel[0] - background[0]) + std::abs(pixel[1] - background[1]) + std::abs(pixel[2] - background[2]) > threshold;
 	}
 
 	inline std::string logoSvg(const Image& bar, const Rect& area)
@@ -279,7 +280,7 @@ namespace theme_layers
 		return svg + "</svg>\n";
 	}
 
-	inline Rect findBakedLogo(const Image& bar, int rows, int xLimit)
+	inline Rect findBakedLogo(const Image& bar, int rows, int xLimit, int xStart = 0, int backgroundX = 0, int threshold = 60)
 	{
 		const int limitX = std::min(xLimit, bar.width());
 		const int limitY = std::min(rows, bar.height());
@@ -289,11 +290,11 @@ namespace theme_layers
 		int maxY = -1;
 		for(int y = 0; y < limitY; ++y)
 		{
-			const unsigned char* background = bar.at(0, y);
-			for(int x = 0; x < limitX; ++x)
+			const unsigned char* background = bar.at(backgroundX, y);
+			for(int x = xStart; x < limitX; ++x)
 			{
 				const unsigned char* pixel = bar.at(x, y);
-				if(!differsFromBackground(pixel, background))
+				if(!differsFromBackground(pixel, background, threshold))
 					continue;
 				minX = std::min(minX, x);
 				maxX = std::max(maxX, x);
@@ -304,14 +305,14 @@ namespace theme_layers
 		return maxX < 0 ? Rect{0, 0, 0, 0} : Rect{minX, minY, maxX - minX + 1, maxY - minY + 1};
 	}
 
-	inline void clearArea(Image& image, const Rect& area)
+	inline void clearArea(Image& image, const Rect& area, int sourceX = 0)
 	{
 		for(int y = area.y; y < area.y + area.h; ++y)
 			for(int x = area.x; x < area.x + area.w; ++x)
-				std::copy_n(image.at(0, y), 4, image.at(x, y));
+				std::copy_n(image.at(sourceX, y), 4, image.at(x, y));
 	}
 
-	inline Image cardFrame(const Image& card, const Rect& window, int extraTop)
+	inline Image cardFrame(const Image& card, const Rect& window, int extraTop, bool punch = true)
 	{
 		if(window.w <= 0 || window.h <= 0 || window.x < 0 || window.y < 0 || window.x + window.w > card.width() || window.y + window.h > card.height() || extraTop < 0)
 			throw std::out_of_range("card window outside the card");
@@ -319,7 +320,7 @@ namespace theme_layers
 		Image result(card.width(), card.height() + extraTop);
 		for(int y = 0; y < card.height(); ++y)
 			std::copy_n(card.at(0, y), static_cast<std::size_t>(card.width()) * 4, result.at(0, y + extraTop));
-		for(int y = window.y; y < window.y + window.h; ++y)
+		for(int y = window.y; punch && y < window.y + window.h; ++y)
 			for(int x = window.x; x < window.x + window.w; ++x)
 				std::fill_n(result.at(x, y + extraTop), 4, static_cast<unsigned char>(0));
 		return result;
@@ -530,7 +531,7 @@ namespace theme_layers
 		Options options = requested;
 		if(family == Family::B)
 		{
-			options.cardWindow = Rect{55, 11, 148, 204};
+			options.cardWindow = Rect{12, 11, 228, 204};
 			options.cardExtraTop = 50;
 		}
 
@@ -547,7 +548,26 @@ namespace theme_layers
 					pixel[2] = static_cast<unsigned char>(options.background & 0xff);
 					pixel[3] = 255;
 				}
-			layers.push_back({"background", fill});
+			if(!options.wall.empty())
+			{
+				const Image art = scale(options.wall, options.barScale);
+				const int left = (options.screenWidth - art.width()) / 2;
+				const int top = (720 - art.height()) / 2;
+				Image wallpaper(options.screenWidth, 720);
+				for(int y = 0; y < wallpaper.height(); ++y)
+					for(int x = 0; x < wallpaper.width(); ++x)
+					{
+						const int sourceX = x - left;
+						const int sourceY = y - top;
+						if(sourceX >= 0 && sourceY >= 0 && sourceX < art.width() && sourceY < art.height())
+							std::copy_n(art.at(sourceX, sourceY), 4, wallpaper.at(x, y));
+						else
+							std::copy_n(fill.at(0, 0), 4, wallpaper.at(x, y));
+					}
+				layers.push_back({"background", wallpaper});
+			}
+			else
+				layers.push_back({"background", fill});
 		}
 		layers.push_back({"rating_filled", pad(scale(sprite(sheet, atlas, "icon_Resume_on"), options.iconScale), options.ratingMargin)});
 		layers.push_back({"rating_empty", pad(scale(sprite(sheet, atlas, "icon_Resume_off"), options.iconScale), options.ratingMargin)});
@@ -566,12 +586,18 @@ namespace theme_layers
 			layers.push_back({"list_selector_wide", frame(selectorFrameSpec(), options.wideWidth + options.selectorWidth - options.rowWidth, options.selectorHeight)});
 		}
 		layers.push_back({"title_bar", frame(FrameSpec{"caption_title", Insets{5, 5, 5, 5}}, options.titleWidth, options.titleHeight)});
-		layers.push_back({"card", cardFrame(scale(sprite(sheet, atlas, "game_card"), options.cardScale), options.cardWindow, options.cardExtraTop)});
-		layers.push_back({"card_active", cardFrame(scale(sprite(sheet, atlas, "game_card_active"), options.cardScale), options.cardWindow, options.cardExtraTop)});
+		layers.push_back({"card", cardFrame(scale(sprite(sheet, atlas, "game_card"), options.cardScale), options.cardWindow, options.cardExtraTop, family != Family::B)});
+		layers.push_back({"card_active", cardFrame(scale(sprite(sheet, atlas, "game_card_active"), options.cardScale), options.cardWindow, options.cardExtraTop, family != Family::B)});
 		layers.push_back({"menubar_top", centerCrop(scale(sprite(sheet, atlas, "menubar_U"), options.barScale), options.screenWidth)});
 		Image bottomBar = sprite(sheet, atlas, "menubar_L");
 		if(family == Family::A)
 			clearArea(bottomBar, findBakedLogo(bottomBar, 22, 340));
+		else
+		{
+			const Rect logo = findBakedLogo(bottomBar, 21, 340, 29, 28, 150);
+			if(logo.h > 0 && logo.h < 21 && logo.w < 300)
+				clearArea(bottomBar, logo, 28);
+		}
 		layers.push_back({"menubar_bottom", centerCrop(scale(bottomBar, options.barScale), options.screenWidth)});
 		layers.push_back({"cover_card", ninePatch(scale(sprite(sheet, atlas, "game_card"), options.cardScale), Insets{4 * options.cardScale, 4 * options.cardScale, 4 * options.cardScale, 18 * options.cardScale}, options.detailCardWidth, options.detailCardHeight)});
 		layers.push_back({"label_bar", frame(FrameSpec{"caption_title", Insets{3, 3, 3, 3}}, options.labelWidth, options.labelHeight)});
@@ -638,10 +664,30 @@ namespace theme_layers
 			Image emptySelected = emptyCell;
 			const Image cursorSprite = sprite(sheet, atlas, "cursor_1");
 			const unsigned char* ring = firstOpaque(cursorSprite);
+			constexpr int ringWidth = 6;
+			const int ringRadius = family == Family::B ? 15 : 0;
+			const auto insideRounded = [&](int x, int y, int inset, int radius)
+			{
+				const int right = emptySelected.width() - 1 - inset;
+				const int bottom = emptySelected.height() - 1 - inset;
+				if(x < inset || y < inset || x > right || y > bottom)
+					return false;
+				const int cornerX = x < inset + radius ? inset + radius : (x > right - radius ? right - radius : x);
+				const int cornerY = y < inset + radius ? inset + radius : (y > bottom - radius ? bottom - radius : y);
+				const int dx = x - cornerX;
+				const int dy = y - cornerY;
+				return dx * dx + dy * dy <= radius * radius;
+			};
 			for(int y = 0; y < emptySelected.height(); ++y)
 				for(int x = 0; x < emptySelected.width(); ++x)
-					if(x < 6 || y < 6 || x >= emptySelected.width() - 6 || y >= emptySelected.height() - 6)
+				{
+					if(insideRounded(x, y, ringWidth, std::max(0, ringRadius - ringWidth)))
+						continue;
+					if(insideRounded(x, y, 0, ringRadius))
 						std::copy_n(ring, 4, emptySelected.at(x, y));
+					else
+						emptySelected.at(x, y)[3] = 0;
+				}
 			layers.push_back({"suspend_cell_empty", emptyCell});
 			layers.push_back({"suspend_cell_empty_selected", emptySelected});
 			layers.push_back({"suspend_frame", has("resume_screen_frame") ? sprite(sheet, atlas, "resume_screen_frame") : Image(160, 120)});
@@ -660,6 +706,8 @@ namespace theme_layers
 			layers.push_back({"players_one_active", scale(sprite(sheet, atlas, activeSprites ? "icon_1P_active" : "icon_1P"), 3)});
 			layers.push_back({"players_many_active", scale(sprite(sheet, atlas, activeSprites ? "icon_1P-2P_active" : "icon_1P-2P"), 3)});
 		}
+		if(has("Icon_Save"))
+			layers.push_back({"save_icon", scale(sprite(sheet, atlas, "Icon_Save"), 3)});
 		if(atlas.find("icon_1P.png") != atlas.end())
 		{
 			const char* activeChip = atlas.find("icon_1P_active.png") != atlas.end() ? "icon_1P_active" : "icon_1P";
@@ -761,6 +809,8 @@ namespace theme_layers
 		add("menu_help.png", "manual", 3, 0, 0);
 		add("help/button_a.png", "icon_A_light", 3, 30, 30);
 		add("help/button_b.png", "icon_B_light", 3, 30, 30);
+		add("help/button_x.png", "icon_X_light", 3, 30, 30);
+		add("help/button_y.png", "icon_Y_light", 3, 30, 30);
 		add("help/button_start.png", "icon_start_light", 3, 30, 30);
 		add("help/button_select.png", "icon_select_light", 3, 30, 30);
 		add("help/dpad_all.png", "Icon_direction_light", 3, 30, 30);

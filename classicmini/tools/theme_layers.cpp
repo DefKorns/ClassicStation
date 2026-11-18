@@ -82,7 +82,7 @@ namespace
 	int usage()
 	{
 		std::cerr << "usage: theme_layers info <atlas.json>\n"
-		             "       theme_layers layers <atlas.json> <atlas.png> <out_dir> [--icon-scale N] [--frame-scale N] [--row WxH] [--wide-width N] [--title WxH] [--selector WxH] [--background RRGGBB]\n";
+		             "       theme_layers layers <atlas.json> <atlas.png> <out_dir> [--icon-scale N] [--frame-scale N] [--row WxH] [--wide-width N] [--title WxH] [--selector WxH] [--background RRGGBB] [--wall PNG]\n";
 		return 2;
 	}
 
@@ -116,6 +116,8 @@ namespace
 				continue;
 			else if(flag == "--wide-width")
 				options.wideWidth = std::atoi(value.c_str());
+			else if(flag == "--wall")
+				options.wall = loadPng(value);
 			else if(flag == "--console-logo")
 				consoleLogoPath = value;
 			else if(flag == "--background")

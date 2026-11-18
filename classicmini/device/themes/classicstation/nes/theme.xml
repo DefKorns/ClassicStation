@@ -6,6 +6,7 @@
 
 	<view name="basic, detailed, grid">
 		<image name="bar_logo" extra="true">
+			<visible>${barLogo}</visible>
 			<path>./../assets/systems/logos/nes1.svg</path>
 			<pos>0.0602 0.8875</pos>
 			<maxSize>0.3211 0.0694</maxSize>
@@ -15,6 +16,7 @@
 
 	<view name="system">
 		<image name="bar_logo" extra="true">
+			<visible>${barLogo}</visible>
 			<path>./../assets/systems/logos/nes1.svg</path>
 			<pos>0.0602 0.8875</pos>
 			<maxSize>0.3211 0.0694</maxSize>
