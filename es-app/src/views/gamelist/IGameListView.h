@@ -45,10 +45,13 @@ public:
 
 	virtual bool openSuspendPoints() { return false; }
 	virtual bool supportsSuspendPoints() const { return false; }
+	virtual bool floatingAvailable() { return false; }
+	virtual void discardFloating() {}
 
 	virtual HelpStyle getHelpStyle() override;
 
 	void render(const Transform4x4f& parentTrans) override;
+	virtual void renderOverHelp(const Transform4x4f& /*parentTrans*/) {}
 protected:
 	FileData* mRoot;
 	std::shared_ptr<ThemeData> mTheme;

@@ -195,6 +195,77 @@
 			<size>0.075 0.2</size>
 		</image>
 
+		<image name="suspend_float_card">
+			<path>./floating_large_card.png</path>
+		</image>
+
+		<image name="suspend_float_active">
+			<path>./floating_large_active.png</path>
+		</image>
+
+		<image name="suspend_float_frame">
+			<path>./floating_large_frame.png</path>
+		</image>
+
+		<image name="suspend_float_wing_a">
+			<path>./floating_large_wing_a.png</path>
+		</image>
+
+		<image name="suspend_float_wing_b">
+			<path>./floating_large_wing_b.png</path>
+		</image>
+
+		<image name="suspend_float_wing_left_a">
+			<path>./floating_large_wing_left_a.png</path>
+		</image>
+
+		<image name="suspend_float_wing_left_b">
+			<path>./floating_large_wing_left_b.png</path>
+		</image>
+
+		<image name="suspend_float_arrow_left">
+			<path>./floating_arrow_left.png</path>
+		</image>
+
+		<image name="suspend_float_arrow_right">
+			<path>./floating_arrow_right.png</path>
+		</image>
+
+		<image name="suspend_warning">
+			<path>./warning_popup.png</path>
+		</image>
+
+		<image name="suspend_warning_icon">
+			<path>./warning_icon.png</path>
+		</image>
+
+		<text name="suspend_warning_text">
+			<fontSize>0.0306</fontSize>
+			<color>000000</color>
+		</text>
+
+		<image name="suspend_float_ring">
+			<path>./cursor_ring.png</path>
+		</image>
+
+		<image name="suspend_float_balloon">
+			<path>./floating_balloon.png</path>
+		</image>
+
+		<image name="suspend_float_balloon_icon">
+			<path>./floating_balloon_icon.png</path>
+		</image>
+
+		<text name="suspend_float_label">
+			<fontSize>0.0306</fontSize>
+			<color>000000</color>
+		</text>
+
+		<text name="suspend_float_time">
+			<fontSize>0.0333</fontSize>
+			<color>FFFFFF</color>
+		</text>
+
 		<image name="suspend_lock">
 			<path>./suspend_lock.png</path>
 			<pos>0.125000 0.783333</pos>
@@ -650,6 +721,247 @@
 			<onePath>./players_one_active.png</onePath>
 			<manyPath>./players_many_active.png</manyPath>
 		</playersicon>
+
+		<image name="floating_card">
+			<path>./floating_card.png</path>
+			<pos>0.124219 0.809722</pos>
+			<size>0.126562 0.208333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_card_active">
+			<path>./floating_card_active.png</path>
+			<pos>0.124219 0.809722</pos>
+			<size>0.117188 0.191667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_screen">
+			<pos>0.124219 0.802778</pos>
+			<size>0.093750 0.125000</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>64</zIndex>
+		</image>
+
+		<image name="floating_frame">
+			<path>./floating_frame.png</path>
+			<pos>0.124219 0.802778</pos>
+			<size>0.093750 0.125000</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+			<color>FFFFFF20</color>
+		</image>
+
+		<image name="floating_wing_left_a">
+			<path>./floating_wing_left_a.png</path>
+			<pos>0.049219 0.738889</pos>
+			<size>0.037500 0.083333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_wing_left_b">
+			<path>./floating_wing_left_b.png</path>
+			<pos>0.049219 0.738889</pos>
+			<size>0.037500 0.083333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_wing_right_a">
+			<path>./floating_wing_a.png</path>
+			<pos>0.199219 0.738889</pos>
+			<size>0.037500 0.083333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_wing_right_b">
+			<path>./floating_wing_b.png</path>
+			<pos>0.199219 0.738889</pos>
+			<size>0.037500 0.083333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_arrow_a">
+			<path>./floating_arrow_a.png</path>
+			<pos>0.124219 0.902778</pos>
+			<size>0.051562 0.091667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_arrow_b">
+			<path>./floating_arrow_b.png</path>
+			<pos>0.124219 0.902778</pos>
+			<size>0.051562 0.091667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_card_small">
+			<path>./floating_card_small.png</path>
+			<pos>0.105469 0.837500</pos>
+			<size>0.089063 0.150000</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+			<color>FFFFFF80</color>
+		</image>
+
+		<image name="floating_screen_small">
+			<pos>0.105469 0.829167</pos>
+			<size>0.062500 0.083333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>64</zIndex>
+		</image>
+
+		<image name="floating_frame_small">
+			<path>./floating_frame_small.png</path>
+			<pos>0.105469 0.829167</pos>
+			<size>0.062500 0.083333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+			<color>FFFFFF20</color>
+		</image>
+
+		<image name="floating_icon_back">
+			<path>./floating_icon_back.png</path>
+			<pos>0.126562 0.790278</pos>
+			<size>0.037500 0.066667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_wing_small_left_a">
+			<path>./floating_wing_small_left_a.png</path>
+			<pos>0.056250 0.791667</pos>
+			<size>0.023438 0.066667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_wing_small_left_b">
+			<path>./floating_wing_small_left_b.png</path>
+			<pos>0.056250 0.791667</pos>
+			<size>0.023438 0.066667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_wing_small_right_a">
+			<path>./floating_wing_small_a.png</path>
+			<pos>0.154688 0.791667</pos>
+			<size>0.023438 0.066667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_wing_small_right_b">
+			<path>./floating_wing_small_b.png</path>
+			<pos>0.154688 0.791667</pos>
+			<size>0.023438 0.066667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_smoke_1">
+			<path>./floating_smoke_1.png</path>
+			<pos>0.124219 0.809722</pos>
+			<size>0.150000 0.266667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_2">
+			<path>./floating_smoke_2.png</path>
+			<pos>0.124219 0.809722</pos>
+			<size>0.150000 0.266667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_3">
+			<path>./floating_smoke_3.png</path>
+			<pos>0.124219 0.809722</pos>
+			<size>0.150000 0.266667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_4">
+			<path>./floating_smoke_4.png</path>
+			<pos>0.124219 0.809722</pos>
+			<size>0.150000 0.266667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_5">
+			<path>./floating_smoke_5.png</path>
+			<pos>0.124219 0.809722</pos>
+			<size>0.150000 0.266667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_small_1">
+			<path>./floating_smoke_small_1.png</path>
+			<pos>0.105469 0.837500</pos>
+			<size>0.075000 0.133333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_small_2">
+			<path>./floating_smoke_small_2.png</path>
+			<pos>0.105469 0.837500</pos>
+			<size>0.075000 0.133333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_small_3">
+			<path>./floating_smoke_small_3.png</path>
+			<pos>0.105469 0.837500</pos>
+			<size>0.075000 0.133333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_small_4">
+			<path>./floating_smoke_small_4.png</path>
+			<pos>0.105469 0.837500</pos>
+			<size>0.075000 0.133333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_small_5">
+			<path>./floating_smoke_small_5.png</path>
+			<pos>0.105469 0.837500</pos>
+			<size>0.075000 0.133333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<text name="md_code">
+			<pos>0.7406 0.2014</pos>
+			<size>0.1531 0.0917</size>
+			<fontSize>0.0306</fontSize>
+			<color>8A8A8A</color>
+			<alignment>right</alignment>
+			<zIndex>41</zIndex>
+		</text>
+
+		<image name="md_favorite">
+			<path>./heart_filled.png</path>
+			<pos>0.1086 0.2236</pos>
+			<size>0.0266 0.0472</size>
+			<zIndex>41</zIndex>
+		</image>
 
 		<image name="md_image">
 			<pos>1 1</pos>

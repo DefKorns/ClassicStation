@@ -59,8 +59,13 @@ private:
 	void close();
 	void renderSlot(const Transform4x4f& trans, std::size_t index, bool selected, bool hidden);
 	void renderLifted(const Transform4x4f& trans);
+	void renderFloating(const Transform4x4f& trans);
+	void renderWarning(const Transform4x4f& trans);
 	void confirmDelete(int slot);
 	void enterMove();
+	bool anySaved() const;
+	int nearestSaved(int from) const;
+	void resumeSelected();
 	void leaveMove();
 	bool moveInput(InputConfig* config, const Input& input);
 	struct Rect
@@ -90,6 +95,7 @@ private:
 	int mSelected = 1;
 	bool mHolding = false;
 	bool mMoving = false;
+	bool mCardFocus = false;
 	int mMoveFrom = 1;
 	int mTarget = 1;
 	int mHeldMs = 0;
@@ -133,6 +139,15 @@ private:
 	ImageComponent mLock;
 	ImageComponent mTrash;
 	ImageComponent mTrashOpen;
+	std::vector<std::unique_ptr<ImageComponent>> mFloat;
+	ImageComponent mFloatThumbnail;
+	TextComponent mFloatLabel;
+	TextComponent mFloatTime;
+	int mFloatMs = 0;
+	ImageComponent mWarning;
+	ImageComponent mWarningIcon;
+	TextComponent mWarningText;
+	bool mHasSaveData = false;
 	std::vector<std::unique_ptr<ImageComponent>> mShots;
 	std::vector<std::unique_ptr<TextComponent>> mLabels;
 };

@@ -340,6 +340,54 @@ namespace theme_layers
 		return result;
 	}
 
+	inline Image mirrored(const Image& source)
+	{
+		Image result(source.width(), source.height());
+		for(int y = 0; y < source.height(); ++y)
+			for(int x = 0; x < source.width(); ++x)
+				std::copy_n(source.at(x, y), 4, result.at(source.width() - 1 - x, y));
+		return result;
+	}
+
+	inline Image cursorRing(const std::vector<Image>& pieces, int width, int height)
+	{
+		Image result(width, height);
+		const int cell = pieces[0].width();
+		const auto put = [&](const Image& piece, int x, int y) {
+			for(int py = 0; py < piece.height(); ++py)
+				for(int px = 0; px < piece.width(); ++px)
+					if(piece.at(px, py)[3] != 0)
+						std::copy_n(piece.at(px, py), 4, result.at(x + px, y + py));
+		};
+		for(int x = cell; x < width - cell; ++x)
+		{
+			const int source = (x - cell) % cell;
+			for(int py = 0; py < cell; ++py)
+			{
+				if(pieces[1].at(source, py)[3] != 0)
+					std::copy_n(pieces[1].at(source, py), 4, result.at(x, py));
+				if(pieces[7].at(source, py)[3] != 0)
+					std::copy_n(pieces[7].at(source, py), 4, result.at(x, height - cell + py));
+			}
+		}
+		for(int y = cell; y < height - cell; ++y)
+		{
+			const int source = (y - cell) % cell;
+			for(int px = 0; px < cell; ++px)
+			{
+				if(pieces[3].at(px, source)[3] != 0)
+					std::copy_n(pieces[3].at(px, source), 4, result.at(px, y));
+				if(pieces[5].at(px, source)[3] != 0)
+					std::copy_n(pieces[5].at(px, source), 4, result.at(width - cell + px, y));
+			}
+		}
+		put(pieces[0], 0, 0);
+		put(pieces[2], width - cell, 0);
+		put(pieces[6], 0, height - cell);
+		put(pieces[8], width - cell, height - cell);
+		return result;
+	}
+
 	inline const unsigned char* firstOpaque(const Image& source)
 	{
 		for(int y = 0; y < source.height(); ++y)
@@ -611,6 +659,46 @@ namespace theme_layers
 		{
 			layers.push_back({"system_chip", badgeShape(sprite(sheet, atlas, "icon_1P"), options.chipWidth, options.chipHeight, 3)});
 			layers.push_back({"system_chip_active", badgeShape(sprite(sheet, atlas, "icon_1P_active"), options.chipWidth, options.chipHeight, 3)});
+		}
+		{
+			const struct { const char* layer; const char* sprite; int factor; } floating[] = {
+				{"floating_card", "resume_card_float_home", 3}, {"floating_card_active", "resume_card_active_home", 3},
+				{"floating_frame", "resume_screen_frame_home", 1}, {"floating_wing_a", "resume_wingM_1", 3}, {"floating_wing_b", "resume_wingM_2", 3},
+				{"floating_arrow_a", "icon_resume_direction_down", 3}, {"floating_arrow_b", "icon_resume_direction_down_2", 3},
+				{"floating_card_small", "resume_card_float_mini", 3}, {"floating_frame_small", "resume_screen_frame_mini", 1},
+				{"floating_icon_back", "icon_resume_btn_B", 3}, {"floating_wing_small_a", "resume_wingS_1", 3}, {"floating_wing_small_b", "resume_wingS_2", 3},
+				{"floating_large_card", "resume_card_float", 3}, {"floating_large_active", "resume_card_active", 3}, {"floating_large_frame", "resume_screen_frame", 1},
+				{"floating_large_wing_a", "resume_wingL_1", 3}, {"floating_large_wing_b", "resume_wingL_2", 3},
+				{"floating_balloon", "registration_frame", 3}, {"floating_balloon_icon", "registration_icon", 3},
+				{"floating_arrow_left", "arrow_left", 3}, {"floating_arrow_right", "arrow_right", 3},
+				{"warning_popup", "popup_warning", 3}, {"warning_icon", "icon_casette_nes", 3},
+				{"floating_smoke_1", "smoke_64_1", 3}, {"floating_smoke_2", "smoke_64_2", 3}, {"floating_smoke_3", "smoke_64_3", 3}, {"floating_smoke_4", "smoke_64_4", 3}, {"floating_smoke_5", "smoke_64_5", 3},
+				{"floating_smoke_small_1", "smoke_32_1", 3}, {"floating_smoke_small_2", "smoke_32_2", 3}, {"floating_smoke_small_3", "smoke_32_3", 3}, {"floating_smoke_small_4", "smoke_32_4", 3}, {"floating_smoke_small_5", "smoke_32_5", 3}
+			};
+			bool complete = true;
+			for(const auto& entry : floating)
+				complete = complete && atlas.find(std::string(entry.sprite) + ".png") != atlas.end();
+			for(int index = 1; index <= 9; ++index)
+				complete = complete && atlas.find("cursor_game_" + std::to_string(index) + ".png") != atlas.end();
+			if(complete)
+			{
+				std::vector<Image> pieces;
+				for(int index = 1; index <= 9; ++index)
+					pieces.push_back(sprite(sheet, atlas, "cursor_game_" + std::to_string(index)));
+				layers.push_back({"cursor_ring", cursorRing(pieces, 224, 200)});
+			}
+			if(complete)
+				for(const auto& entry : floating)
+				{
+					const Image image = scale(sprite(sheet, atlas, entry.sprite), entry.factor);
+					layers.push_back({entry.layer, image});
+					if(std::string(entry.layer).find("wing") != std::string::npos)
+					{
+						std::string left = entry.layer;
+						left.insert(left.size() - 2, "_left");
+						layers.push_back({left, mirrored(image)});
+					}
+				}
 		}
 		layers.push_back({"system_card", scale(sprite(sheet, atlas, "game_card"), options.cardScale)});
 		layers.push_back({"system_card_active", scale(sprite(sheet, atlas, "game_card_active"), options.cardScale)});

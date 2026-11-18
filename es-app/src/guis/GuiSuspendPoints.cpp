@@ -19,12 +19,23 @@
 #include "resources/Font.h"
 #include <algorithm>
 #include <cstddef>
+#include <cmath>
 #include <cstdio>
 #include <utility>
 
 namespace
 {
 	constexpr int HoldToOverwriteMs = 400;
+	constexpr int FloatBobMs = 1800;
+	constexpr float FloatBobPixels = 6.0f;
+	constexpr int FloatWingMs = 180;
+	constexpr float FloatRise = 142.0f;
+	enum FloatPart { FloatCard, FloatActive, FloatFrame, FloatWingA, FloatWingB, FloatWingLeftA, FloatWingLeftB, FloatBalloon, FloatBalloonIcon, FloatArrowLeft, FloatArrowRight, FloatRing, FloatPartCount };
+	const char* const FloatNames[FloatPartCount] = {
+		"suspend_float_card", "suspend_float_active", "suspend_float_frame", "suspend_float_wing_a", "suspend_float_wing_b",
+		"suspend_float_wing_left_a", "suspend_float_wing_left_b", "suspend_float_balloon", "suspend_float_balloon_icon",
+		"suspend_float_arrow_left", "suspend_float_arrow_right", "suspend_float_ring"
+	};
 	constexpr int NoticeMs = 1500;
 	constexpr unsigned int GaugeColor = 0xF0F0F0FF;
 	constexpr unsigned int TextColor = 0xF0F0F0FF;
@@ -93,8 +104,14 @@ GuiSuspendPoints::GuiSuspendPoints(Window* window, std::string title, std::strin
 	  mHeading(window, "", Font::get(FONT_SIZE_MEDIUM), TextColor),
 	  mNotice(window, "", Font::get(FONT_SIZE_SMALL), MutedColor, ALIGN_RIGHT),
 	  mEmptyLabel(window, "No Data", Font::get(FONT_SIZE_SMALL), TextColor, ALIGN_CENTER),
-	  mLock(window), mTrash(window), mTrashOpen(window)
+	  mLock(window), mTrash(window), mTrashOpen(window), mFloatThumbnail(window),
+	  mWarning(window), mWarningIcon(window),
+	  mWarningText(window, "If you continue from a saved suspend point, your in-game save data will be overwritten.", Font::get(FONT_SIZE_SMALL), 0x000000FF, ALIGN_LEFT),
+	  mFloatLabel(window, "", Font::get(FONT_SIZE_SMALL), 0x000000FF, ALIGN_LEFT),
+	  mFloatTime(window, "", Font::get(FONT_SIZE_SMALL), 0xFFFFFFFF, ALIGN_RIGHT)
 {
+	for(int part = 0; part < FloatPartCount; ++part)
+		mFloat.emplace_back(new ImageComponent(window));
 	mLock.setImage(":/suspend_lock.png");
 	for(int slot = 0; slot < SuspendPoints::MaxSlots; ++slot)
 	{
@@ -104,6 +121,10 @@ GuiSuspendPoints::GuiSuspendPoints(Window* window, std::string title, std::strin
 
 	layout();
 	refresh();
+	mCardFocus = mFloating.valid;
+	if(!mCardFocus && nearestSaved(1) != 0)
+		mSelected = nearestSaved(1);
+	updateHelpPrompts();
 }
 
 void GuiSuspendPoints::loadTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view)
@@ -156,6 +177,19 @@ void GuiSuspendPoints::loadTheme(const std::shared_ptr<ThemeData>& theme, const 
 	if(const ThemeData::ThemeElement* trashOpen = theme->getElement(view, "suspend_trash_open", "image"))
 		if(trashOpen->has("path"))
 			mTrashOpen.setImage(trashOpen->get<std::string>("path"));
+	for(int part = 0; part < FloatPartCount; ++part)
+		if(const ThemeData::ThemeElement* elem = theme->getElement(view, FloatNames[part], "image"))
+			if(elem->has("path"))
+				mFloat[part]->setImage(elem->get<std::string>("path"));
+	if(const ThemeData::ThemeElement* elem = theme->getElement(view, "suspend_warning", "image"))
+		if(elem->has("path"))
+			mWarning.setImage(elem->get<std::string>("path"));
+	if(const ThemeData::ThemeElement* elem = theme->getElement(view, "suspend_warning_icon", "image"))
+		if(elem->has("path"))
+			mWarningIcon.setImage(elem->get<std::string>("path"));
+	mWarningText.applyTheme(theme, view, "suspend_warning_text", textProperties);
+	mFloatLabel.applyTheme(theme, view, "suspend_float_label", textProperties);
+	mFloatTime.applyTheme(theme, view, "suspend_float_time", textProperties);
 	mGaugeTheme = rectOf("suspend_gauge", "image");
 	mNextTheme = rectOf("suspend_cell_next", "image");
 	mGaugeColor = GaugeColor;
@@ -240,6 +274,33 @@ const SuspendPoint& GuiSuspendPoints::selectedPoint() const
 	return mSlots[static_cast<std::size_t>(mSelected - 1)];
 }
 
+bool GuiSuspendPoints::anySaved() const
+{
+	for(const SuspendPoint& point : mSlots)
+		if(point.valid)
+			return true;
+	return false;
+}
+
+int GuiSuspendPoints::nearestSaved(int from) const
+{
+	int best = 0;
+	for(int slot = 1; slot <= SuspendPoints::MaxSlots; ++slot)
+		if(mSlots[static_cast<std::size_t>(slot - 1)].valid && (best == 0 || std::abs(slot - from) < std::abs(best - from)))
+			best = slot;
+	return best;
+}
+
+void GuiSuspendPoints::resumeSelected()
+{
+	const std::function<void(int)> resume = mOnResume;
+	const int slot = mCardFocus ? -1 : mSelected;
+	UiSound::play("se_sys_click_game.wav");
+	close();
+	if(resume)
+		resume(slot);
+}
+
 void GuiSuspendPoints::refresh()
 {
 	mFloating = mPoints.floating();
@@ -248,6 +309,14 @@ void GuiSuspendPoints::refresh()
 
 	mSlots = mPoints.slots(mCode);
 	mHeading.setText("Suspend Point List");
+	mFloatLabel.setText("Save");
+	mHasSaveData = mPoints.hasSaveData(mCode);
+	if(mFloating.valid)
+	{
+		mFloat[FloatFrame]->setColorShift(0xFFFFFF20);
+		mFloatTime.setText(clock(mFloating.playtime));
+		mFloatThumbnail.setImage(mFloating.thumbnail);
+	}
 
 	for(std::size_t index = 0; index < mSlots.size(); ++index)
 	{
@@ -256,6 +325,10 @@ void GuiSuspendPoints::refresh()
 			mShots[index]->setImage(point.thumbnail);
 		mLabels[index]->setText(point.valid ? clock(point.playtime) : std::string());
 	}
+	if(!mFloating.valid)
+		mCardFocus = false;
+	if(!mCardFocus && !mMoving && !selectedPoint().valid && nearestSaved(mSelected) != 0)
+		mSelected = nearestSaved(mSelected);
 	updateHelpPrompts();
 }
 
@@ -388,10 +461,15 @@ bool GuiSuspendPoints::input(InputConfig* config, Input input)
 			return true;
 		}
 
+		if(!mCardFocus)
+		{
+			if(selectedPoint().valid)
+				resumeSelected();
+			return true;
+		}
+
 		const SuspendPoint& point = selectedPoint();
-		if(!mFloating.valid)
-			notify("NOTHING TO SAVE");
-		else if(!point.valid)
+		if(!point.valid)
 			saveSelected(SuspendPoints::SaveMode::KeepExisting);
 		else if(point.locked)
 			notify("SLOT IS LOCKED");
@@ -406,33 +484,47 @@ bool GuiSuspendPoints::input(InputConfig* config, Input input)
 	if(input.value == 0)
 		return true;
 
-	if(config->isMappedLike("left", input))
+	if(config->isMappedLike("left", input) || config->isMappedLike("right", input))
 	{
-		mSelected = std::max(1, mSelected - 1);
-		UiSound::play("se_sys_cursor.wav");
-	}
-	else if(config->isMappedLike("right", input))
-	{
-		mSelected = std::min(SuspendPoints::MaxSlots, mSelected + 1);
+		const bool left = config->isMappedLike("left", input);
+		if(mCardFocus)
+			mSelected = left ? std::max(1, mSelected - 1) : std::min(SuspendPoints::MaxSlots, mSelected + 1);
+		else
+		{
+			int target = 0;
+			for(int slot = mSelected + (left ? -1 : 1); slot >= 1 && slot <= SuspendPoints::MaxSlots; slot += left ? -1 : 1)
+				if(mSlots[static_cast<std::size_t>(slot - 1)].valid)
+				{
+					target = slot;
+					break;
+				}
+			if(target == 0)
+				return true;
+			mSelected = target;
+		}
 		UiSound::play("se_sys_cursor.wav");
 	}
 	else if(config->isMappedTo("start", input))
 	{
-		if(selectedPoint().valid)
-		{
-			const std::function<void(int)> resume = mOnResume;
-			const int slot = mSelected;
-			UiSound::play("se_sys_click_game.wav");
-			close();
-			if(resume)
-				resume(slot);
-		}
+		if(mCardFocus || selectedPoint().valid)
+			resumeSelected();
 	}
 	else if(config->isMappedLike("down", input))
 	{
-		const SuspendPoint& point = selectedPoint();
-		if(point.valid)
+		if(mCardFocus)
 		{
+			const int target = nearestSaved(mSelected);
+			if(target != 0)
+			{
+				mCardFocus = false;
+				mSelected = target;
+				UiSound::play("se_sys_cursor.wav");
+				updateHelpPrompts();
+			}
+		}
+		else if(selectedPoint().valid)
+		{
+			const SuspendPoint& point = selectedPoint();
 			UiSound::play(point.locked ? "se_sys_unlock.wav" : "se_sys_lock.wav");
 			static_cast<void>(point.locked ? mPoints.unlock(mCode, mSelected) : mPoints.lock(mCode, mSelected));
 			refresh();
@@ -440,10 +532,14 @@ bool GuiSuspendPoints::input(InputConfig* config, Input input)
 	}
 	else if(config->isMappedTo("select", input))
 	{
-		if(selectedPoint().valid)
+		if(!mCardFocus && selectedPoint().valid)
 			enterMove();
-		else
-			notify("NOTHING TO MOVE");
+	}
+	else if(config->isMappedLike("up", input) && !mCardFocus && mFloating.valid)
+	{
+		mCardFocus = true;
+		UiSound::play("se_sys_cursor.wav");
+		updateHelpPrompts();
 	}
 	else if(config->isMappedLike("up", input) || config->isMappedTo("b", input))
 	{
@@ -456,6 +552,7 @@ bool GuiSuspendPoints::input(InputConfig* config, Input input)
 
 void GuiSuspendPoints::update(int deltaTime)
 {
+	mFloatMs += deltaTime;
 	if(mNoticeMs > 0)
 	{
 		mNoticeMs -= deltaTime;
@@ -492,9 +589,15 @@ void GuiSuspendPoints::render(const Transform4x4f& parentTrans)
 	for(std::size_t index = 0; index < mSlots.size(); ++index)
 	{
 		const bool hidden = mMoving && static_cast<int>(index) + 1 == mMoveFrom;
-		const int highlighted = mMoving ? mTarget : mSelected;
+		const int highlighted = mMoving ? mTarget : (mCardFocus ? 0 : mSelected);
 		renderSlot(trans, index, static_cast<int>(index) + 1 == highlighted && !hidden, hidden);
 	}
+
+	if(mFloating.valid && !mMoving)
+		renderFloating(trans);
+
+	if(mHasSaveData && !mMoving && selectedPoint().valid)
+		renderWarning(trans);
 
 	if(mMoving)
 	{
@@ -526,6 +629,15 @@ void GuiSuspendPoints::renderSlot(const Transform4x4f& trans, std::size_t index,
 	cellTrans.translate(Vector3f(mCellRect.x + shift, mCellRect.y, 0.0f));
 	(selected ? mCellSelected : mCell).render(cellTrans);
 
+	if(selected && !hidden)
+	{
+		ImageComponent& ring = *mFloat[FloatRing];
+		ring.setOrigin(0.0f, 0.0f);
+		ring.setResize(mCellRect.w + 32.0f, mCellRect.h + 32.0f);
+		ring.setPosition(mCellRect.x + shift - 16.0f, mCellRect.y - 16.0f);
+		ring.render(trans);
+	}
+
 	if(hidden)
 		return;
 
@@ -551,6 +663,74 @@ void GuiSuspendPoints::renderSlot(const Transform4x4f& trans, std::size_t index,
 		const float filled = mGaugeRect.w * static_cast<float>(mHeldMs) / static_cast<float>(HoldToOverwriteMs);
 		Renderer::drawRect(mGaugeRect.x + shift, mGaugeRect.y, filled, mGaugeRect.h, mGaugeColor, mGaugeColor);
 	}
+}
+
+void GuiSuspendPoints::renderWarning(const Transform4x4f& trans)
+{
+	const float centreX = static_cast<float>(Renderer::getScreenWidth()) / 2.0f + 3.0f;
+	const float centreY = 222.0f;
+
+	mWarning.setOrigin(0.5f, 0.5f);
+	mWarning.setResize(420.0f, 108.0f);
+	mWarning.setPosition(centreX, centreY);
+	mWarning.render(trans);
+
+	mWarningIcon.setOrigin(0.5f, 0.5f);
+	mWarningIcon.setResize(72.0f, 72.0f);
+	mWarningIcon.setPosition(centreX - 162.0f, centreY - 9.0f);
+	mWarningIcon.render(trans);
+
+	mWarningText.setLineSpacing(1.2f);
+	mWarningText.setSize(310.0f, 0.0f);
+	mWarningText.setPosition(centreX - 126.0f, centreY - 9.0f - 42.0f);
+	mWarningText.render(trans);
+}
+
+void GuiSuspendPoints::renderFloating(const Transform4x4f& trans)
+{
+	constexpr float PI = 3.14159265f;
+	const float bob = -FloatBobPixels * std::sin(2.0f * PI * static_cast<float>(mFloatMs % FloatBobMs) / static_cast<float>(FloatBobMs));
+	const bool wingB = (mFloatMs / FloatWingMs) % 2 == 1;
+	const float centreX = mCellRect.x + mCellRect.w / 2.0f + static_cast<float>(mSelected - 1) * mCellStep;
+	const float centreY = mCellRect.y - FloatRise + bob - (mCardFocus ? 40.0f : 0.0f);
+
+	const auto draw = [&](ImageComponent& image, float width, float height, float dx, float dy) {
+		image.setOrigin(0.5f, 0.5f);
+		image.setResize(width, height);
+		image.setPosition(centreX + dx, centreY + dy);
+		image.render(trans);
+	};
+
+	draw(*mFloat[FloatCard], 204.0f, 180.0f, 0.0f, 0.0f);
+	if(mCardFocus)
+	{
+		draw(*mFloat[FloatActive], 192.0f, 168.0f, 0.0f, 0.0f);
+		draw(*mFloat[FloatRing], 224.0f, 200.0f, 0.0f, 0.0f);
+	}
+	mFloatThumbnail.setOrigin(0.5f, 0.5f);
+	mFloatThumbnail.setResize(160.0f, 120.0f);
+	mFloatThumbnail.setPosition(centreX, centreY - 10.0f);
+	mFloatThumbnail.render(trans);
+	draw(*mFloat[FloatFrame], 160.0f, 120.0f, 0.0f, -10.0f);
+	draw(*mFloat[wingB ? FloatWingLeftB : FloatWingLeftA], 72.0f, 96.0f, -129.0f, -72.0f);
+	draw(*mFloat[wingB ? FloatWingB : FloatWingA], 72.0f, 96.0f, 129.0f, -72.0f);
+
+	mFloatTime.setSize(90.0f, 30.0f);
+	mFloatTime.setPosition(centreX - 6.0f, centreY + 52.0f);
+	mFloatTime.render(trans);
+
+	if(!mCardFocus)
+		return;
+
+	const float nudge = 4.0f * std::sin(2.0f * PI * static_cast<float>(mFloatMs % 900) / 900.0f);
+	draw(*mFloat[FloatArrowLeft], 48.0f, 66.0f, -144.0f - nudge, 0.0f);
+	draw(*mFloat[FloatArrowRight], 48.0f, 66.0f, 144.0f + nudge, 0.0f);
+
+	draw(*mFloat[FloatBalloon], 198.0f, 72.0f, 0.0f, 111.0f);
+	draw(*mFloat[FloatBalloonIcon], 42.0f, 36.0f, -34.0f, 120.0f);
+	mFloatLabel.setSize(90.0f, 30.0f);
+	mFloatLabel.setPosition(centreX - 8.0f, centreY + 105.0f);
+	mFloatLabel.render(trans);
 }
 
 void GuiSuspendPoints::renderLifted(const Transform4x4f& trans)
@@ -595,12 +775,23 @@ std::vector<HelpPrompt> GuiSuspendPoints::getHelpPrompts()
 		prompts.push_back(HelpPrompt("b", "back"));
 		return prompts;
 	}
+	if(mCardFocus)
+	{
+		prompts.push_back(HelpPrompt("left/right", "select"));
+		prompts.push_back(HelpPrompt("start", "start game"));
+		prompts.push_back(HelpPrompt("b", "back"));
+		prompts.push_back(HelpPrompt("a", "save"));
+		return prompts;
+	}
+	if(!anySaved())
+	{
+		prompts.push_back(HelpPrompt("b", "back"));
+		return prompts;
+	}
 	prompts.push_back(HelpPrompt("down", "lock/unlock"));
 	prompts.push_back(HelpPrompt("left/right", "select"));
 	prompts.push_back(HelpPrompt("select", "move/delete"));
 	prompts.push_back(HelpPrompt("start", "start game"));
 	prompts.push_back(HelpPrompt("b", "back"));
-	if(mFloating.valid)
-		prompts.push_back(HelpPrompt("a", "save"));
 	return prompts;
 }

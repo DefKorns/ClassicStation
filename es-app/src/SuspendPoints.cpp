@@ -432,6 +432,17 @@ bool SuspendPoints::swap(const std::string& code, int first, int second) const
 	return !hasFirst || move(spare, b);
 }
 
+bool SuspendPoints::hasSaveData(const std::string& code) const
+{
+	for(const char* name : {"/save.sram", "/cartridge.sram"})
+	{
+		std::ifstream file(mProfileDir + "/" + code + name, std::ios::binary | std::ios::ate);
+		if(file && file.tellg() > 0)
+			return true;
+	}
+	return false;
+}
+
 bool SuspendPoints::discardFloating() const
 {
 	const SuspendPoint pending = floating();

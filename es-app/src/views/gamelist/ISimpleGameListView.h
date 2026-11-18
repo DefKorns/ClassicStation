@@ -38,6 +38,8 @@ public:
 
 	virtual bool openSuspendPoints() override;
 	virtual bool supportsSuspendPoints() const override { return true; }
+	virtual bool floatingAvailable() override;
+	virtual void discardFloating() override;
 
 protected:
 	bool hasExtraButtons() const;
@@ -59,6 +61,8 @@ protected:
 
 	void refreshFloating();
 	virtual void onFloatingChanged() {}
+	virtual void onFloatingErased() {}
+	void eraseFloating();
 	SlotStates suspendStates(const FileData* game) const;
 	bool isFloating(const FileData* file) const;
 	bool jumpToFloating();

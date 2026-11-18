@@ -33,7 +33,7 @@ GridGameListView::GridGameListView(Window* window, FileData* root) :
 
 	mRating(window), mReleaseDate(window), mDeveloper(window), mPublisher(window),
 	mGenre(window), mPlayers(window), mLastPlayed(window), mPlayCount(window),
-	mName(window), mCode(window), mInfo(window), mIconBar(window)
+	mName(window), mCode(window), mInfo(window), mIconBar(window), mFloatingCard(window)
 {
 	const float padding = 0.01f;
 
@@ -139,11 +139,12 @@ GridGameListView::GridGameListView(Window* window, FileData* root) :
 	mIconBar.setDefaultZIndex(70);
 	mIconBar.setZIndex(70);
 	addChild(&mIconBar);
+	mFloatingCard.setDefaultZIndex(65);
+	mFloatingCard.setZIndex(65);
 	mDefaultHeaderStatus = true;
 
 	initMDLabels();
 	initMDValues();
-	mGrid.setMarkFunction([this](FileData* file) { return isFloating(file); });
 	mGrid.setTileOverlay(
 		[this] { return std::make_shared<ClassicTileOverlay>(mWindow); },
 		[this](GridTileOverlay& overlay, FileData* file)
@@ -264,6 +265,7 @@ void GridGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& theme)
 {
 	ISimpleGameListView::onThemeChanged(theme);
 	mIconBar.applyTheme(theme, getName());
+	mFloatingCard.applyTheme(theme, getName());
 
 	using namespace ThemeFlags;
 
@@ -453,6 +455,7 @@ void GridGameListView::updateInfoPanel()
 	FileData* file = (mGrid.size() == 0 || mGrid.isScrolling()) ? NULL : mGrid.getSelected();
 	if(!mGrid.isScrolling())
 		updateHelpPrompts();
+	syncFloatingCard();
 
 	bool fadingOut;
 	if(file == NULL)
@@ -660,6 +663,7 @@ std::vector<HelpPrompt> GridGameListView::getHelpPrompts()
 
 void GridGameListView::update(int deltaTime)
 {
+	mFloatingCard.update(deltaTime);
 	ISimpleGameListView::update(deltaTime);
 	mVideo->update(deltaTime);
 }
@@ -700,6 +704,19 @@ void GridGameListView::openHeaderMenu()
 
 void GridGameListView::onFloatingChanged()
 {
-	if(mGrid.size() > 0)
-		mGrid.refreshMarks();
+	syncFloatingCard();
+}
+
+void GridGameListView::renderOverHelp(const Transform4x4f& parentTrans)
+{
+	mFloatingCard.render(parentTrans * getTransform());
+}
+
+void GridGameListView::syncFloatingCard()
+{
+	mFloatingCard.setShown(mFloating.valid);
+	if(!mFloating.valid)
+		return;
+	mFloatingCard.setScreenshot(mFloating.thumbnail);
+	mFloatingCard.setHighlighted(mGrid.size() > 0 && isFloating(mGrid.getSelected()));
 }

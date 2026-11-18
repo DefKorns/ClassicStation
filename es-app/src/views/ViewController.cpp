@@ -503,6 +503,7 @@ void ViewController::render(const Transform4x4f& parentTrans)
 
 	// draw gamelists
 	bool drewView = false;
+	std::vector<IGameListView*> drawn;
 	for(auto it = mGameListViews.cbegin(); it != mGameListViews.cend(); it++)
 	{
 		// clipping
@@ -514,6 +515,7 @@ void ViewController::render(const Transform4x4f& parentTrans)
 		{
 			it->second->render(trans);
 			drewView = true;
+			drawn.push_back(it->second.get());
 		}
 	}
 
@@ -524,6 +526,9 @@ void ViewController::render(const Transform4x4f& parentTrans)
 		else
 			mWindow->skipHelpPrompts();
 	}
+
+	for(IGameListView* view : drawn)
+		view->renderOverHelp(trans);
 
 	// fade out
 	if(mFadeOpacity)

@@ -246,6 +246,14 @@ if [ -n "$code" ]; then
   esac
   out=$volatile/$code/suspendpoint0
   floating=$volatile/$code/0
+  resumed=
+  if [ "$resume" = floating ]; then
+    resume=
+    if [ -n "$native" ] && [ -f "$floating.state" ]; then
+      resumed=$volatile/$code.resume.state
+      cp "$floating.state" "$resumed"
+    fi
+  fi
   rm -rf "$volatile"/*/suspendpoint0
   rm -f "$volatile"/*/0.state "$volatile"/*/0.state.png "$volatile"/*/0.state_time.txt
   mkdir -p "$profile/$code" "$volatile/$code"
@@ -257,6 +265,7 @@ if [ -n "$code" ]; then
     fi
     cmd="$cmd --save-data-backing-file $profile/$code/save.sram --save-screenshot-on-quit $floating.state.png --save-on-quit $floating.state"
     cmd="$cmd$(nesDisplayArgs)"
+    [ -n "$resumed" ] && cmd="$cmd --load-state-file $resumed"
     if [ -n "$resume" ]; then
       if [ -f "$saved.state" ]; then
         cmd="$cmd --load-state-file $saved.state"
@@ -292,6 +301,7 @@ autofireForGames
 launched=$(cut -d. -f1 /proc/uptime)
 PATH="$shim:$PATH" sh -c "$cmd"
 status=$?
+[ -n "${resumed:-}" ] && rm -f "$resumed"
 autofireForUi
 if [ -n "$native" ] && [ -f "$floating.state" ]; then
   played=$(($(cut -d. -f1 /proc/uptime) - launched))

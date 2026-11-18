@@ -9,6 +9,7 @@
 #include "Settings.h"
 #include "Sound.h"
 #include "SystemData.h"
+#include "UiSound.h"
 #include "Window.h"
 #include "InputManager.h"
 #include "views/ExtraButtons.h"
@@ -289,10 +290,45 @@ bool ISimpleGameListView::openSuspendPoints()
 	return true;
 }
 
+void ISimpleGameListView::eraseFloating()
+{
+	if(!mFloating.valid)
+		return;
+	UiSound::play("se_sys_delete.wav");
+	onFloatingErased();
+	mFloating = SuspendPoint();
+	onFloatingChanged();
+	updateHelpPrompts();
+}
+
+bool ISimpleGameListView::floatingAvailable()
+{
+	return isFloating(getCursor());
+}
+
+void ISimpleGameListView::discardFloating()
+{
+	if(!mFloating.valid)
+		return;
+	static_cast<void>(mSuspendPoints.discardFloating());
+	mFloating = SuspendPoint();
+	onFloatingChanged();
+	updateHelpPrompts();
+}
+
 void ISimpleGameListView::applyPendingResume()
 {
+	if(mPendingResume != 0)
+	{
+		mFloating = SuspendPoint();
+		onFloatingChanged();
+	}
+	else
+		eraseFloating();
 	if(mPendingResume > 0)
 		setenv("ES_RESUME", std::to_string(mPendingResume).c_str(), 1);
+	else if(mPendingResume < 0)
+		setenv("ES_RESUME", "floating", 1);
 	else
 		unsetenv("ES_RESUME");
 	mPendingResume = 0;

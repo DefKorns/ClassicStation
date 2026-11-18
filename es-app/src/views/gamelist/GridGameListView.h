@@ -3,6 +3,7 @@
 #define ES_APP_VIEWS_GAME_LIST_GRID_GAME_LIST_VIEW_H
 
 #include "components/DateTimeComponent.h"
+#include "components/FloatingCardComponent.h"
 #include "components/MenuIconBar.h"
 #include "components/RatingComponent.h"
 #include "components/PagedTextComponent.h"
@@ -58,6 +59,9 @@ private:
 	void initMDValues();
 
 	void onFloatingChanged() override;
+	void onFloatingErased() override { mFloatingCard.erase(); }
+	void renderOverHelp(const Transform4x4f& parentTrans) override;
+	void syncFloatingCard();
 	void setHeaderFocus(bool focus);
 	void openHeaderMenu();
 
@@ -97,6 +101,7 @@ private:
 	void updateArrows();
 
 	MenuIconBar mIconBar;
+	FloatingCardComponent mFloatingCard;
 	bool mHeaderFocus = false;
 	std::shared_ptr<bool> mAlive = std::make_shared<bool>(true);
 };
