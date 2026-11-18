@@ -20,15 +20,20 @@ settings=$es_dir/home/.emulationstation/es_settings.cfg
 work=/tmp/es-theme
 
 case "$1" in
+  nes|hvcj) kind=nes ;;
+  snes) kind=snes ;;
+  *) exit 0 ;;
+esac
+case "$kind" in
   nes) atlas=nes; title=1004x53; sprites_dir=/usr/share/clover-ui/resources/sprites; [ -f "$sprites_dir/hvc.json" ] && atlas=hvc ;;
   snes) atlas=packed; title=1022x53; sprites_dir=; for dir in /usr/share/ui/snes-*/resources/sprites; do [ -d "$dir" ] && { sprites_dir=$dir; break; }; done ;;
-  *) exit 0 ;;
 esac
 [ -x "$es_dir/theme_layers" ] && [ -f "$theme_dir/console.xml" ] || exit 0
 [ -f "$sprites_dir/$atlas.json" ] && [ -f "$sprites_dir/$atlas.png" ] || exit 0
-layout=$1
+layout=$kind
+[ "$atlas" = hvc ] && layout=hvc
 wall=
-if [ "$1" = snes ]; then
+if [ "$kind" = snes ]; then
   region=${sprites_dir#/usr/share/ui/snes-}
   region=${region%%/*}
   case "$region" in
@@ -40,18 +45,19 @@ if [ "$1" = snes ]; then
 fi
 [ -f "$theme_dir/layout_$layout.xml" ] && cp "$theme_dir/layout_$layout.xml" "$theme_dir/layout.xml"
 demo_sprites=${sprites_dir%/sprites}/layout/asset/sprite
-if [ "$1" = snes ] && [ -d "$demo_sprites/mario" ] && [ ! -f "$theme_dir/demo/luigi_run01.png" ]; then
+if [ "$kind" = snes ] && [ -d "$demo_sprites/mario" ] && [ ! -f "$theme_dir/demo/luigi_run01.png" ]; then
   mkdir -p "$theme_dir/demo" && cp "$demo_sprites"/mario/mario_run0[1-3].png "$demo_sprites"/luigi/luigi_run0[1-3].png "$theme_dir/demo/"
 fi
-[ -f "$theme_stamp" ] && exit 0
+[ "$kind" = snes ] || rm -rf "$theme_dir/demo"
+[ "$(head -n 1 "$theme_stamp" 2>/dev/null)" = "$atlas $layout" ] && exit 0
 
 background=$(sed -n 's|.*<backgroundColor>\(.*\)</backgroundColor>.*|\1|p' "$theme_dir/console.xml")
 wall_back=$(sed -n 's|.*<wallBack>\(.*\)</wallBack>.*|\1|p' "$theme_dir/layout.xml")
-[ -n "$wall" ] && [ -n "$wall_back" ] && background=$wall_back
+[ -n "$wall_back" ] && background=$wall_back
 rm -rf "$work"
 if "$es_dir/theme_layers" layers "$sprites_dir/$atlas.json" "$sprites_dir/$atlas.png" "$work" --wide-width 772 --title "$title" ${background:+--background "$background"} ${wall:+--wall "$wall"} >/dev/null 2>&1; then
   cp -a "$work/." "$theme_dir/"
-  (cd "$work" && find . -type f -exec md5sum {} +) > "$theme_stamp"
+  { echo "$atlas $layout"; (cd "$work" && find . -type f -exec md5sum {} +); } > "$theme_stamp"
   sed -i 's|<string name="ThemeSet" value="simple" />|<string name="ThemeSet" value="classicstation" />|' "$settings"
 fi
 rm -rf "$work"

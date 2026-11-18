@@ -15,6 +15,8 @@
 		<titleText>FFFFFF</titleText>
 		<spaceText>FFFFFF</spaceText>
 		<barLogo>true</barLogo>
+		<barLogoPath>./../assets/systems/logos/nes1.svg</barLogoPath>
+		<barLogoTint>FFFFFF</barLogoTint>
 		<tilePadding>0.010937 0.084722</tilePadding>
 		<thumbPos>0.5 0.765278</thumbPos>
 		<thumbSize>0.03125 0.041667</thumbSize>

@@ -1,0 +1,62 @@
+<theme>
+	<formatVersion>3</formatVersion>
+
+	<variables>
+		<titleX>0.099219</titleX>
+		<titleW>0.801562</titleW>
+		<helpY>0.85</helpY>
+		<helpIcon>0.041667</helpIcon>
+		<gridX>0</gridX>
+		<tileBleed>-0.003906</tileBleed>
+		<slotsX>0.021875</slotsX>
+		<playersY>0.381944</playersY>
+		<playersSize>0.044531 0.045833</playersSize>
+		<helpText>A70000</helpText>
+		<titleText>000000</titleText>
+		<spaceText>FFFFFF</spaceText>
+		<barLogo>true</barLogo>
+		<barLogoPath>./../assets/systems/logos/famicom.svg</barLogoPath>
+		<barLogoTint>F3BF3F</barLogoTint>
+		<wallBack>EBE2D5</wallBack>
+		<tilePadding>0.010937 0.084722</tilePadding>
+		<thumbPos>0.5 0.765278</thumbPos>
+		<thumbSize>0.03125 0.041667</thumbSize>
+		<arrowPos>0.5 0.727778</arrowPos>
+		<barLogoColor>F3BF3F</barLogoColor>
+		<nandIconPos>0.859375 0.061111</nandIconPos>
+		<nandTextPos>0.871875 0.041667</nandTextPos>
+		<diskIconPos>0.859375 0.105556</diskIconPos>
+		<diskTextPos>0.871875 0.086111</diskTextPos>
+		<imageOnTop>false</imageOnTop>
+		<titleY>0.201389</titleY>
+		<titleH>0.091667</titleH>
+		<gridW>1</gridW>
+		<gridY>0.238889</gridY>
+		<slotsY>0.394444</slotsY>
+		<playersX>0.1375</playersX>
+		<thumbCount>30</thumbCount>
+		<swapIconPos>0.78 0.083333</swapIconPos>
+		<swapTextPos>0.7922 0.0639</swapTextPos>
+		<overclockPath>:/menu_overclock.svg</overclockPath>
+		<overclockPos>0.73 0.083333</overclockPos>
+		<overclockSize>0.019531 0.034722</overclockSize>
+		<overclockOrigin>0.5 0.5</overclockOrigin>
+		<overclockZ>70</overclockZ>
+		<overclockColor>DB2B00</overclockColor>
+		<detailText>FFFFFF</detailText>
+		<cardSize>0.192188 0.375</cardSize>
+		<makerText>6E6E6E</makerText>
+		<savePos>0 0</savePos>
+		<saveSize>0 0</saveSize>
+		<makerPos>0.015625 0.307639</makerPos>
+		<yearPos>0.10625 0.311111</yearPos>
+		<makerActiveText>FFFFFF</makerActiveText>
+		<yearSize>0.071875 0.040278</yearSize>
+		<yearActiveText>FFFFFF</yearActiveText>
+		<wallPath>./background.png</wallPath>
+		<wallPos>0 0</wallPos>
+		<wallSize>1 1</wallSize>
+		<wallScroll>0</wallScroll>
+		<wallVisible>false</wallVisible>
+	</variables>
+</theme>
