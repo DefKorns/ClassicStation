@@ -1034,6 +1034,10 @@ void GuiMenu::openUISettings()
 	suspend_animations->setState(Settings::getInstance()->getBool("SuspendAnimations"));
 	s->addWithLabel("SUSPEND POINT ANIMATIONS", suspend_animations);
 	s->addSaveFunc([suspend_animations] { Settings::getInstance()->setBool("SuspendAnimations", suspend_animations->getState()); });
+	auto demo_mode = std::make_shared<SwitchComponent>(mWindow);
+	demo_mode->setState(Settings::getInstance()->getBool("DemoMode"));
+	s->addWithLabel("DEMO MODE", demo_mode);
+	s->addSaveFunc([demo_mode] { Settings::getInstance()->setBool("DemoMode", demo_mode->getState()); });
 	s->addSaveFunc([menu_animations] { Settings::getInstance()->setBool("MenuAnimations", menu_animations->getState()); });
 
 	// enable filters (ForceDisableFilters)

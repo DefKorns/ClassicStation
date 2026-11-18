@@ -77,6 +77,7 @@ void Settings::setDefaults()
 	mBoolMap["MenuAnimations"] = true;
 	mBoolMap["BackgroundAnimation"] = true;
 	mBoolMap["SuspendAnimations"] = true;
+	mBoolMap["DemoMode"] = true;
 	mBoolMap["DoublePressRemovesFromFavs"] = false;
 	mBoolMap["ScrapeRatings"] = false;
 	mBoolMap["ScrapeName"] = false;

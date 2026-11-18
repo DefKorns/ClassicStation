@@ -39,6 +39,10 @@ if [ "$1" = snes ]; then
   [ -f "${sprites_dir%/sprites}/layout/asset/sprite/wallpaper/wall.png" ] && wall=${sprites_dir%/sprites}/layout/asset/sprite/wallpaper/wall.png
 fi
 [ -f "$theme_dir/layout_$layout.xml" ] && cp "$theme_dir/layout_$layout.xml" "$theme_dir/layout.xml"
+demo_sprites=${sprites_dir%/sprites}/layout/asset/sprite
+if [ "$1" = snes ] && [ -d "$demo_sprites/mario" ] && [ ! -f "$theme_dir/demo/luigi_run01.png" ]; then
+  mkdir -p "$theme_dir/demo" && cp "$demo_sprites"/mario/mario_run0[1-3].png "$demo_sprites"/luigi/luigi_run0[1-3].png "$theme_dir/demo/"
+fi
 [ -f "$theme_stamp" ] && exit 0
 
 background=$(sed -n 's|.*<backgroundColor>\(.*\)</backgroundColor>.*|\1|p' "$theme_dir/console.xml")

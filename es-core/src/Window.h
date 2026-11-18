@@ -54,6 +54,7 @@ public:
 	void input(InputConfig* config, Input input);
 	void update(int deltaTime);
 	void render();
+	unsigned int getTimeSinceLastInput() const { return mTimeSinceLastInput; }
 
 	bool init();
 	void deinit();

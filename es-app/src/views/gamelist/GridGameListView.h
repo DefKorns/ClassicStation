@@ -3,6 +3,7 @@
 #define ES_APP_VIEWS_GAME_LIST_GRID_GAME_LIST_VIEW_H
 
 #include "components/DateTimeComponent.h"
+#include "components/DemoMode.h"
 #include "components/FloatingCardComponent.h"
 #include "components/ThumbnailStripComponent.h"
 #include "components/MenuIconBar.h"
@@ -103,6 +104,7 @@ private:
 
 	MenuIconBar mIconBar;
 	FloatingCardComponent mFloatingCard;
+	DemoMode mDemo;
 	ThumbnailStripComponent mThumbnails;
 	TextComponent mLetters;
 	bool mLettersShown = false;

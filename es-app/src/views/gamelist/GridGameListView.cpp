@@ -36,7 +36,7 @@ GridGameListView::GridGameListView(Window* window, FileData* root) :
 
 	mRating(window), mReleaseDate(window), mDeveloper(window), mPublisher(window),
 	mGenre(window), mPlayers(window), mLastPlayed(window), mPlayCount(window),
-	mName(window), mCode(window), mInfo(window), mIconBar(window), mFloatingCard(window), mThumbnails(window), mLetters(window)
+	mName(window), mCode(window), mInfo(window), mIconBar(window), mFloatingCard(window), mDemo(window), mThumbnails(window), mLetters(window)
 {
 	const float padding = 0.01f;
 
@@ -195,6 +195,12 @@ std::string GridGameListView::getQuickSystemSelectLeftButton()
 
 bool GridGameListView::input(InputConfig* config, Input input)
 {
+	if(mDemo.active() && input.value != 0)
+	{
+		mDemo.cancel();
+		return true;
+	}
+
 	if(mHeaderFocus)
 	{
 		if(input.value != 0)
@@ -717,6 +723,7 @@ void GridGameListView::update(int deltaTime)
 		mCode.setVisible(true);
 		updateInfoPanel();
 	}
+	mDemo.update(deltaTime, mGrid.size() > 0, mGrid.getPosition().y() + 0.075f * static_cast<float>(Renderer::getScreenHeight()));
 	mFloatingCard.update(deltaTime);
 	ISimpleGameListView::update(deltaTime);
 	mVideo->update(deltaTime);
@@ -764,6 +771,7 @@ void GridGameListView::onFloatingChanged()
 void GridGameListView::renderOverHelp(const Transform4x4f& parentTrans)
 {
 	mFloatingCard.render(parentTrans * getTransform());
+	mDemo.render(parentTrans * getTransform());
 }
 
 void GridGameListView::syncFloatingCard()
@@ -772,6 +780,6 @@ void GridGameListView::syncFloatingCard()
 	if(!mFloating.valid)
 		return;
 	mFloatingCard.setScreenshot(mFloating.thumbnail);
+	mFloatingCard.setPlaytime(mFloating.playtime);
 	mFloatingCard.setHighlighted(mGrid.size() > 0 && isFloating(mGrid.getSelected()));
 }
-	mFloatingCard.setPlaytime(mFloating.playtime);

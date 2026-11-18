@@ -27,6 +27,7 @@ set(ES_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/SuspendSlotsComponent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/MenuIconBar.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/DiskSpaceIndicator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/components/DemoMode.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/HeaderStatus.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/ScraperSearchComponent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/TextListComponent.h
@@ -104,6 +105,7 @@ set(ES_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/SuspendSlotsComponent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/MenuIconBar.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/DiskSpaceIndicator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/components/DemoMode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/HeaderStatus.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/ScraperSearchComponent.cpp
 
