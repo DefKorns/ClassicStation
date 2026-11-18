@@ -8,6 +8,16 @@
 #include "Window.h"
 #include <algorithm>
 
+namespace
+{
+	float sSuspendProgress = 0.0f;
+}
+
+void GuiComponent::setSuspendProgress(float progress)
+{
+	sSuspendProgress = progress;
+}
+
 GuiComponent::GuiComponent(Window* window) : mWindow(window), mParent(NULL), mOpacity(255),
 	mPosition(Vector3f::Zero()), mOrigin(Vector2f::Zero()), mRotationOrigin(0.5, 0.5),
 	mSize(Vector2f::Zero()), mTransform(Transform4x4f::Identity()), mIsProcessing(false), mVisible(true)
@@ -257,7 +267,7 @@ void GuiComponent::setOpacity(unsigned char opacity)
 const Transform4x4f& GuiComponent::getTransform()
 {
 	mTransform = Transform4x4f::Identity();
-	mTransform.translate(mPosition);
+	mTransform.translate(mSuspendShift == 0.0f ? mPosition : Vector3f(mPosition.x(), mPosition.y() - mSuspendShift * sSuspendProgress * static_cast<float>(Renderer::getScreenHeight()), mPosition.z()));
 	if (mScale != 1.0)
 	{
 		mTransform.scale(mScale);
@@ -412,6 +422,9 @@ void GuiComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std
 		return;
 
 	using namespace ThemeFlags;
+	if(properties & POSITION && elem->has("suspendShift"))
+		mSuspendShift = elem->get<float>("suspendShift");
+
 	if(properties & POSITION && elem->has("pos"))
 	{
 		Vector2f denormalized = elem->get<Vector2f>("pos") * scale;

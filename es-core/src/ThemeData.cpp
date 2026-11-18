@@ -19,6 +19,7 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 	{ "image", {
 		{ "visibleCount", FLOAT },
 		{ "scrollSpeed", FLOAT },
+		{ "suspendShift", FLOAT },
 		{ "hideOnSuspend", BOOLEAN },
 		{ "pos", RESOLUTION_PAIR },
 		{ "size", RESOLUTION_PAIR },
@@ -35,6 +36,7 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "visible", BOOLEAN },
 		{ "zIndex", FLOAT } } },
 	{ "imagegrid", {
+		{ "suspendShift", FLOAT },
 		{ "pos", RESOLUTION_PAIR },
 		{ "size", RESOLUTION_PAIR },
 		{ "margin", RESOLUTION_PAIR },
@@ -64,6 +66,7 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "backgroundCenterColor", COLOR },
 		{ "backgroundEdgeColor", COLOR } } },
 	{ "text", {
+		{ "suspendShift", FLOAT },
 		{ "activeColor", COLOR },
 		{ "pos", RESOLUTION_PAIR },
 		{ "size", RESOLUTION_PAIR },

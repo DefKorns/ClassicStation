@@ -40,6 +40,7 @@ namespace
 		"suspend_float_arrow_left", "suspend_float_arrow_right", "suspend_float_ring"
 	};
 	constexpr int SlideMs = 200;
+	constexpr float CardRowShift = 69.0f;
 	constexpr int WallInMs = 250;
 	constexpr int MaxStepMs = 33;
 	constexpr int NoticeMs = 1500;
@@ -136,6 +137,7 @@ GuiSuspendPoints::GuiSuspendPoints(Window* window, std::string title, std::strin
 
 GuiSuspendPoints::~GuiSuspendPoints()
 {
+	GuiComponent::setSuspendProgress(0.0f);
 	ImageComponent::setScrollCoast(1.0f);
 	ImageComponent::setBackdropVisible(1.0f);
 	GridTileComponent::setUnselectedBrightness(1.0f);
@@ -607,6 +609,9 @@ void GuiSuspendPoints::update(int deltaTime)
 		close();
 		return;
 	}
+	const float shift = animated() ? std::min(1.0f, static_cast<float>(mSlideMs) / static_cast<float>(SlideMs)) : 1.0f;
+	mShiftProgress = mClosing ? 1.0f - shift : shift;
+	GuiComponent::setSuspendProgress(mShiftProgress);
 	if(animated())
 	{
 		const float progress = std::min(1.0f, static_cast<float>(mSlideMs) / static_cast<float>(duration));
@@ -743,7 +748,7 @@ void GuiSuspendPoints::renderSlot(const Transform4x4f& trans, std::size_t index,
 void GuiSuspendPoints::renderWarning(const Transform4x4f& trans)
 {
 	const float centreX = static_cast<float>(Renderer::getScreenWidth()) / 2.0f + 3.0f;
-	const float centreY = 222.0f;
+	const float centreY = 222.0f - CardRowShift * mShiftProgress;
 
 	mWarning.setOrigin(0.5f, 0.5f);
 	const float widen = std::max(0.0f, static_cast<float>(mWarning.getTextureSize().x()) - 420.0f);

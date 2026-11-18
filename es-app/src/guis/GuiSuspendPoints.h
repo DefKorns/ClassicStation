@@ -103,6 +103,7 @@ private:
 	int mHeldMs = 0;
 	int mNoticeMs = 0;
 	int mSlideMs = 0;
+	float mShiftProgress = 0.0f;
 	bool mStarted = false;
 	bool mClosing = false;
 

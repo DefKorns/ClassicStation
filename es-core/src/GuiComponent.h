@@ -135,6 +135,8 @@ public:
 	virtual HelpStyle getHelpStyle();
 	virtual bool dimsBackground() const { return true; }
 
+	static void setSuspendProgress(float progress);
+
 	// Returns true if the component is busy doing background processing (e.g. HTTP downloads)
 	bool isProcessing() const;
 
@@ -150,6 +152,7 @@ protected:
 	std::vector<GuiComponent*> mChildren;
 
 	Vector3f mPosition;
+	float mSuspendShift = 0.0f;
 	Vector2f mOrigin;
 	Vector2f mRotationOrigin;
 	Vector2f mSize;

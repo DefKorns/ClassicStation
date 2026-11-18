@@ -689,6 +689,7 @@
 
 	<view name="grid">
 		<image name="title_bar" extra="true">
+			<suspendShift>0.072222</suspendShift>
 			<path>./title_bar.png</path>
 			<pos>${titleX} ${titleY}</pos>
 			<size>${titleW} ${titleH}</size>
@@ -700,6 +701,7 @@
 		</text>
 
 		<text name="md_name">
+			<suspendShift>0.072222</suspendShift>
 			<pos>${titleX} ${titleY}</pos>
 			<size>${titleW} ${titleH}</size>
 			<fontSize>0.05</fontSize>
@@ -709,6 +711,7 @@
 		</text>
 
 		<imagegrid name="gamegrid">
+			<suspendShift>0.095833</suspendShift>
 			<pos>${gridX} ${gridY}</pos>
 			<size>${gridW} 0.4528</size>
 			<margin>0 0</margin>
@@ -996,6 +999,7 @@
 		</image>
 
 		<text name="md_code">
+			<suspendShift>0.072222</suspendShift>
 			<pos>0.7602 0.2014</pos>
 			<size>0.1328 0.0917</size>
 			<fontSize>0.0306</fontSize>
@@ -1005,6 +1009,7 @@
 		</text>
 
 		<image name="md_favorite">
+			<suspendShift>0.072222</suspendShift>
 			<path>./heart_filled.png</path>
 			<pos>0.782 0.2236</pos>
 			<size>0.0266 0.0472</size>
