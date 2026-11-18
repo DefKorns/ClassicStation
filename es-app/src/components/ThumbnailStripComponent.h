@@ -32,8 +32,9 @@ public:
 	void render(const Transform4x4f& parentTrans) override;
 
 private:
-	static constexpr int Reach = 10;
-	static constexpr int Slots = 2 * Reach + 1;
+	static constexpr int FullReach = 15;
+	static constexpr int FadeReach = 3;
+	static constexpr int Slots = 2 * (FullReach + FadeReach) + 1;
 	static constexpr int ArrowFrames = 3;
 
 	std::vector<std::string> mPaths;

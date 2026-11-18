@@ -53,6 +53,7 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "size", RESOLUTION_PAIR },
 		{ "padding", RESOLUTION_PAIR },
 		{ "imageColor", COLOR },
+		{ "imageOnTop", BOOLEAN },
 		{ "backgroundImage", PATH },
 		{ "backgroundCornerSize", RESOLUTION_PAIR },
 		{ "backgroundBleed", RESOLUTION_PAIR },

@@ -17,7 +17,6 @@ namespace
 {
 	constexpr float Gap = 3.0f;
 	constexpr int ArrowFrameMs = 150;
-	constexpr int FadeSlots = 3;
 	const char* const ArrowNames[] = { "thumbnail_arrow_a", "thumbnail_arrow_b", "thumbnail_arrow_c" };
 }
 
@@ -74,6 +73,8 @@ void ThumbnailStripComponent::update(int deltaTime)
 {
 	GuiComponent::update(deltaTime);
 	mElapsedMs += deltaTime;
+	for(auto& image : mImages)
+		image->update(deltaTime);
 }
 
 void ThumbnailStripComponent::render(const Transform4x4f& parentTrans)
@@ -84,11 +85,15 @@ void ThumbnailStripComponent::render(const Transform4x4f& parentTrans)
 
 	const Transform4x4f trans = parentTrans * getTransform();
 	const int base = static_cast<int>(std::floor(mPosition + 0.5f));
-	const int reach = std::min(Reach, (count - 1) / 2);
+	const int half = count / 2;
+	const int fullReach = std::min(half, FullReach);
+	const int reach = std::min(half, fullReach + FadeReach);
 	const float bottom = mCentre.y() + mThumbSize.y() / 2.0f;
 
 	for(int offset = -reach; offset <= reach; ++offset)
 	{
+		if(offset == -half && count == 2 * half)
+			continue;
 		const int index = base + offset;
 		const int wrapped = ((index % count) + count) % count;
 		const int slot = ((index % Slots) + Slots) % Slots;
@@ -97,12 +102,12 @@ void ThumbnailStripComponent::render(const Transform4x4f& parentTrans)
 		if(mAssigned[slot] != wrapped)
 		{
 			image.setMaxSize(mThumbSize.x(), mThumbSize.y());
-			image.setImage(mPaths[wrapped]);
+			image.setImageAsync(mPaths[wrapped], false, true);
 			mAssigned[slot] = wrapped;
 		}
 
 		const float distance = static_cast<float>(index) - mPosition;
-		const float fade = std::max(0.0f, std::min(1.0f, (static_cast<float>(Reach) - std::fabs(distance)) / static_cast<float>(FadeSlots)));
+		const float fade = std::max(0.0f, std::min(1.0f, (static_cast<float>(fullReach + FadeReach + 1) - std::fabs(distance)) / static_cast<float>(FadeReach + 1)));
 		image.setOpacity(static_cast<unsigned char>(255.0f * fade));
 		image.setPosition(mCentre.x() + distance * mStep, bottom);
 		image.render(trans);

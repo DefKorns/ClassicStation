@@ -273,6 +273,11 @@ SlotStates ISimpleGameListView::suspendStates(const FileData* game) const
 	return slotStates(mSuspendPoints.slots(gameCode(game)));
 }
 
+bool ISimpleGameListView::hasSaveData(const FileData* game) const
+{
+	return game != nullptr && game->getType() == GAME && mSuspendPoints.hasSaveData(gameCode(game));
+}
+
 bool ISimpleGameListView::openSuspendPoints()
 {
 	FileData* game = getCursor();

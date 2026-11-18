@@ -158,7 +158,7 @@ GridGameListView::GridGameListView(Window* window, FileData* root) :
 		[this] { return std::make_shared<ClassicTileOverlay>(mWindow); },
 		[this](GridTileOverlay& overlay, FileData* file)
 		{
-			static_cast<ClassicTileOverlay&>(overlay).setGame(suspendStates(file), file->getType() == GAME ? file->metadata.get("players") : std::string());
+			static_cast<ClassicTileOverlay&>(overlay).setGame(suspendStates(file), file->getType() == GAME ? file->metadata.get("players") : std::string(), hasSaveData(file));
 		});
 	refreshFloating();
 	updateInfoPanel();

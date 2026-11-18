@@ -332,7 +332,7 @@ void SystemView::onCursorChanged(const CursorState& /*state*/)
 	cancelAnimation(2);
 
 	const std::string transition_style = "slide";
-	bool goFast = transition_style == "instant";
+	const bool goFast = true;
 	const float infoStartOpacity = mSystemInfo.getOpacity() / 255.f;
 
 	Animation* infoFadeOut = new LambdaAnimation(

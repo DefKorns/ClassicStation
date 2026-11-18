@@ -54,8 +54,16 @@ void GridTileComponent::render(const Transform4x4f& parentTrans)
 
 		Renderer::setMatrix(trans);
 		Renderer::drawRect(-size.x() / 2.0f, -size.y() / 2.0f, size.x(), size.y(), backing, backing);
-		mImage->render(trans);
-		mBackground.render(trans);
+		if(mCurrentProperties.mImageOnTop)
+		{
+			mBackground.render(trans);
+			mImage->render(trans);
+		}
+		else
+		{
+			mImage->render(trans);
+			mBackground.render(trans);
+		}
 
 		if (mOverlay)
 		{
@@ -113,6 +121,9 @@ void applyThemeToProperties(const ThemeData::ThemeElement* elem, GridTilePropert
 	if (elem->has("imageColor"))
 		properties->mImageColor = elem->get<unsigned int>("imageColor");
 
+	if (elem->has("imageOnTop"))
+		properties->mImageOnTop = elem->get<bool>("imageOnTop");
+
 	if (elem->has("backgroundImage"))
 		properties->mBackgroundImage = elem->get<std::string>("backgroundImage");
 
@@ -165,6 +176,7 @@ void GridTileComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, cons
 
 	mSelectedProperties.mSize = getSelectedTileSize();
 	mSelectedProperties.mPadding = mDefaultProperties.mPadding;
+	mSelectedProperties.mImageOnTop = mDefaultProperties.mImageOnTop;
 	mSelectedProperties.mBackgroundImage = mDefaultProperties.mBackgroundImage;
 	mSelectedProperties.mBackgroundCornerSize = mDefaultProperties.mBackgroundCornerSize;
 

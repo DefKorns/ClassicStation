@@ -11,12 +11,13 @@
 #include "ThemeData.h"
 
 ClassicTileOverlay::ClassicTileOverlay(Window* window)
-	: GridTileOverlay(window), mSlots(window), mSlotsActive(window), mPlayers(window), mPlayersActive(window)
+	: GridTileOverlay(window), mSlots(window), mSlotsActive(window), mPlayers(window), mPlayersActive(window), mSaveIcon(window)
 {
 }
 
-void ClassicTileOverlay::setGame(const SlotStates& states, const std::string& players)
+void ClassicTileOverlay::setGame(const SlotStates& states, const std::string& players, bool hasSave)
 {
+	mHasSave = hasSave;
 	mSlots.setStates(states);
 	mSlotsActive.setStates(states);
 	mPlayers.setPlayers(players);
@@ -29,11 +30,14 @@ void ClassicTileOverlay::applyTheme(const std::shared_ptr<ThemeData>& theme, con
 	mSlotsActive.applyTheme(theme, view, "tile_slots_active", properties);
 	mPlayers.applyTheme(theme, view, "tile_players", properties);
 	mPlayersActive.applyTheme(theme, view, "tile_players_active", properties);
+	mSaveIcon.applyTheme(theme, view, "tile_save", properties);
 }
 
 void ClassicTileOverlay::render(const Transform4x4f& parentTrans)
 {
 	const Transform4x4f trans = parentTrans * getTransform();
+	if(mHasSave)
+		mSaveIcon.render(trans);
 	if(mSelected)
 	{
 		mSlotsActive.render(trans);

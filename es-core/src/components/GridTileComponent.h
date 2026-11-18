@@ -17,6 +17,7 @@ struct GridTileProperties
 	Vector2f mBackgroundBleed;
 	unsigned int mBackgroundCenterColor;
 	unsigned int mBackgroundEdgeColor;
+	bool mImageOnTop = false;
 };
 
 class GridTileComponent : public GuiComponent

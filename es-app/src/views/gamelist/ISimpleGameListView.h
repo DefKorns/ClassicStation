@@ -64,6 +64,7 @@ protected:
 	virtual void onFloatingErased() {}
 	void eraseFloating();
 	SlotStates suspendStates(const FileData* game) const;
+	bool hasSaveData(const FileData* game) const;
 	bool isFloating(const FileData* file) const;
 	bool jumpToFloating();
 	bool canJumpTo(const FileData* game);
