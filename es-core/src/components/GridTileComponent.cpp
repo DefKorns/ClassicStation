@@ -46,6 +46,7 @@ GridTileComponent::GridTileComponent(Window* window) : GuiComponent(window), mBa
 	mSelectedProperties.mBackgroundBleed = Vector2f::Zero();
 
 	mImage = std::make_shared<ImageComponent>(mWindow);
+	mImage->setFadeEnabled(false);
 	mImage->setOrigin(0.5f, 0.5f);
 
 	mBackground.setOrigin(0.5f, 0.5f);
@@ -67,23 +68,26 @@ void GridTileComponent::render(const Transform4x4f& parentTrans)
 
 	if (mVisible)
 	{
-		constexpr unsigned int backing = 0x101010FF;
+		const unsigned int backing = mCurrentProperties.mBackingColor;
 		const Vector2f size = mCurrentProperties.mSize - mCurrentProperties.mPadding * 2;
 
 		Renderer::setMatrix(trans);
-		Renderer::drawRect(-size.x() / 2.0f, -size.y() / 2.0f, size.x(), size.y(), backing, backing);
+		if(!mImage->isAsyncPending() && (backing & 0xFF) != 0)
+			Renderer::drawRect(-size.x() / 2.0f, -size.y() / 2.0f, size.x(), size.y(), backing, backing);
 		const float brightness = mSelected ? 1.0f : sUnselectedBrightness;
 		mImage->setColorShift(scaled(mCurrentProperties.mImageColor, brightness));
 		mBackground.setCenterColor(scaled(mCurrentProperties.mBackgroundCenterColor, brightness));
 		mBackground.setEdgeColor(scaled(mCurrentProperties.mBackgroundEdgeColor, brightness));
+		Transform4x4f imageTrans = trans;
+		imageTrans.translate(Vector3f(mCurrentProperties.mImageOffset.x(), mCurrentProperties.mImageOffset.y(), 0.0f));
 		if(mCurrentProperties.mImageOnTop)
 		{
 			mBackground.render(trans);
-			mImage->render(trans);
+			mImage->render(imageTrans);
 		}
 		else
 		{
-			mImage->render(trans);
+			mImage->render(imageTrans);
 			mBackground.render(trans);
 		}
 
@@ -145,6 +149,10 @@ void applyThemeToProperties(const ThemeData::ThemeElement* elem, GridTilePropert
 
 	if (elem->has("imageOnTop"))
 		properties->mImageOnTop = elem->get<bool>("imageOnTop");
+	if (elem->has("imageOffset"))
+		properties->mImageOffset = elem->get<Vector2f>("imageOffset") * screen;
+	if (elem->has("backingColor"))
+		properties->mBackingColor = elem->get<unsigned int>("backingColor");
 
 	if (elem->has("backgroundImage"))
 		properties->mBackgroundImage = elem->get<std::string>("backgroundImage");

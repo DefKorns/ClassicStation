@@ -401,6 +401,26 @@ namespace theme_layers
 		return result;
 	}
 
+	inline int cursorCornerRadius(const Image& piece)
+	{
+		int top = -1;
+		int left = piece.width();
+		for(int y = 0; y < piece.height(); ++y)
+			for(int x = 0; x < piece.width(); ++x)
+				if(piece.at(x, y)[3] > 0)
+				{
+					if(top < 0)
+						top = y;
+					left = std::min(left, x);
+				}
+		if(top < 0)
+			return 0;
+		for(int x = 0; x < piece.width(); ++x)
+			if(piece.at(x, top)[3] > 0)
+				return x - left;
+		return 0;
+	}
+
 	inline Image cursorRing(const std::vector<Image>& pieces, int width, int height)
 	{
 		Image result(width, height);
@@ -620,8 +640,8 @@ namespace theme_layers
 			layers.push_back({"list_selector_wide", frame(selectorFrameSpec(), options.wideWidth + options.selectorWidth - options.rowWidth, options.selectorHeight)});
 		}
 		layers.push_back({"title_bar", frame(FrameSpec{"caption_title", Insets{5, 5, 5, 5}}, options.titleWidth, options.titleHeight)});
-		layers.push_back({"card", cardFrame(scale(sprite(sheet, atlas, "game_card"), options.cardScale), options.cardWindow, options.cardExtraTop, family != Family::B)});
-		layers.push_back({"card_active", cardFrame(scale(sprite(sheet, atlas, "game_card_active"), options.cardScale), options.cardWindow, options.cardExtraTop, family != Family::B)});
+		layers.push_back({"card", cardFrame(scale(sprite(sheet, atlas, "game_card"), options.cardScale), options.cardWindow, options.cardExtraTop, false)});
+		layers.push_back({"card_active", cardFrame(scale(sprite(sheet, atlas, "game_card_active"), options.cardScale), options.cardWindow, options.cardExtraTop, false)});
 		layers.push_back({"menubar_top", centerCrop(scale(sprite(sheet, atlas, "menubar_U"), options.barScale), options.screenWidth)});
 		Image bottomBar = sprite(sheet, atlas, "menubar_L");
 		const Rect baked = bakedLogoArea(bottomBar, family);
@@ -694,7 +714,7 @@ namespace theme_layers
 			const Image cursorSprite = sprite(sheet, atlas, "cursor_1");
 			const unsigned char* ring = firstOpaque(cursorSprite);
 			constexpr int ringWidth = 6;
-			const int ringRadius = family == Family::B ? 15 : 0;
+			const int ringRadius = family == Family::B ? 15 : (has("cursor_game_1") ? cursorCornerRadius(sprite(sheet, atlas, "cursor_game_1")) : 0);
 			const auto insideRounded = [&](int x, int y, int inset, int radius)
 			{
 				const int right = emptySelected.width() - 1 - inset;

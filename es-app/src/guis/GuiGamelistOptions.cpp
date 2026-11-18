@@ -405,6 +405,7 @@ HelpStyle GuiGamelistOptions::getHelpStyle()
 {
 	HelpStyle style = HelpStyle();
 	style.applyTheme(mSystem->getTheme(), "system");
+	style.applyTheme(mSystem->getTheme(), "system", "menu_help");
 	return style;
 }
 

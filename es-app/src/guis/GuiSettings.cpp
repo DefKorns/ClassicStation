@@ -55,6 +55,7 @@ HelpStyle GuiSettings::getHelpStyle()
 {
 	HelpStyle style = HelpStyle();
 	style.applyTheme(ViewController::get()->getState().getSystem()->getTheme(), "system");
+	style.applyTheme(ViewController::get()->getState().getSystem()->getTheme(), "system", "menu_help");
 	return style;
 }
 

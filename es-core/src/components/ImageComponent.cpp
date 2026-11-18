@@ -1,3 +1,4 @@
+#include <map>
 #include "components/ImageComponent.h"
 
 #include "resources/TextureResource.h"
@@ -546,7 +547,7 @@ void ImageComponent::render(const Transform4x4f& parentTrans)
 
 void ImageComponent::fadeIn(bool textureLoaded)
 {
-	if (!mForceLoad)
+	if (!mForceLoad && mFadeEnabled)
 	{
 		if (!textureLoaded)
 		{

@@ -170,6 +170,9 @@ void GuiSuspendPoints::loadTheme(const std::shared_ptr<ThemeData>& theme, const 
 	if(const ThemeData::ThemeElement* backdrop = theme->getElement(view, "suspend_backdrop", "container"))
 		if(backdrop->has("visible"))
 			mDimsBackground = backdrop->get<bool>("visible");
+	if(const ThemeData::ThemeElement* backdrop = theme->getElement(view, "suspend_backdrop", "container"))
+		if(backdrop->has("dim"))
+			mCardBrightness = backdrop->get<float>("dim");
 	mHasEmptyCell = theme->getElement(view, "suspend_cell_empty", "image") != nullptr;
 	mCellEmpty.load(theme, view, "suspend_cell_empty");
 	mCellEmptySelected.load(theme, view, mHasEmptyCell && theme->getElement(view, "suspend_cell_empty_selected", "image") ? "suspend_cell_empty_selected" : "suspend_cell_empty");
@@ -617,7 +620,7 @@ void GuiSuspendPoints::update(int deltaTime)
 		const float progress = std::min(1.0f, static_cast<float>(mSlideMs) / static_cast<float>(duration));
 		const float visible = mClosing ? progress : 1.0f - progress * progress * (3.0f - 2.0f * progress);
 		ImageComponent::setBackdropVisible(visible);
-		GridTileComponent::setUnselectedBrightness(0.5f + 0.5f * visible);
+		GridTileComponent::setUnselectedBrightness(1.0f - (1.0f - mCardBrightness) * (1.0f - visible));
 		if(mClosing || mSlideMs < WallInMs)
 		{
 			ImageComponent::setScrollCoast(visible);
@@ -627,7 +630,7 @@ void GuiSuspendPoints::update(int deltaTime)
 	else
 	{
 		ImageComponent::setBackdropVisible(0.0f);
-		GridTileComponent::setUnselectedBrightness(0.5f);
+		GridTileComponent::setUnselectedBrightness(mCardBrightness);
 	}
 	if(mNoticeMs > 0)
 	{
@@ -696,7 +699,15 @@ void GuiSuspendPoints::renderSlot(const Transform4x4f& trans, std::size_t index,
 	{
 		Transform4x4f emptyTrans = trans;
 		emptyTrans.translate(Vector3f(mCellEmptyRect.x + shift, mCellEmptyRect.y, 0.0f));
-		(selected ? mCellEmptySelected : mCellEmpty).render(emptyTrans);
+		mCellEmpty.render(emptyTrans);
+		if(selected && mMoving && !hidden)
+		{
+			ImageComponent& ring = *mFloat[FloatRing];
+			ring.setOrigin(0.0f, 0.0f);
+			ring.setResize(mCellEmptyRect.w + 32.0f, mCellEmptyRect.h + 32.0f);
+			ring.setPosition(mCellEmptyRect.x + shift - 16.0f, mCellEmptyRect.y - 16.0f);
+			ring.render(trans);
+		}
 		if(!hidden)
 		{
 			mEmptyLabel.setPosition(mEmptyLabelBase.x() + shift, mEmptyLabelBase.y(), 0.0f);
@@ -821,13 +832,14 @@ void GuiSuspendPoints::renderFloating(const Transform4x4f& trans)
 
 void GuiSuspendPoints::renderLifted(const Transform4x4f& trans)
 {
-	constexpr float LiftPixels = 6.0f;
+	constexpr float ShiftLeft = 6.0f;
+	constexpr float ArrowReach = 130.0f;
 	constexpr float TrashScale = 2.0f / 3.0f;
 
 	const std::size_t from = static_cast<std::size_t>(mMoveFrom - 1);
 	Transform4x4f lifted = trans;
 	if(mTarget <= SuspendPoints::MaxSlots)
-		lifted.translate(Vector3f(static_cast<float>(mTarget - mMoveFrom) * mCellStep, -LiftPixels, 0.0f));
+		lifted.translate(Vector3f(static_cast<float>(mTarget - mMoveFrom) * mCellStep - ShiftLeft, 0.0f, 0.0f));
 	else
 	{
 		const float centreX = mCellRect.x + static_cast<float>(from) * mCellStep + mCellRect.w / 2.0f;
@@ -838,6 +850,22 @@ void GuiSuspendPoints::renderLifted(const Transform4x4f& trans)
 		lifted.translate(Vector3f(-centreX, -centreY, 0.0f));
 	}
 	renderSlot(lifted, from, true, false);
+
+	if(mTarget > SuspendPoints::MaxSlots)
+		return;
+
+	const float centreX = mCellRect.x + static_cast<float>(mTarget - 1) * mCellStep + mCellRect.w / 2.0f - ShiftLeft;
+	const float centreY = mCellRect.y + mCellRect.h / 2.0f;
+	const auto arrow = [&](int part, float dx) {
+		ImageComponent& image = *mFloat[part];
+		const Vector2i size = image.getTextureSize();
+		image.setOrigin(0.5f, 0.5f);
+		image.setResize(static_cast<float>(size.x()), static_cast<float>(size.y()));
+		image.setPosition(centreX + dx, centreY);
+		image.render(trans);
+	};
+	arrow(FloatArrowLeft, -ArrowReach);
+	arrow(FloatArrowRight, ArrowReach);
 }
 
 HelpStyle GuiSuspendPoints::getHelpStyle()
@@ -857,8 +885,8 @@ std::vector<HelpPrompt> GuiSuspendPoints::getHelpPrompts()
 	if(mMoving)
 	{
 		prompts.push_back(HelpPrompt("left/right", "select"));
-		prompts.push_back(HelpPrompt("a", mTarget > SuspendPoints::MaxSlots ? "delete" : "move"));
 		prompts.push_back(HelpPrompt("b", "back"));
+		prompts.push_back(HelpPrompt("a", "move/delete"));
 		return prompts;
 	}
 	if(mCardFocus)

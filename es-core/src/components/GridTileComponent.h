@@ -18,6 +18,8 @@ struct GridTileProperties
 	unsigned int mBackgroundCenterColor;
 	unsigned int mBackgroundEdgeColor;
 	bool mImageOnTop = false;
+	unsigned int mBackingColor = 0x101010FF;
+	Vector2f mImageOffset = Vector2f::Zero();
 };
 
 class GridTileComponent : public GuiComponent

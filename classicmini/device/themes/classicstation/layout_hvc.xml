@@ -13,6 +13,12 @@
 		<playersSize>0.044531 0.045833</playersSize>
 		<helpText>A70000</helpText>
 		<titleText>000000</titleText>
+		<suspendTitle>FFFFFF</suspendTitle>
+		<suspendEmpty>000000</suspendEmpty>
+		<suspendTime>FFFFFF</suspendTime>
+		<suspendHelp>000000</suspendHelp>
+		<menuHelp>FFFFFF</menuHelp>
+		<suspendDim>0.5</suspendDim>
 		<spaceText>FFFFFF</spaceText>
 		<barLogo>true</barLogo>
 		<barLogoPath>./../assets/systems/logos/famicom.svg</barLogoPath>
@@ -23,11 +29,13 @@
 		<thumbSize>0.03125 0.041667</thumbSize>
 		<arrowPos>0.5 0.727778</arrowPos>
 		<barLogoColor>F3BF3F</barLogoColor>
-		<nandIconPos>0.859375 0.061111</nandIconPos>
-		<nandTextPos>0.871875 0.041667</nandTextPos>
-		<diskIconPos>0.859375 0.105556</diskIconPos>
-		<diskTextPos>0.871875 0.086111</diskTextPos>
-		<imageOnTop>false</imageOnTop>
+		<nandIconPos>0.732 0.083333</nandIconPos>
+		<nandTextPos>0.7445 0.0639</nandTextPos>
+		<diskIconPos>0.8057 0.083333</diskIconPos>
+		<diskTextPos>0.8182 0.0639</diskTextPos>
+		<imageOnTop>true</imageOnTop>
+		<coverBacking>00000000</coverBacking>
+		<coverOffset>-0.002344 0</coverOffset>
 		<titleY>0.201389</titleY>
 		<titleH>0.091667</titleH>
 		<gridW>1</gridW>
@@ -35,10 +43,10 @@
 		<slotsY>0.394444</slotsY>
 		<playersX>0.1375</playersX>
 		<thumbCount>30</thumbCount>
-		<swapIconPos>0.78 0.083333</swapIconPos>
-		<swapTextPos>0.7922 0.0639</swapTextPos>
+		<swapIconPos>0.8795 0.083333</swapIconPos>
+		<swapTextPos>0.892 0.0639</swapTextPos>
 		<overclockPath>:/menu_overclock.svg</overclockPath>
-		<overclockPos>0.73 0.083333</overclockPos>
+		<overclockPos>0.70 0.083333</overclockPos>
 		<overclockSize>0.019531 0.034722</overclockSize>
 		<overclockOrigin>0.5 0.5</overclockOrigin>
 		<overclockZ>70</overclockZ>

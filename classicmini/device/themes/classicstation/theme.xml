@@ -45,6 +45,10 @@
 			<fontSize>0.0311</fontSize>
 			<iconHeight>${helpIcon}</iconHeight>
 		</helpsystem>
+
+		<helpsystem name="menu_help">
+			<textColor>${menuHelp}</textColor>
+		</helpsystem>
 	</view>
 
 	<view name="basic, detailed, grid">
@@ -162,7 +166,7 @@
 			<origin>0.5 0.5</origin>
 			<iconTextSpacing>4</iconTextSpacing>
 			<entrySpacing>30</entrySpacing>
-			<textColor>${helpText}</textColor>
+			<textColor>${suspendHelp}</textColor>
 			<iconColor>FFFFFF</iconColor>
 			<fontSize>0.0311</fontSize>
 			<iconHeight>0.041667</iconHeight>
@@ -170,6 +174,7 @@
 
 		<container name="suspend_backdrop">
 			<visible>false</visible>
+			<dim>${suspendDim}</dim>
 		</container>
 
 		<image name="suspend_panel">
@@ -318,7 +323,7 @@
 			<pos>0.132813 0.822222</pos>
 			<size>0.125 0.033333</size>
 			<fontSize>0.0333</fontSize>
-			<color>000000</color>
+			<color>${suspendTime}</color>
 			<alignment>right</alignment>
 		</text>
 
@@ -326,7 +331,7 @@
 			<pos>0.404688 0.5125</pos>
 			<size>0.46875 0.083333</size>
 			<fontSize>0.0583</fontSize>
-			<color>${logoColor}</color>
+			<color>${suspendTitle}</color>
 			<alignment>left</alignment>
 		</text>
 
@@ -334,7 +339,7 @@
 			<pos>0.117188 0.722222</pos>
 			<size>0.15625 0.055556</size>
 			<fontSize>0.037</fontSize>
-			<color>000000</color>
+			<color>${suspendEmpty}</color>
 			<alignment>center</alignment>
 		</text>
 
@@ -730,6 +735,8 @@
 		<gridtile name="default">
 			<padding>${tilePadding}</padding>
 			<imageOnTop>${imageOnTop}</imageOnTop>
+			<backingColor>${coverBacking}</backingColor>
+			<imageOffset>${coverOffset}</imageOffset>
 			<imageColor>FFFFFF</imageColor>
 			<backgroundCornerSize>0.04375 0.0847</backgroundCornerSize>
 			<backgroundBleed>${tileBleed} 0</backgroundBleed>

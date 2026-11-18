@@ -196,7 +196,7 @@ namespace
 			check(layers[4].name == "title_bar" && layers[4].image.width() == 1004 && layers[4].image.height() == 53, "title bar size");
 			check(layers[5].name == "card" && layers[5].image.width() == 246 && layers[5].image.height() == (family == Family::B ? 320 : 326), "card scaled by 3 with the extra top");
 			check(layers[7].name == "menubar_top" && layers[7].image.width() == 360 && layers[7].image.height() == 120, "menu bar scaled by 3");
-			check((family == Family::B ? layers[5].image.at(60, 80)[3] != 0 : layers[5].image.at(60, 80)[3] == 0) && layers[5].image.at(5, 100)[3] != 0, "card window is transparent on family A and kept on family B, the border is not");
+			check(layers[5].image.at(60, 80)[3] != 0 && layers[5].image.at(5, 100)[3] != 0, "the card face is kept under the cover on both families");
 			check(layers[9].name == "cover_card" && layers[9].image.width() == 261 && layers[9].image.height() == 388, "cover card is a nine-patch of the detail size");
 			check(layers[10].name == "label_bar" && layers[10].image.width() == 596 && layers[10].image.height() == 30, "label bar size");
 			check(layers[11].name == "slot_empty" && layers[12].name == "slot_saved" && layers[13].name == "slot_locked" && layers[13].image.width() == 24, "three slot icons with the rating margin");

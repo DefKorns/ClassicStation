@@ -59,6 +59,8 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "padding", RESOLUTION_PAIR },
 		{ "imageColor", COLOR },
 		{ "imageOnTop", BOOLEAN },
+		{ "backingColor", COLOR },
+		{ "imageOffset", RESOLUTION_PAIR },
 		{ "backgroundImage", PATH },
 		{ "backgroundCornerSize", RESOLUTION_PAIR },
 		{ "backgroundBleed", RESOLUTION_PAIR },
@@ -126,6 +128,7 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "favoriteSlotAlways", BOOLEAN },
 		{ "zIndex", FLOAT } } },
 	{ "container", {
+		{ "dim", FLOAT },
 		{ "pos", RESOLUTION_PAIR },
 		{ "size", RESOLUTION_PAIR },
 	 	{ "origin", NORMALIZED_PAIR },

@@ -27,7 +27,7 @@ namespace
 		"floating_card", "floating_screen",
 		"suspend_float_card", "suspend_float_active", "suspend_float_frame", "suspend_float_wing_a", "suspend_float_wing_b",
 		"suspend_float_wing_left_a", "suspend_float_wing_left_b", "suspend_float_ring",
-		"floating_card_small", "floating_screen_small", "floating_frame_small", "floating_icon_back",
+		"floating_card_small", "floating_screen_small", "floating_frame_small", "floating_icon_back", "floating_arrow_a", "floating_arrow_b",
 		"floating_wing_small_left_a", "floating_wing_small_left_b", "floating_wing_small_right_a", "floating_wing_small_right_b",
 		"floating_smoke_1", "floating_smoke_2", "floating_smoke_3", "floating_smoke_4", "floating_smoke_5",
 		"floating_smoke_small_1", "floating_smoke_small_2", "floating_smoke_small_3", "floating_smoke_small_4", "floating_smoke_small_5"
@@ -141,6 +141,10 @@ void FloatingCardComponent::render(const Transform4x4f& parentTrans)
 		part(FrameSmall).render(trans);
 		part(wingB ? WingSmallLeftB : WingSmallLeftA).render(trans);
 		part(wingB ? WingSmallRightB : WingSmallRightA).render(trans);
-		part(IconBack).render(trans);
+		const int phase = mElapsedMs % 1000;
+		ImageComponent& dpad = part(phase >= 17 && phase < 517 ? DownB : DownA);
+		dpad.setOrigin(0.5f, 0.5f);
+		dpad.setPosition(part(IconBack).getPosition());
+		dpad.render(trans);
 	}
 }

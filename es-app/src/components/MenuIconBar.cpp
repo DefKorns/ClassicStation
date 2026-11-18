@@ -75,7 +75,7 @@ MenuIconBar::MenuIconBar(Window* window)
 	mCaptionArrow.setImage(":/menu_caption_arrow.png");
 	mCaptionArrow.setOrigin(0.5f, 0.5f);
 	mCaptionLabel.setHorizontalAlignment(ALIGN_CENTER);
-	mCaptionLabel.setColor(0xFFFFFFFF);
+	mCaptionLabel.setColor(0x000000FF);
 	for (const char* path : IconPaths)
 	{
 		mIcons.emplace_back(new ImageComponent(window));

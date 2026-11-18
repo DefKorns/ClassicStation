@@ -113,6 +113,7 @@ private:
 	Rect mCellEmptyRect;
 	bool mHasEmptyCell = false;
 	bool mDimsBackground = true;
+	float mCardBrightness = 1.0f;
 	Rect mShotTheme;
 	Rect mLabelTheme;
 	Rect mFrameTheme;

@@ -42,7 +42,7 @@ private:
 	{
 		CardLarge, ScreenLarge,
 		HiCard, HiActive, HiFrame, HiWingRightA, HiWingRightB, HiWingLeftA, HiWingLeftB, HiRing,
-		CardSmall, ScreenSmall, FrameSmall, IconBack,
+		CardSmall, ScreenSmall, FrameSmall, IconBack, DownA, DownB,
 		WingSmallLeftA, WingSmallLeftB, WingSmallRightA, WingSmallRightB,
 		SmokeLarge, SmokeSmall = SmokeLarge + SmokeFrames, PartCount = SmokeSmall + SmokeFrames
 	};

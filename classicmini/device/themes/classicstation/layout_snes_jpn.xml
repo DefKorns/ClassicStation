@@ -13,6 +13,12 @@
 		<playersSize>0.051562 0.058333</playersSize>
 		<helpText>000000</helpText>
 		<titleText>FFFFFF</titleText>
+		<suspendTitle>474747</suspendTitle>
+		<suspendEmpty>898D8A</suspendEmpty>
+		<suspendTime>FFFFFF</suspendTime>
+		<suspendHelp>BEBCBE</suspendHelp>
+		<menuHelp>FFFFFF</menuHelp>
+		<suspendDim>0.5</suspendDim>
 		<spaceText>4E5750</spaceText>
 		<barLogo>true</barLogo>
 		<tilePadding>0.013281 0.084722</tilePadding>
@@ -21,6 +27,8 @@
 		<arrowPos>0.5 0.727778</arrowPos>
 		<barLogoColor>4E5750</barLogoColor>
 		<imageOnTop>true</imageOnTop>
+		<coverBacking>101010FF</coverBacking>
+		<coverOffset>0 0</coverOffset>
 		<titleY>0.201389</titleY>
 		<titleH>0.091667</titleH>
 		<gridW>1.023438</gridW>
