@@ -28,13 +28,15 @@ public:
 private:
 	struct Runner
 	{
-		Runner(Window* window, const std::string& folder, const std::string& prefix, int frameMs, int delayMs);
+		Runner(Window* window, const std::string& prefix, int frameMs, int delayMs);
 
+		void locate(const std::string& folder);
 		bool available() const { return mAvailable; }
 		void begin(float startX);
 		void advance(int deltaTime, float direction, float step, float limitLow, float limitHigh);
 		void draw(const Transform4x4f& parentTrans, float direction, float scale, float feetY);
 
+		std::string prefix;
 		std::array<std::string, 3> frames;
 		ImageComponent sprite;
 		int frameMs;

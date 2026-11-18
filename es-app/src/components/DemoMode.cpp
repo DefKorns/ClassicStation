@@ -43,8 +43,13 @@ namespace
 	}
 }
 
-DemoMode::Runner::Runner(Window* window, const std::string& folder, const std::string& prefix, int frameMs_, int delayMs_)
-	: sprite(window), frameMs(frameMs_), delayMs(delayMs_)
+DemoMode::Runner::Runner(Window* window, const std::string& prefix_, int frameMs_, int delayMs_)
+	: prefix(prefix_), sprite(window), frameMs(frameMs_), delayMs(delayMs_)
+{
+	sprite.setOrigin(0.5f, 1.0f);
+}
+
+void DemoMode::Runner::locate(const std::string& folder)
 {
 	mAvailable = !folder.empty();
 	for(std::size_t index = 0; index < frames.size(); ++index)
@@ -52,7 +57,7 @@ DemoMode::Runner::Runner(Window* window, const std::string& folder, const std::s
 		frames[index] = folder + prefix + "0" + std::to_string(index + 1) + ".png";
 		mAvailable = mAvailable && ResourceManager::getInstance()->fileExists(frames[index]);
 	}
-	sprite.setOrigin(0.5f, 1.0f);
+	frame = -1;
 }
 
 void DemoMode::Runner::begin(float startX)
@@ -100,7 +105,7 @@ void DemoMode::Runner::draw(const Transform4x4f& parentTrans, float direction, f
 }
 
 DemoMode::DemoMode(Window* window)
-	: GuiComponent(window), mMario(window, spriteFolder(), "mario_run", MarioFrameMs, 0), mLuigi(window, spriteFolder(), "luigi_run", LuigiFrameMs, LuigiDelayMs)
+	: GuiComponent(window), mMario(window, "mario_run", MarioFrameMs, 0), mLuigi(window, "luigi_run", LuigiFrameMs, LuigiDelayMs)
 {
 }
 
@@ -121,7 +126,7 @@ void DemoMode::startPass()
 
 void DemoMode::update(int deltaTime, bool ready, float coverTop)
 {
-	if(!mMario.available() || !mLuigi.available() || !Settings::getInstance()->getBool("DemoMode"))
+	if(!Settings::getInstance()->getBool("DemoMode"))
 	{
 		cancel();
 		return;
@@ -139,6 +144,14 @@ void DemoMode::update(int deltaTime, bool ready, float coverTop)
 		mCooldownMs -= deltaTime;
 		if(mCooldownMs > 0)
 			return;
+		const std::string folder = spriteFolder();
+		mMario.locate(folder);
+		mLuigi.locate(folder);
+		if(!mMario.available() || !mLuigi.available())
+		{
+			mCooldownMs = CooldownMs;
+			return;
+		}
 		mActive = true;
 		mPass = 0;
 		startPass();
