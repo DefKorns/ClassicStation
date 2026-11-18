@@ -52,6 +52,7 @@
 		<overclockZ>6</overclockZ>
 		<overclockColor>FFFFFF</overclockColor>
 		<detailText>FFFFFF</detailText>
+		<dividerColor>FFFFFF</dividerColor>
 		<cardSize>0.196875 0.383333</cardSize>
 		<makerText>757575</makerText>
 		<makerPos>0.015625 0.315972</makerPos>

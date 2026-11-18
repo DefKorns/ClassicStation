@@ -579,9 +579,56 @@ namespace theme_layers
 		Insets insets;
 	};
 
+	inline void fillEnclosedGaps(Image& image)
+	{
+		const int width = image.width();
+		const int height = image.height();
+		std::vector<unsigned char> outside(static_cast<std::size_t>(width) * static_cast<std::size_t>(height), 0);
+		std::vector<int> pending;
+		const auto visit = [&](int x, int y)
+		{
+			const std::size_t index = static_cast<std::size_t>(y) * static_cast<std::size_t>(width) + static_cast<std::size_t>(x);
+			if(outside[index] != 0 || image.at(x, y)[3] != 0)
+				return;
+			outside[index] = 1;
+			pending.push_back(y * width + x);
+		};
+		for(int x = 0; x < width; ++x)
+		{
+			visit(x, 0);
+			visit(x, height - 1);
+		}
+		for(int y = 0; y < height; ++y)
+		{
+			visit(0, y);
+			visit(width - 1, y);
+		}
+		while(!pending.empty())
+		{
+			const int at = pending.back();
+			pending.pop_back();
+			const int x = at % width;
+			const int y = at / width;
+			if(x > 0)
+				visit(x - 1, y);
+			if(x + 1 < width)
+				visit(x + 1, y);
+			if(y > 0)
+				visit(x, y - 1);
+			if(y + 1 < height)
+				visit(x, y + 1);
+		}
+		const unsigned char* fill = image.at(width / 2, height / 2);
+		const unsigned char colour[4] = {fill[0], fill[1], fill[2], 255};
+		for(int y = 0; y < height; ++y)
+			for(int x = 0; x < width; ++x)
+				if(image.at(x, y)[3] == 0 && outside[static_cast<std::size_t>(y) * static_cast<std::size_t>(width) + static_cast<std::size_t>(x)] == 0)
+					std::copy(colour, colour + 4, image.at(x, y));
+	}
+
 	inline FrameSpec rowFrameSpec(Family family)
 	{
-		return family == Family::B ? FrameSpec{"caption_title", Insets{7, 7, 7, 7}} : FrameSpec{"resume_card", Insets{4, 4, 4, 4}};
+		return family == Family::B ? FrameSpec{"caption_title", Insets{7, 7, 7, 7}} : FrameSpec{"resume_card", Insets{6, 6, 6, 6}};
 	}
 
 	inline FrameSpec selectorFrameSpec()
@@ -633,11 +680,18 @@ namespace theme_layers
 			return ninePatch(source, insets, width, height);
 		};
 		layers.push_back({"list_row", frame(rowFrameSpec(family), options.rowWidth, options.rowHeight)});
-		layers.push_back({"list_selector", frame(selectorFrameSpec(), options.selectorWidth, options.selectorHeight)});
+		const auto selector = [&](int width)
+		{
+			Image image = frame(selectorFrameSpec(), width, options.selectorHeight);
+			if(family == Family::A)
+				fillEnclosedGaps(image);
+			return image;
+		};
+		layers.push_back({"list_selector", selector(options.selectorWidth)});
 		if(options.wideWidth > 0)
 		{
 			layers.push_back({"list_row_wide", frame(rowFrameSpec(family), options.wideWidth, options.rowHeight)});
-			layers.push_back({"list_selector_wide", frame(selectorFrameSpec(), options.wideWidth + options.selectorWidth - options.rowWidth, options.selectorHeight)});
+			layers.push_back({"list_selector_wide", selector(options.wideWidth + options.selectorWidth - options.rowWidth)});
 		}
 		layers.push_back({"title_bar", frame(FrameSpec{"caption_title", Insets{5, 5, 5, 5}}, options.titleWidth, options.titleHeight)});
 		layers.push_back({"card", cardFrame(scale(sprite(sheet, atlas, "game_card"), options.cardScale), options.cardWindow, options.cardExtraTop, false)});

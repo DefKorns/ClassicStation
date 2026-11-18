@@ -477,6 +477,7 @@
 			<path>./divider.png</path>
 			<pos>0.2641 0.2583</pos>
 			<size>0.2383 0.0028</size>
+			<color>${dividerColor}</color>
 			<zIndex>40</zIndex>
 		</image>
 
@@ -485,7 +486,7 @@
 			<size>0.2383 0.0778</size>
 			<fontSize>0.0306</fontSize>
 			<lineSpacing>1.15</lineSpacing>
-			<color>FFFFFF</color>
+			<color>${detailText}</color>
 			<alignment>left</alignment>
 			<fields>releasedate publisher genre</fields>
 			<separator>  ·  </separator>
@@ -497,6 +498,7 @@
 			<path>./divider.png</path>
 			<pos>0.2641 0.3639</pos>
 			<size>0.2383 0.0028</size>
+			<color>${dividerColor}</color>
 			<zIndex>40</zIndex>
 		</image>
 
@@ -505,7 +507,7 @@
 			<size>0.2383 0.4028</size>
 			<fontSize>0.0236</fontSize>
 			<lineSpacing>1.25</lineSpacing>
-			<color>FFFFFF</color>
+			<color>${detailText}</color>
 			<alignment>left</alignment>
 			<zIndex>40</zIndex>
 		</text>

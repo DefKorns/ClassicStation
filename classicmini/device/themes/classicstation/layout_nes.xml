@@ -51,6 +51,7 @@
 		<overclockZ>70</overclockZ>
 		<overclockColor>DB2B00</overclockColor>
 		<detailText>FFFFFF</detailText>
+		<dividerColor>FFFFFF</dividerColor>
 		<cardSize>0.192188 0.375</cardSize>
 		<makerText>6E6E6E</makerText>
 		<savePos>0 0</savePos>

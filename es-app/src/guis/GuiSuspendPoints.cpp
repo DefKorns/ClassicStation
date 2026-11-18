@@ -672,7 +672,7 @@ void GuiSuspendPoints::render(const Transform4x4f& parentTrans)
 	for(std::size_t index = 0; index < mSlots.size(); ++index)
 	{
 		const bool hidden = mMoving && static_cast<int>(index) + 1 == mMoveFrom;
-		const int highlighted = mMoving ? mTarget : (mCardFocus ? 0 : mSelected);
+		const int highlighted = mMoving || mCardFocus ? 0 : mSelected;
 		renderSlot(trans, index, static_cast<int>(index) + 1 == highlighted && !hidden, hidden);
 	}
 
@@ -700,14 +700,6 @@ void GuiSuspendPoints::renderSlot(const Transform4x4f& trans, std::size_t index,
 		Transform4x4f emptyTrans = trans;
 		emptyTrans.translate(Vector3f(mCellEmptyRect.x + shift, mCellEmptyRect.y, 0.0f));
 		mCellEmpty.render(emptyTrans);
-		if(selected && mMoving && !hidden)
-		{
-			ImageComponent& ring = *mFloat[FloatRing];
-			ring.setOrigin(0.0f, 0.0f);
-			ring.setResize(mCellEmptyRect.w + 32.0f, mCellEmptyRect.h + 32.0f);
-			ring.setPosition(mCellEmptyRect.x + shift - 16.0f, mCellEmptyRect.y - 16.0f);
-			ring.render(trans);
-		}
 		if(!hidden)
 		{
 			mEmptyLabel.setPosition(mEmptyLabelBase.x() + shift, mEmptyLabelBase.y(), 0.0f);
@@ -833,13 +825,14 @@ void GuiSuspendPoints::renderFloating(const Transform4x4f& trans)
 void GuiSuspendPoints::renderLifted(const Transform4x4f& trans)
 {
 	constexpr float ShiftLeft = 6.0f;
+	constexpr float ShiftUp = 6.0f;
 	constexpr float ArrowReach = 130.0f;
 	constexpr float TrashScale = 2.0f / 3.0f;
 
 	const std::size_t from = static_cast<std::size_t>(mMoveFrom - 1);
 	Transform4x4f lifted = trans;
 	if(mTarget <= SuspendPoints::MaxSlots)
-		lifted.translate(Vector3f(static_cast<float>(mTarget - mMoveFrom) * mCellStep - ShiftLeft, 0.0f, 0.0f));
+		lifted.translate(Vector3f(static_cast<float>(mTarget - mMoveFrom) * mCellStep - ShiftLeft, -ShiftUp, 0.0f));
 	else
 	{
 		const float centreX = mCellRect.x + static_cast<float>(from) * mCellStep + mCellRect.w / 2.0f;
@@ -855,17 +848,18 @@ void GuiSuspendPoints::renderLifted(const Transform4x4f& trans)
 		return;
 
 	const float centreX = mCellRect.x + static_cast<float>(mTarget - 1) * mCellStep + mCellRect.w / 2.0f - ShiftLeft;
-	const float centreY = mCellRect.y + mCellRect.h / 2.0f;
+	const float centreY = mCellRect.y + mCellRect.h / 2.0f - ShiftUp;
 	const auto arrow = [&](int part, float dx) {
 		ImageComponent& image = *mFloat[part];
 		const Vector2i size = image.getTextureSize();
 		image.setOrigin(0.5f, 0.5f);
-		image.setResize(static_cast<float>(size.x()), static_cast<float>(size.y()));
+		image.setResize(static_cast<float>(size.x()) * 2.0f / 3.0f, static_cast<float>(size.y()) * 2.0f / 3.0f);
 		image.setPosition(centreX + dx, centreY);
 		image.render(trans);
 	};
-	arrow(FloatArrowLeft, -ArrowReach);
-	arrow(FloatArrowRight, ArrowReach);
+	const float nudge = 3.0f * std::cos(2.0f * 3.14159265f * static_cast<float>(mFloatMs % 1000) / 1000.0f);
+	arrow(FloatArrowLeft, -ArrowReach + nudge);
+	arrow(FloatArrowRight, ArrowReach - nudge);
 }
 
 HelpStyle GuiSuspendPoints::getHelpStyle()
@@ -886,7 +880,7 @@ std::vector<HelpPrompt> GuiSuspendPoints::getHelpPrompts()
 	{
 		prompts.push_back(HelpPrompt("left/right", "select"));
 		prompts.push_back(HelpPrompt("b", "back"));
-		prompts.push_back(HelpPrompt("a", "move/delete"));
+		prompts.push_back(HelpPrompt("a", "Move/Delete"));
 		return prompts;
 	}
 	if(mCardFocus)

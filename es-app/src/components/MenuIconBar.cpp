@@ -153,8 +153,8 @@ void MenuIconBar::setSelected(int index)
 void MenuIconBar::setFrameVisible(bool visible)
 {
 	mFrameVisible = visible;
-	layout();
 	retarget(visible);
+	layout();
 }
 
 void MenuIconBar::applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view)
