@@ -582,18 +582,22 @@
 		</image>
 
 		<text name="systemCardMaker">
-			<pos>0.010938 0.308333</pos>
+			<pos>${makerPos}</pos>
 			<size>0.101563 0.047222</size>
+			<fontPath>./assets/fonts/PixelifySans.ttf</fontPath>
 			<fontSize>0.0306</fontSize>
-			<color>6E6E6E</color>
+			<color>${makerText}</color>
+			<activeColor>${makerActiveText}</activeColor>
 			<alignment>left</alignment>
 		</text>
 
 		<text name="systemCardYear">
-			<pos>0.115625 0.308333</pos>
-			<size>0.065625 0.045833</size>
-			<fontSize>0.0306</fontSize>
+			<pos>${yearPos}</pos>
+			<size>${yearSize}</size>
+			<fontPath>./assets/fonts/PressStart2P-Regular.ttf</fontPath>
+			<fontSize>0.025</fontSize>
 			<color>FFFFFF</color>
+			<activeColor>${yearActiveText}</activeColor>
 			<alignment>center</alignment>
 		</text>
 
@@ -644,8 +648,8 @@
 
 		<carousel name="systemcarousel">
 			<type>horizontal</type>
-			<pos>0.0023 0.220833</pos>
-			<size>1 0.5</size>
+			<pos>${gridX} 0.220833</pos>
+			<size>${gridW} 0.5</size>
 			<logoSize>0.178125 0.283333</logoSize>
 			<logoScale>1</logoScale>
 			<logoAlignment>center</logoAlignment>
@@ -653,7 +657,7 @@
 			<scrollDuration>500</scrollDuration>
 			<cardPath>./system_card.png</cardPath>
 			<cardActivePath>./system_card_active.png</cardActivePath>
-			<cardSize>0.192188 0.375</cardSize>
+			<cardSize>${cardSize}</cardSize>
 			<cardOffset>0 0.033333</cardOffset>
 			<chipPath>./system_chip.png</chipPath>
 			<chipActivePath>./system_chip_active.png</chipActivePath>

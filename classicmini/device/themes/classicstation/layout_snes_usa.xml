@@ -44,5 +44,12 @@
 		<overclockZ>6</overclockZ>
 		<overclockColor>FFFFFF</overclockColor>
 		<detailText>FFFFFF</detailText>
+		<cardSize>0.196875 0.383333</cardSize>
+		<makerText>757575</makerText>
+		<makerPos>0.015625 0.315972</makerPos>
+		<yearPos>0.110937 0.319444</yearPos>
+		<makerActiveText>3FBFFF</makerActiveText>
+		<yearSize>0.071875 0.040278</yearSize>
+		<yearActiveText>0073EF</yearActiveText>
 	</variables>
 </theme>
