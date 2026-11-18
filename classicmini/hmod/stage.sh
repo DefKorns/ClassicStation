@@ -36,7 +36,7 @@ rm -rf "$mod_dir"
 mkdir -p "$mod_dir/etc/init.d" "$mod_dir/etc/preinit.d" "$es_payload/defaults/themes/simple" "$es_payload/resources"
 cp "$classicmini_dir/device/S8100es" "$mod_dir/etc/init.d/"
 cp "$classicmini_dir/device/preinit/b8030_es" "$mod_dir/etc/preinit.d/"
-cp "$classicmini_dir/out/emulationstation" "$classicmini_dir/out/libfreetype.so.6" "$classicmini_dir/out/padstate" "$classicmini_dir/out/libcrtfx.so" "$es_payload/"
+cp "$classicmini_dir/out/emulationstation" "$classicmini_dir/out/libfreetype.so.6" "$classicmini_dir/out/padstate" "$classicmini_dir/out/theme_layers" "$classicmini_dir/out/libcrtfx.so" "$es_payload/"
 cp "$classicmini_dir"/device/es-*.sh "$classicmini_dir/device/es_systems.cfg" "$es_payload/"
 cp -R "$classicmini_dir"/../resources/. "$es_payload/resources/"
 rm -f "$es_payload"/resources/*.py "$es_payload"/resources/splash.svg
@@ -66,6 +66,7 @@ awk '/<fullname>/ { gsub(/.*<fullname>|<\/fullname>.*/, ""); name = $0 } /<theme
   sed "s/@TITLE@/$(printf '%s' "$title" | sed 's/[&\\]/\\&/g')/" "$classicmini_dir/device/collection_theme.xml" > "$es_payload/defaults/themes/simple/$folder/theme.xml"
 done
 tar -C "$es_payload/defaults/themes/simple" --owner=0 --group=0 --numeric-owner -cf "$es_payload/defaults/theme_simple.tar" .
+tar -C "$classicmini_dir/device/themes/classicstation" --exclude=./assets/favorite --exclude=./assets/rating --owner=0 --group=0 --numeric-owner -cf "$es_payload/defaults/theme_classicstation.tar" .
 rm -rf "$es_payload/defaults/themes"
 cp "$classicmini_dir/device/es_settings.cfg" "$classicmini_dir/device/es_input.cfg" "$es_payload/defaults/"
 cp "$script_dir"/files/install "$script_dir"/files/uninstall "$script_dir"/files/readme.md "$mod_dir/"

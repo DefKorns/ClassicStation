@@ -47,6 +47,7 @@ mkdir -p "$es_dir/home/.emulationstation"
 for cfg in es_settings.cfg es_input.cfg; do
   [ -f "$es_dir/home/.emulationstation/$cfg" ] || cp "$es_dir/defaults/$cfg" "$es_dir/home/.emulationstation/"
 done
+sh "$es_dir/es-theme.sh" "$sftype"
 library_stamp=$es_dir/library.stamp
 games_dir=$(findGameStorage)
 games_count=$(find "$games_dir" -name '*.desktop' ! -path '*/CLV-Z-ESRET/*' | wc -l)
