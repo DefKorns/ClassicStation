@@ -50,5 +50,10 @@
 		<makerActiveText>FFFFFF</makerActiveText>
 		<yearSize>0.071875 0.040278</yearSize>
 		<yearActiveText>FFFFFF</yearActiveText>
+		<wallPath>./background.png</wallPath>
+		<wallPos>0 0</wallPos>
+		<wallSize>1 1</wallSize>
+		<wallScroll>0</wallScroll>
+		<wallVisible>false</wallVisible>
 	</variables>
 </theme>

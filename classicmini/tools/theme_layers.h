@@ -599,26 +599,9 @@ namespace theme_layers
 					pixel[2] = static_cast<unsigned char>(options.background & 0xff);
 					pixel[3] = 255;
 				}
+			layers.push_back({"background", fill});
 			if(!options.wall.empty())
-			{
-				const Image art = scale(options.wall, options.barScale);
-				const int left = (options.screenWidth - art.width()) / 2;
-				const int top = (720 - art.height()) / 2;
-				Image wallpaper(options.screenWidth, 720);
-				for(int y = 0; y < wallpaper.height(); ++y)
-					for(int x = 0; x < wallpaper.width(); ++x)
-					{
-						const int sourceX = x - left;
-						const int sourceY = y - top;
-						if(sourceX >= 0 && sourceY >= 0 && sourceX < art.width() && sourceY < art.height())
-							std::copy_n(art.at(sourceX, sourceY), 4, wallpaper.at(x, y));
-						else
-							std::copy_n(fill.at(0, 0), 4, wallpaper.at(x, y));
-					}
-				layers.push_back({"background", wallpaper});
-			}
-			else
-				layers.push_back({"background", fill});
+				layers.push_back({"wall", scale(options.wall, options.barScale)});
 		}
 		layers.push_back({"rating_filled", pad(scale(sprite(sheet, atlas, "icon_Resume_on"), options.iconScale), options.ratingMargin)});
 		layers.push_back({"rating_empty", pad(scale(sprite(sheet, atlas, "icon_Resume_off"), options.iconScale), options.ratingMargin)});

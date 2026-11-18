@@ -107,6 +107,7 @@ private:
 	TextComponent mLetters;
 	bool mLettersShown = false;
 	bool mHeaderFocus = false;
+	int mScrollCursor = 0;
 	std::shared_ptr<bool> mAlive = std::make_shared<bool>(true);
 };
 

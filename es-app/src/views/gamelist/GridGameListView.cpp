@@ -697,6 +697,8 @@ std::vector<HelpPrompt> GridGameListView::getHelpPrompts()
 
 void GridGameListView::update(int deltaTime)
 {
+	ImageComponent::kickScrolling(mScrollCursor, mGrid.getCursorIndex(), static_cast<int>(mGrid.size()));
+	mScrollCursor = mGrid.getCursorIndex();
 	mThumbnails.setPosition(mGrid.getVisualCursor());
 	const bool fast = mGrid.size() > 0 && mGrid.isFastScrolling();
 	mLetters.setVisible(fast);

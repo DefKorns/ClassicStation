@@ -14,6 +14,17 @@
 			<zIndex>0</zIndex>
 		</image>
 
+		<image name="wall" extra="true">
+			<path>${wallPath}</path>
+			<pos>${wallPos}</pos>
+			<size>${wallSize}</size>
+			<tile>true</tile>
+			<scrollSpeed>${wallScroll}</scrollSpeed>
+			<hideOnSuspend>true</hideOnSuspend>
+			<visible>${wallVisible}</visible>
+			<zIndex>1</zIndex>
+		</image>
+
 		<text name="logoText">
 			<pos>0 0.03</pos>
 			<size>1 0.08</size>

@@ -29,7 +29,7 @@
 		<playersX>0.139844</playersX>
 		<savePos>0.1 0.373611</savePos>
 		<saveSize>0.042188 0.058333</saveSize>
-		<wallBack>666E66</wallBack>
+		<wallBack>000000</wallBack>
 		<thumbCount>21</thumbCount>
 		<nandIconPos>0.071875 0.083333</nandIconPos>
 		<nandTextPos>0.0836 0.0639</nandTextPos>
@@ -51,5 +51,10 @@
 		<makerActiveText>3FBFFF</makerActiveText>
 		<yearSize>0.071875 0.040278</yearSize>
 		<yearActiveText>0073EF</yearActiveText>
+		<wallPos>0 0.120833</wallPos>
+		<wallSize>1 0.766667</wallSize>
+		<wallScroll>0.020508</wallScroll>
+		<wallVisible>true</wallVisible>
+		<wallPath>./wall.png</wallPath>
 	</variables>
 </theme>

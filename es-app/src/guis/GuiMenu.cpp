@@ -1026,6 +1026,14 @@ void GuiMenu::openUISettings()
 	auto menu_animations = std::make_shared<SwitchComponent>(mWindow);
 	menu_animations->setState(Settings::getInstance()->getBool("MenuAnimations"));
 	s->addWithLabel("HEADER ANIMATIONS", menu_animations);
+	auto background_animation = std::make_shared<SwitchComponent>(mWindow);
+	background_animation->setState(Settings::getInstance()->getBool("BackgroundAnimation"));
+	s->addWithLabel("BACKGROUND ANIMATION", background_animation);
+	s->addSaveFunc([background_animation] { Settings::getInstance()->setBool("BackgroundAnimation", background_animation->getState()); });
+	auto suspend_animations = std::make_shared<SwitchComponent>(mWindow);
+	suspend_animations->setState(Settings::getInstance()->getBool("SuspendAnimations"));
+	s->addWithLabel("SUSPEND POINT ANIMATIONS", suspend_animations);
+	s->addSaveFunc([suspend_animations] { Settings::getInstance()->setBool("SuspendAnimations", suspend_animations->getState()); });
 	s->addSaveFunc([menu_animations] { Settings::getInstance()->setBool("MenuAnimations", menu_animations->getState()); });
 
 	// enable filters (ForceDisableFilters)

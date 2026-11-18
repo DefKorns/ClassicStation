@@ -75,6 +75,8 @@ void Settings::setDefaults()
 	mIntMap["MusicVolume"] = 50;
 	mBoolMap["ShowHelpPrompts"] = true;
 	mBoolMap["MenuAnimations"] = true;
+	mBoolMap["BackgroundAnimation"] = true;
+	mBoolMap["SuspendAnimations"] = true;
 	mBoolMap["DoublePressRemovesFromFavs"] = false;
 	mBoolMap["ScrapeRatings"] = false;
 	mBoolMap["ScrapeName"] = false;

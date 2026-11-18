@@ -318,6 +318,9 @@ void SystemView::onCursorChanged(const CursorState& /*state*/)
 	// update help style
 	updateHelpPrompts();
 
+	ImageComponent::kickScrolling(mScrollCursor, mCursor, static_cast<int>(mEntries.size()));
+	mScrollCursor = mCursor;
+
 	float startPos = mCamOffset;
 
 	float posMax = (float)mEntries.size();
