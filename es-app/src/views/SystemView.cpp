@@ -3,6 +3,7 @@
 #include "animations/LambdaAnimation.h"
 #include "guis/GuiMenu.h"
 #include "guis/GuiMsgBox.h"
+#include "views/ExtraButtons.h"
 #include "views/UIModeController.h"
 #include "views/ViewController.h"
 #include "Log.h"
@@ -271,7 +272,7 @@ bool SystemView::input(InputConfig* config, Input input)
 			ViewController::get()->goToGameList(getSelected());
 			return true;
 		}
-		if (config->isMappedTo("x", input))
+		if (hasExtraButtons() && config->isMappedTo("x", input))
 		{
 			// get random system
 			// go to system
@@ -489,7 +490,8 @@ std::vector<HelpPrompt> SystemView::getHelpPrompts()
 	else
 		prompts.push_back(HelpPrompt("left/right", "choose"));
 	prompts.push_back(HelpPrompt("a", "select"));
-	prompts.push_back(HelpPrompt("x", "random"));
+	if (hasExtraButtons())
+		prompts.push_back(HelpPrompt("x", "random"));
 
 	if (!UIModeController::getInstance()->isUIModeKid() && Settings::getInstance()->getBool("ScreenSaverControls"))
 		prompts.push_back(HelpPrompt("select", "launch screensaver"));

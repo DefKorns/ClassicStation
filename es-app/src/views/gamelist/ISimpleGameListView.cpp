@@ -11,16 +11,11 @@
 #include "SystemData.h"
 #include "Window.h"
 #include "InputManager.h"
+#include "views/ExtraButtons.h"
 #include <cstdlib>
 
 namespace
 {
-	bool environmentIsNes()
-	{
-		const char* pad = std::getenv("ES_PAD");
-		return pad != nullptr && std::string(pad) == "nes";
-	}
-
 	std::string gameCode(const FileData* game)
 	{
 		return Utils::FileSystem::getStem(game->getPath());
@@ -29,7 +24,7 @@ namespace
 
 bool ISimpleGameListView::hasExtraButtons() const
 {
-	return !environmentIsNes() || InputManager::getInstance()->hasJoystickOtherThan("Nintendo Clovercon");
+	return ::hasExtraButtons();
 }
 
 ISimpleGameListView::ISimpleGameListView(Window* window, FileData* root) : IGameListView(window, root),
