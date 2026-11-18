@@ -25,7 +25,7 @@ ThumbnailStripComponent::ThumbnailStripComponent(Window* window) : GuiComponent(
 {
 	for(int slot = 0; slot < Slots; ++slot)
 	{
-		mImages.emplace_back(new ImageComponent(window, true));
+		mImages.emplace_back(new ImageComponent(window, false));
 		mImages.back()->setOrigin(0.5f, 1.0f);
 		mAssigned.push_back(-1);
 	}

@@ -32,7 +32,7 @@ public:
 	void render(const Transform4x4f& parentTrans) override;
 
 private:
-	static constexpr int Reach = 20;
+	static constexpr int Reach = 10;
 	static constexpr int Slots = 2 * Reach + 1;
 	static constexpr int ArrowFrames = 3;
 

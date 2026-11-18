@@ -147,7 +147,7 @@ private:
 };
 
 template<typename T>
-ImageGridComponent<T>::ImageGridComponent(Window* window) : IList<ImageGridData, T>(window, GRID_SCROLL_STYLE)
+ImageGridComponent<T>::ImageGridComponent(Window* window) : IList<ImageGridData, T>(window, GRID_SCROLL_STYLE, LIST_ALWAYS_LOOP)
 {
 	Vector2f screen = Vector2f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 
