@@ -1,0 +1,15 @@
+<theme>
+	<formatVersion>3</formatVersion>
+
+	<variables>
+		<titleX>0.0922</titleX>
+		<titleW>0.8156</titleW>
+		<helpY>0.8458</helpY>
+		<helpIcon>0.05</helpIcon>
+		<gridX>0</gridX>
+		<tileBleed>-0.0016</tileBleed>
+		<slotsX>0.015625</slotsX>
+		<playersY>0.377778</playersY>
+		<playersSize>0.051563 0.058333</playersSize>
+	</variables>
+</theme>

@@ -20,14 +20,19 @@ theme_stamp=$theme_dir/.es-generated.md5
 settings=$es_dir/home/.emulationstation/es_settings.cfg
 work=/tmp/es-theme
 
-[ "$1" = nes ] || exit 0
+case "$1" in
+  nes) atlas=nes; title=1004x53 ;;
+  snes) atlas=packed; title=1022x53 ;;
+  *) exit 0 ;;
+esac
 [ -x "$es_dir/theme_layers" ] && [ -f "$theme_dir/console.xml" ] || exit 0
-[ -f "$sprites_dir/nes.json" ] && [ -f "$sprites_dir/nes.png" ] || exit 0
+[ -f "$sprites_dir/$atlas.json" ] && [ -f "$sprites_dir/$atlas.png" ] || exit 0
+[ -f "$theme_dir/layout_$1.xml" ] && cp "$theme_dir/layout_$1.xml" "$theme_dir/layout.xml"
 [ -f "$theme_stamp" ] && exit 0
 
 background=$(sed -n 's|.*<backgroundColor>\(.*\)</backgroundColor>.*|\1|p' "$theme_dir/console.xml")
 rm -rf "$work"
-if "$es_dir/theme_layers" layers "$sprites_dir/nes.json" "$sprites_dir/nes.png" "$work" --wide-width 772 ${background:+--background "$background"} >/dev/null 2>&1; then
+if "$es_dir/theme_layers" layers "$sprites_dir/$atlas.json" "$sprites_dir/$atlas.png" "$work" --wide-width 772 --title "$title" ${background:+--background "$background"} >/dev/null 2>&1; then
   cp -a "$work/." "$theme_dir/"
   (cd "$work" && find . -type f -exec md5sum {} +) > "$theme_stamp"
   sed -i 's|<string name="ThemeSet" value="simple" />|<string name="ThemeSet" value="classicstation" />|' "$settings"

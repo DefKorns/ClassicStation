@@ -194,7 +194,7 @@ namespace
 			check(layers[2].name == "list_row" && layers[2].image.width() == 538 && layers[2].image.height() == 57, "row frame size");
 			check(layers[3].name == "list_selector" && layers[3].image.width() == 546 && layers[3].image.height() == 66, "selector frame size");
 			check(layers[4].name == "title_bar" && layers[4].image.width() == 1004 && layers[4].image.height() == 53, "title bar size");
-			check(layers[5].name == "card" && layers[5].image.width() == 246 && layers[5].image.height() == 326, "card scaled by 3 with the extra top");
+			check(layers[5].name == "card" && layers[5].image.width() == 246 && layers[5].image.height() == (family == Family::B ? 320 : 326), "card scaled by 3 with the extra top");
 			check(layers[7].name == "menubar_top" && layers[7].image.width() == 360 && layers[7].image.height() == 120, "menu bar scaled by 3");
 			check(layers[5].image.at(60, 80)[3] == 0 && layers[5].image.at(5, 100)[3] != 0, "card window is transparent and its border is not");
 			check(layers[9].name == "cover_card" && layers[9].image.width() == 261 && layers[9].image.height() == 388, "cover card is a nine-patch of the detail size");

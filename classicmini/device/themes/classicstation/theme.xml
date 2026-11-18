@@ -3,6 +3,7 @@
 	<defaultView>grid</defaultView>
 
 	<include>./console.xml</include>
+	<include>./layout.xml</include>
 
 	<view name="basic, detailed, system, grid">
 		<image name="background" extra="true">
@@ -23,14 +24,14 @@
 		</text>
 
 		<helpsystem name="help">
-			<pos>0.5 0.85</pos>
+			<pos>0.5 ${helpY}</pos>
 			<origin>0.5 0.5</origin>
 			<iconTextSpacing>4</iconTextSpacing>
 			<entrySpacing>30</entrySpacing>
 			<textColor>${logoColor}</textColor>
 			<iconColor>FFFFFF</iconColor>
 			<fontSize>0.0311</fontSize>
-			<iconHeight>0.041667</iconHeight>
+			<iconHeight>${helpIcon}</iconHeight>
 		</helpsystem>
 	</view>
 
@@ -73,14 +74,14 @@
 		</container>
 
 		<helpsystem name="help">
-			<pos>0.5 0.85</pos>
+			<pos>0.5 ${helpY}</pos>
 			<origin>0.5 0.5</origin>
 			<iconTextSpacing>4</iconTextSpacing>
 			<entrySpacing>30</entrySpacing>
 			<textColor>${logoColor}</textColor>
 			<iconColor>FFFFFF</iconColor>
 			<fontSize>0.0311</fontSize>
-			<iconHeight>0.041667</iconHeight>
+			<iconHeight>${helpIcon}</iconHeight>
 		</helpsystem>
 
 		<image name="nandSpaceIcon">
@@ -605,8 +606,8 @@
 
 		<image name="title_bar" extra="true">
 			<path>./title_bar.png</path>
-			<pos>0.0992 0.2014</pos>
-			<size>0.8016 0.0917</size>
+			<pos>${titleX} 0.2014</pos>
+			<size>${titleW} 0.0917</size>
 			<zIndex>10</zIndex>
 		</image>
 
@@ -630,8 +631,8 @@
 		</carousel>
 
 		<text name="systemInfo">
-			<pos>0.0992 0.2014</pos>
-			<size>0.8016 0.0917</size>
+			<pos>${titleX} 0.2014</pos>
+			<size>${titleW} 0.0917</size>
 			<fontSize>0.05</fontSize>
 			<color>FFFFFF</color>
 			<alignment>center</alignment>
@@ -643,8 +644,8 @@
 	<view name="grid">
 		<image name="title_bar" extra="true">
 			<path>./title_bar.png</path>
-			<pos>0.0992 0.2014</pos>
-			<size>0.8016 0.0917</size>
+			<pos>${titleX} 0.2014</pos>
+			<size>${titleW} 0.0917</size>
 			<zIndex>10</zIndex>
 		</image>
 
@@ -653,8 +654,8 @@
 		</text>
 
 		<text name="md_name">
-			<pos>0.0992 0.2014</pos>
-			<size>0.8016 0.0917</size>
+			<pos>${titleX} 0.2014</pos>
+			<size>${titleW} 0.0917</size>
 			<fontSize>0.05</fontSize>
 			<color>FFFFFF</color>
 			<alignment>center</alignment>
@@ -662,7 +663,7 @@
 		</text>
 
 		<imagegrid name="gamegrid">
-			<pos>0.0023 0.2389</pos>
+			<pos>${gridX} 0.2389</pos>
 			<size>1 0.4528</size>
 			<margin>0 0</margin>
 			<autoLayout>5 1</autoLayout>
@@ -681,7 +682,7 @@
 			<padding>0.0383 0.0847</padding>
 			<imageColor>FFFFFF</imageColor>
 			<backgroundCornerSize>0.04375 0.0847</backgroundCornerSize>
-			<backgroundBleed>-0.0039 0</backgroundBleed>
+			<backgroundBleed>${tileBleed} 0</backgroundBleed>
 			<backgroundCenterColor>FFFFFFFF</backgroundCenterColor>
 			<backgroundEdgeColor>FFFFFFFF</backgroundEdgeColor>
 			<backgroundImage>./card.png</backgroundImage>
@@ -689,11 +690,11 @@
 
 		<gridtile name="selected">
 			<backgroundImage>./card_active.png</backgroundImage>
-			<backgroundBleed>-0.0039 0</backgroundBleed>
+			<backgroundBleed>${tileBleed} 0</backgroundBleed>
 		</gridtile>
 
 		<slots name="tile_slots">
-			<pos>0.021875 0.398611</pos>
+			<pos>${slotsX} 0.398611</pos>
 			<size>0.075 0.033333</size>
 			<emptyPath>./slot_empty.png</emptyPath>
 			<savedPath>./slot_saved.png</savedPath>
@@ -701,7 +702,7 @@
 		</slots>
 
 		<slots name="tile_slots_active">
-			<pos>0.021875 0.398611</pos>
+			<pos>${slotsX} 0.398611</pos>
 			<size>0.075 0.033333</size>
 			<emptyPath>./slot_empty_active.png</emptyPath>
 			<savedPath>./slot_saved_active.png</savedPath>
@@ -709,15 +710,15 @@
 		</slots>
 
 		<playersicon name="tile_players">
-			<pos>0.1375 0.386111</pos>
-			<size>0.04453 0.045833</size>
+			<pos>0.1375 ${playersY}</pos>
+			<size>${playersSize}</size>
 			<onePath>./players_one.png</onePath>
 			<manyPath>./players_many.png</manyPath>
 		</playersicon>
 
 		<playersicon name="tile_players_active">
-			<pos>0.1375 0.386111</pos>
-			<size>0.04453 0.045833</size>
+			<pos>0.1375 ${playersY}</pos>
+			<size>${playersSize}</size>
 			<onePath>./players_one_active.png</onePath>
 			<manyPath>./players_many_active.png</manyPath>
 		</playersicon>
@@ -964,8 +965,8 @@
 		</image>
 
 		<text name="md_letters">
-			<pos>0.0992 0.2014</pos>
-			<size>0.8016 0.0917</size>
+			<pos>${titleX} 0.2014</pos>
+			<size>${titleW} 0.0917</size>
 			<fontSize>0.0667</fontSize>
 			<color>FFFFFF</color>
 			<alignment>center</alignment>

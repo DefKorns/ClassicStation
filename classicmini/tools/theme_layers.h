@@ -522,10 +522,17 @@ namespace theme_layers
 		return {"icon_Resume_on", "icon_Resume_off", "icon_Resume_lock", rowFrameSpec(family).sprite, selectorFrameSpec().sprite, "caption_title", "game_card", "game_card_active", "menubar_U", "menubar_L"};
 	}
 
-	inline std::vector<Layer> buildLayers(const Image& sheet, const Atlas& atlas, Family family, const Options& options)
+	inline std::vector<Layer> buildLayers(const Image& sheet, const Atlas& atlas, Family family, const Options& requested)
 	{
 		if(family == Family::Unknown)
 			throw std::invalid_argument("no layers for an unknown atlas family");
+
+		Options options = requested;
+		if(family == Family::B)
+		{
+			options.cardWindow = Rect{55, 11, 148, 204};
+			options.cardExtraTop = 50;
+		}
 
 		std::vector<Layer> layers;
 		if(options.background >= 0)
@@ -649,16 +656,15 @@ namespace theme_layers
 		{
 			layers.push_back({"players_one", scale(sprite(sheet, atlas, "icon_1P"), 3)});
 			layers.push_back({"players_many", scale(sprite(sheet, atlas, "icon_1P-2P"), 3)});
-			if(atlas.find("icon_1P_active.png") != atlas.end() && atlas.find("icon_1P-2P_active.png") != atlas.end())
-			{
-				layers.push_back({"players_one_active", scale(sprite(sheet, atlas, "icon_1P_active"), 3)});
-				layers.push_back({"players_many_active", scale(sprite(sheet, atlas, "icon_1P-2P_active"), 3)});
-			}
+			const bool activeSprites = atlas.find("icon_1P_active.png") != atlas.end() && atlas.find("icon_1P-2P_active.png") != atlas.end();
+			layers.push_back({"players_one_active", scale(sprite(sheet, atlas, activeSprites ? "icon_1P_active" : "icon_1P"), 3)});
+			layers.push_back({"players_many_active", scale(sprite(sheet, atlas, activeSprites ? "icon_1P-2P_active" : "icon_1P-2P"), 3)});
 		}
-		if(atlas.find("icon_1P.png") != atlas.end() && atlas.find("icon_1P_active.png") != atlas.end())
+		if(atlas.find("icon_1P.png") != atlas.end())
 		{
+			const char* activeChip = atlas.find("icon_1P_active.png") != atlas.end() ? "icon_1P_active" : "icon_1P";
 			layers.push_back({"system_chip", badgeShape(sprite(sheet, atlas, "icon_1P"), options.chipWidth, options.chipHeight, 3)});
-			layers.push_back({"system_chip_active", badgeShape(sprite(sheet, atlas, "icon_1P_active"), options.chipWidth, options.chipHeight, 3)});
+			layers.push_back({"system_chip_active", badgeShape(sprite(sheet, atlas, activeChip), options.chipWidth, options.chipHeight, 3)});
 		}
 		{
 			const struct { const char* layer; const char* sprite; int factor; } floating[] = {

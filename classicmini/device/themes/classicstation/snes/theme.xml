@@ -1,0 +1,24 @@
+<theme>
+	<formatVersion>3</formatVersion>
+	<defaultView>grid</defaultView>
+
+	<include>./../theme.xml</include>
+
+	<view name="basic, detailed, grid">
+		<image name="bar_logo" extra="true">
+			<path>./../assets/systems/logos/snes.svg</path>
+			<pos>0.0602 0.8875</pos>
+			<maxSize>0.3211 0.0694</maxSize>
+			<origin>0 0</origin>
+		</image>
+	</view>
+
+	<view name="system">
+		<image name="bar_logo" extra="true">
+			<path>./../assets/systems/logos/snes.svg</path>
+			<pos>0.0602 0.8875</pos>
+			<maxSize>0.3211 0.0694</maxSize>
+			<origin>0 0</origin>
+		</image>
+	</view>
+</theme>
