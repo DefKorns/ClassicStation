@@ -88,8 +88,8 @@ namespace theme_layers
 		int titleWidth = 1004;
 		int titleHeight = 53;
 		int cardScale = 3;
-		int chipWidth = 84;
-		int chipHeight = 33;
+		int chipWidth = 92;
+		int chipHeight = 29;
 		Rect cardWindow{49, 5, 148, 204};
 		int cardExtraTop = 56;
 		int barScale = 3;
@@ -376,17 +376,18 @@ namespace theme_layers
 		return result;
 	}
 
-	inline Image badgeShape(const Image& badge, int width, int height, int notch)
+	inline Image badgeShape(const Image& badge, int width, int height, int notch, const unsigned char* fixed = nullptr)
 	{
 		Image result(width, height);
-		const unsigned char* colour = badge.at(badge.width() / 2, 1);
+		const unsigned char* colour = fixed != nullptr ? fixed : badge.at(badge.width() / 2, 1);
 		for(int y = 0; y < height; ++y)
 			for(int x = 0; x < width; ++x)
 			{
 				const bool cornerX = x < notch || x >= width - notch;
 				const bool cornerY = y < notch || y >= height - notch;
-				if(!(cornerX && cornerY))
-					std::copy_n(colour, 4, result.at(x, y));
+				std::copy_n(colour, 4, result.at(x, y));
+				if(cornerX && cornerY)
+					result.at(x, y)[3] = 0;
 			}
 		return result;
 	}
@@ -755,9 +756,11 @@ namespace theme_layers
 			layers.push_back({"save_icon", scale(sprite(sheet, atlas, "Icon_Save"), 3)});
 		if(atlas.find("icon_1P.png") != atlas.end())
 		{
+			static const unsigned char inactiveChip[4] = {0x80, 0x80, 0x80, 0xff};
+			static const unsigned char activeChipColour[4] = {0x3f, 0xbf, 0xff, 0xff};
 			const char* activeChip = atlas.find("icon_1P_active.png") != atlas.end() ? "icon_1P_active" : "icon_1P";
-			layers.push_back({"system_chip", badgeShape(sprite(sheet, atlas, "icon_1P"), options.chipWidth, options.chipHeight, 3)});
-			layers.push_back({"system_chip_active", badgeShape(sprite(sheet, atlas, activeChip), options.chipWidth, options.chipHeight, 3)});
+			layers.push_back({"system_chip", badgeShape(sprite(sheet, atlas, "icon_1P"), options.chipWidth, options.chipHeight, 3, family == Family::B ? inactiveChip : nullptr)});
+			layers.push_back({"system_chip_active", badgeShape(sprite(sheet, atlas, activeChip), options.chipWidth, options.chipHeight, 3, family == Family::B ? activeChipColour : nullptr)});
 		}
 		{
 			const struct { const char* layer; const char* sprite; int factor; } floating[] = {
