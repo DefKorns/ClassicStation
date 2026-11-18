@@ -43,6 +43,9 @@ GridGameListView::GridGameListView(Window* window, FileData* root) :
 	mVideo = new VideoVlcComponent(window, getTitlePath());
 
 	mGrid.setPosition(mSize.x() * 0.1f, mSize.y() * 0.1f);
+	mDemo.setDefaultZIndex(0.5f);
+	mDemo.setZIndex(0.5f);
+	addChild(&mDemo);
 	mGrid.setDefaultZIndex(20);
 	mGrid.setCursorChangedCallback([&](const CursorState& /*state*/) { updateInfoPanel(); });
 	addChild(&mGrid);
@@ -770,8 +773,8 @@ void GridGameListView::onFloatingChanged()
 
 void GridGameListView::renderOverHelp(const Transform4x4f& parentTrans)
 {
-	mFloatingCard.render(parentTrans * getTransform());
-	mDemo.render(parentTrans * getTransform());
+	mFloatingCard.render(GuiComponent::demoLift(parentTrans * getTransform()));
+	mDemo.renderActors(parentTrans * getTransform());
 }
 
 void GridGameListView::syncFloatingCard()

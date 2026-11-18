@@ -11,6 +11,25 @@
 namespace
 {
 	float sSuspendProgress = 0.0f;
+	float sDemoProgress = 0.0f;
+	constexpr float DemoTravel = 600.0f / 720.0f;
+}
+
+void GuiComponent::setDemoProgress(float progress)
+{
+	sDemoProgress = progress;
+}
+
+float GuiComponent::demoProgress()
+{
+	return sDemoProgress;
+}
+
+Transform4x4f GuiComponent::demoLift(const Transform4x4f& trans)
+{
+	Transform4x4f lifted = trans;
+	lifted.translate(Vector3f(0.0f, -sDemoProgress * DemoTravel * static_cast<float>(Renderer::getScreenHeight()), 0.0f));
+	return lifted;
 }
 
 void GuiComponent::setSuspendProgress(float progress)
@@ -267,7 +286,7 @@ void GuiComponent::setOpacity(unsigned char opacity)
 const Transform4x4f& GuiComponent::getTransform()
 {
 	mTransform = Transform4x4f::Identity();
-	mTransform.translate(mSuspendShift == 0.0f ? mPosition : Vector3f(mPosition.x(), mPosition.y() - mSuspendShift * sSuspendProgress * static_cast<float>(Renderer::getScreenHeight()), mPosition.z()));
+	mTransform.translate(mSuspendShift == 0.0f && mDemoShift == 0.0f ? mPosition : Vector3f(mPosition.x(), mPosition.y() - mSuspendShift * sSuspendProgress * static_cast<float>(Renderer::getScreenHeight()) + mDemoShift * sDemoProgress * static_cast<float>(Renderer::getScreenHeight()), mPosition.z()));
 	if (mScale != 1.0)
 	{
 		mTransform.scale(mScale);
@@ -424,6 +443,9 @@ void GuiComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std
 	using namespace ThemeFlags;
 	if(properties & POSITION && elem->has("suspendShift"))
 		mSuspendShift = elem->get<float>("suspendShift");
+
+	if(properties & POSITION && elem->has("demoShift"))
+		mDemoShift = elem->get<float>("demoShift");
 
 	if(properties & POSITION && elem->has("pos"))
 	{

@@ -641,6 +641,23 @@ namespace theme_layers
 		return {"icon_Resume_on", "icon_Resume_off", "icon_Resume_lock", rowFrameSpec(family).sprite, selectorFrameSpec().sprite, "caption_title", "game_card", "game_card_active", "menubar_U", "menubar_L"};
 	}
 
+	inline std::vector<Layer> buildDemoSprites(const Image& sheet, int factor)
+	{
+		constexpr int Tile = 16;
+		constexpr int Pitch = 18;
+		const struct { const char* name; int count; int top; } rows[] = {{"mario", 5, 1}, {"luigi", 5, 18}, {"block", 3, 35}};
+		std::vector<Layer> layers;
+		for(const auto& row : rows)
+			for(int index = 0; index < row.count; ++index)
+			{
+				const Rect area{index * Pitch, row.top, Tile, Tile};
+				if(area.x + area.w > sheet.width() || area.y + area.h > sheet.height())
+					throw std::invalid_argument("the character sheet is too small");
+				layers.push_back({std::string(row.name) + "_" + std::to_string(index), scale(crop(sheet, area), factor)});
+			}
+		return layers;
+	}
+
 	inline std::vector<Layer> buildLayers(const Image& sheet, const Atlas& atlas, Family family, const Options& requested)
 	{
 		if(family == Family::Unknown)

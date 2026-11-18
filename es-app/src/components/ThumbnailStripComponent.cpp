@@ -86,7 +86,7 @@ void ThumbnailStripComponent::render(const Transform4x4f& parentTrans)
 	if(!mEnabled || count == 0)
 		return;
 
-	const Transform4x4f trans = parentTrans * getTransform();
+	const Transform4x4f trans = demoLift(parentTrans) * getTransform();
 	const int base = static_cast<int>(std::floor(mPosition + 0.5f));
 	const int half = count / 2;
 	const int reach = std::min(half, MaxReach);

@@ -48,7 +48,11 @@ demo_sprites=${sprites_dir%/sprites}/layout/asset/sprite
 if [ "$kind" = snes ] && [ -d "$demo_sprites/mario" ] && [ ! -f "$theme_dir/demo/luigi_run01.png" ]; then
   mkdir -p "$theme_dir/demo" && cp "$demo_sprites"/mario/mario_run0[1-3].png "$demo_sprites"/luigi/luigi_run0[1-3].png "$theme_dir/demo/"
 fi
-[ "$kind" = snes ] || rm -rf "$theme_dir/demo"
+if [ "$kind" = nes ] && [ -f "$sprites_dir/characters_sbm.png" ]; then
+  [ -f "$theme_dir/demo/block_2.png" ] || "$es_dir/theme_layers" demo "$sprites_dir/characters_sbm.png" "$theme_dir/demo" >/dev/null 2>&1
+else
+  [ "$kind" = snes ] || rm -rf "$theme_dir/demo"
+fi
 [ "$(head -n 1 "$theme_stamp" 2>/dev/null)" = "$atlas $layout" ] && exit 0
 
 background=$(sed -n 's|.*<backgroundColor>\(.*\)</backgroundColor>.*|\1|p' "$theme_dir/console.xml")

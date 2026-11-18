@@ -136,6 +136,9 @@ public:
 	virtual bool dimsBackground() const { return true; }
 
 	static void setSuspendProgress(float progress);
+	static void setDemoProgress(float progress);
+	static float demoProgress();
+	static Transform4x4f demoLift(const Transform4x4f& trans);
 
 	// Returns true if the component is busy doing background processing (e.g. HTTP downloads)
 	bool isProcessing() const;
@@ -153,6 +156,7 @@ protected:
 
 	Vector3f mPosition;
 	float mSuspendShift = 0.0f;
+	float mDemoShift = 0.0f;
 	Vector2f mOrigin;
 	Vector2f mRotationOrigin;
 	Vector2f mSize;

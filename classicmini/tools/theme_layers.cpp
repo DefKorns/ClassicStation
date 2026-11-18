@@ -82,6 +82,7 @@ namespace
 	int usage()
 	{
 		std::cerr << "usage: theme_layers info <atlas.json>\n"
+		             "       theme_layers demo <characters.png> <out_dir> [--scale N]\n"
 		             "       theme_layers layers <atlas.json> <atlas.png> <out_dir> [--icon-scale N] [--frame-scale N] [--row WxH] [--wide-width N] [--title WxH] [--selector WxH] [--background RRGGBB] [--wall PNG]\n";
 		return 2;
 	}
@@ -91,6 +92,26 @@ namespace
 		const Atlas atlas = parseAtlas(readFile(jsonPath));
 		std::cout << familyName(detectFamily(atlas)) << " " << atlas.size() << "\n";
 		return detectFamily(atlas) == Family::Unknown ? 1 : 0;
+	}
+
+	int demo(int argc, char* argv[])
+	{
+		if(argc != 4 && argc != 6)
+			return usage();
+		int factor = 4;
+		if(argc == 6)
+		{
+			if(std::string(argv[4]) != "--scale")
+				return usage();
+			factor = std::atoi(argv[5]);
+		}
+		if(factor < 1)
+			return usage();
+		const std::string outDir = argv[3];
+		makeDirectory(outDir);
+		for(const Layer& layer : buildDemoSprites(loadPng(argv[2]), factor))
+			savePng(outDir + "/" + layer.name + ".png", layer.image);
+		return 0;
 	}
 
 	int layers(int argc, char* argv[])
@@ -180,6 +201,8 @@ int main(int argc, char* argv[])
 		const std::string command = argv[1];
 		if(command == "info" && argc == 3)
 			return info(argv[2]);
+		if(command == "demo")
+			return demo(argc, argv);
 		if(command == "layers")
 			return layers(argc, argv);
 		return usage();

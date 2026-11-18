@@ -103,12 +103,13 @@ void HeaderStatus::update(int deltaTime)
 
 void HeaderStatus::render(const Transform4x4f& parentTrans)
 {
+	const Transform4x4f lifted = demoLift(parentTrans);
 	if(mDiskShown)
-		mDisk.render(parentTrans);
+		mDisk.render(lifted);
 	if(mNandShown)
-		mNand.render(parentTrans);
+		mNand.render(lifted);
 	if(mSwapShown)
-		mSwap.render(parentTrans);
+		mSwap.render(lifted);
 	if(mOverclockShown && mOverclockActive)
-		mOverclock.render(parentTrans);
+		mOverclock.render(lifted);
 }
