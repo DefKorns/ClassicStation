@@ -476,11 +476,55 @@
 	</view>
 
 	<view name="system">
+		<image name="logo">
+			<path>./assets/systems/logos/${system.theme}.svg</path>
+			<color>FFFFFF</color>
+		</image>
+
+		<image name="menubar_top" extra="true">
+			<path>./menubar_top.png</path>
+			<pos>0 -0.033333</pos>
+			<size>1 0.166667</size>
+			<zIndex>5</zIndex>
+		</image>
+		<image name="menubar_bottom" extra="true">
+			<path>./menubar_bottom.png</path>
+			<pos>0 0.875</pos>
+			<size>1 0.166667</size>
+			<zIndex>5</zIndex>
+		</image>
+		<image name="bar_logo" extra="true">
+			<path>./assets/systems/logos/${system.theme}.svg</path>
+			<color>${logoColor}</color>
+			<pos>0.0602 0.9264</pos>
+			<maxSize>0.35 0.0778</maxSize>
+			<origin>0 0.5</origin>
+			<zIndex>20</zIndex>
+		</image>
+		<image name="menu_strip" extra="true">
+			<path>./ui/menu_strip.png</path>
+			<pos>0.3125 -0.033333</pos>
+			<size>0.375 0.166667</size>
+			<zIndex>6</zIndex>
+		</image>
+
+		<container name="menuIcons">
+			<pos>0.3125 0.0361</pos>
+			<size>0.375 0.1</size>
+		</container>
+
+		<image name="title_bar" extra="true">
+			<path>./title_bar.png</path>
+			<pos>0.0992 0.2014</pos>
+			<size>0.8016 0.0917</size>
+			<zIndex>10</zIndex>
+		</image>
+
 		<carousel name="systemcarousel">
 			<type>horizontal</type>
-			<pos>0 0.3</pos>
-			<size>1 0.3</size>
-			<logoSize>0.26 0.2</logoSize>
+			<pos>-0.05 0.3</pos>
+			<size>1.1 0.4</size>
+			<logoSize>0.2 0.3</logoSize>
 			<logoScale>1.2</logoScale>
 			<logoAlignment>center</logoAlignment>
 			<maxLogoCount>5</maxLogoCount>
@@ -490,9 +534,9 @@
 		</carousel>
 
 		<text name="systemInfo">
-			<pos>0 0.8</pos>
-			<size>1 0.08</size>
-			<fontSize>0.04</fontSize>
+			<pos>0.0992 0.2014</pos>
+			<size>0.8016 0.0917</size>
+			<fontSize>0.05</fontSize>
 			<color>FFFFFF</color>
 			<alignment>center</alignment>
 			<backgroundColor>00000000</backgroundColor>
