@@ -147,12 +147,23 @@ namespace
 		for(const UiIcon& icon : buildUiIcons(sheet, atlas))
 			savePng(outDir + "/ui/" + icon.path, icon.image);
 
-		if(family == Family::A)
+		const Image bar = sprite(sheet, atlas, "menubar_L");
+		const Rect logo = bakedLogoArea(bar, family);
+		if(logo.w > 0)
 		{
-			const Image bar = sprite(sheet, atlas, "menubar_L");
-			const Rect logo = findBakedLogo(bar, 22, 340);
-			if(logo.w > 0 && !consoleLogoPath.empty())
+			if(family == Family::A && !consoleLogoPath.empty())
 				writeFile(consoleLogoPath, logoSvg(bar, logo));
+			const double scaleX = options.barScale;
+			const double offsetX = (bar.width() * scaleX - options.screenWidth) / 2.0;
+			const double left = logo.x * scaleX - offsetX;
+			const double top = 630.0 + logo.y * scaleX;
+			const double width = logo.w * scaleX;
+			const double height = logo.h * scaleX;
+			char text[512];
+			std::snprintf(text, sizeof text,
+				"<theme>\n\t<formatVersion>3</formatVersion>\n\n\t<variables>\n\t\t<barLogoPos>%.6f %.6f</barLogoPos>\n\t\t<barLogoMax>%.6f %.6f</barLogoMax>\n\t</variables>\n</theme>\n",
+				(left + width / 2.0) / options.screenWidth, (top + height / 2.0) / 720.0, width / options.screenWidth, height / 720.0);
+			writeFile(outDir + "/logo.xml", text);
 		}
 
 		return 0;
