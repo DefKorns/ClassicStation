@@ -20,7 +20,7 @@ settings=$es_dir/home/.emulationstation/es_settings.cfg
 work=/tmp/es-theme
 
 case "$1" in
-  nes) atlas=nes; title=1004x53; sprites_dir=/usr/share/clover-ui/resources/sprites ;;
+  nes) atlas=nes; title=1004x53; sprites_dir=/usr/share/clover-ui/resources/sprites; [ -f "$sprites_dir/hvc.json" ] && atlas=hvc ;;
   snes) atlas=packed; title=1022x53; sprites_dir=; for dir in /usr/share/ui/snes-*/resources/sprites; do [ -d "$dir" ] && { sprites_dir=$dir; break; }; done ;;
   *) exit 0 ;;
 esac
