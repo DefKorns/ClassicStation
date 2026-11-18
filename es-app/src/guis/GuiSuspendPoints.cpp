@@ -671,18 +671,19 @@ void GuiSuspendPoints::renderWarning(const Transform4x4f& trans)
 	const float centreY = 222.0f;
 
 	mWarning.setOrigin(0.5f, 0.5f);
-	mWarning.setResize(420.0f, 108.0f);
+	const float widen = std::max(0.0f, static_cast<float>(mWarning.getTextureSize().x()) - 420.0f);
+	mWarning.setResize(420.0f + widen, 108.0f);
 	mWarning.setPosition(centreX, centreY);
 	mWarning.render(trans);
 
 	mWarningIcon.setOrigin(0.5f, 0.5f);
 	mWarningIcon.setResize(72.0f, 72.0f);
-	mWarningIcon.setPosition(centreX - 162.0f, centreY - 9.0f);
+	mWarningIcon.setPosition(centreX - 162.0f - widen / 2.0f, centreY - 9.0f);
 	mWarningIcon.render(trans);
 
 	mWarningText.setLineSpacing(1.2f);
-	mWarningText.setSize(310.0f, 0.0f);
-	mWarningText.setPosition(centreX - 126.0f, centreY - 9.0f - 42.0f);
+	mWarningText.setSize(310.0f + widen, 0.0f);
+	mWarningText.setPosition(centreX - 126.0f - widen / 2.0f, centreY - 9.0f - 42.0f);
 	mWarningText.render(trans);
 }
 
@@ -726,10 +727,15 @@ void GuiSuspendPoints::renderFloating(const Transform4x4f& trans)
 	draw(*mFloat[FloatArrowLeft], 48.0f, 66.0f, -144.0f - nudge, 0.0f);
 	draw(*mFloat[FloatArrowRight], 48.0f, 66.0f, 144.0f + nudge, 0.0f);
 
-	draw(*mFloat[FloatBalloon], 198.0f, 72.0f, 0.0f, 111.0f);
-	draw(*mFloat[FloatBalloonIcon], 42.0f, 36.0f, -34.0f, 120.0f);
+	const Vector2i balloon = mFloat[FloatBalloon]->getTextureSize();
+	const Vector2i balloonIcon = mFloat[FloatBalloonIcon]->getTextureSize();
+	constexpr float LabelWidth = 63.0f;
+	constexpr float LabelGap = 5.0f;
+	const float group = static_cast<float>(balloonIcon.x()) + LabelGap + LabelWidth;
+	draw(*mFloat[FloatBalloon], static_cast<float>(balloon.x()), static_cast<float>(balloon.y()), 0.0f, 111.0f);
+	draw(*mFloat[FloatBalloonIcon], static_cast<float>(balloonIcon.x()), static_cast<float>(balloonIcon.y()), -group / 2.0f + static_cast<float>(balloonIcon.x()) / 2.0f, 120.0f);
 	mFloatLabel.setSize(90.0f, 30.0f);
-	mFloatLabel.setPosition(centreX - 8.0f, centreY + 105.0f);
+	mFloatLabel.setPosition(centreX + group / 2.0f - LabelWidth, centreY + 105.0f);
 	mFloatLabel.render(trans);
 }
 

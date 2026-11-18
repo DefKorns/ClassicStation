@@ -587,7 +587,7 @@ namespace theme_layers
 		layers.push_back({"rating_heart_empty", heartIcon(false, 2, 30)});
 		layers.push_back({"divider", solid(options.dividerWidth, 2, 255, 255, 255, 220)});
 		const auto has = [&](const char* name) { return atlas.find(std::string(name) + ".png") != atlas.end(); };
-		if(has("resumebg") && has("resumebg_tail") && has("icon_Resume") && has("icon_numer_1") && has("icon_numer_4") && has("resume_card") && has("resume_card_active") && has("resume_card_empty") && has("resume_screen_frame") && has("icon_lock"))
+		if(has("resumebg") && has("resumebg_tail") && has("icon_Resume") && has("icon_numer_1") && has("icon_numer_4") && has("resume_card") && has("resume_card_active") && has("resume_card_empty") && has("icon_lock"))
 		{
 			constexpr int panelWidth = 1284;
 			constexpr int tailRise = 45;
@@ -637,7 +637,7 @@ namespace theme_layers
 						std::copy_n(ring, 4, emptySelected.at(x, y));
 			layers.push_back({"suspend_cell_empty", emptyCell});
 			layers.push_back({"suspend_cell_empty_selected", emptySelected});
-			layers.push_back({"suspend_frame", sprite(sheet, atlas, "resume_screen_frame")});
+			layers.push_back({"suspend_frame", has("resume_screen_frame") ? sprite(sheet, atlas, "resume_screen_frame") : Image(160, 120)});
 			layers.push_back({"suspend_lock", scale(sprite(sheet, atlas, "icon_lock"), 3)});
 			if(atlas.find("icon_trash_0.png") != atlas.end() && atlas.find("icon_trash_2.png") != atlas.end())
 			{
@@ -669,16 +669,28 @@ namespace theme_layers
 				{"floating_icon_back", "icon_resume_btn_B", 3}, {"floating_wing_small_a", "resume_wingS_1", 3}, {"floating_wing_small_b", "resume_wingS_2", 3},
 				{"floating_large_card", "resume_card_float", 3}, {"floating_large_active", "resume_card_active", 3}, {"floating_large_frame", "resume_screen_frame", 1},
 				{"floating_large_wing_a", "resume_wingL_1", 3}, {"floating_large_wing_b", "resume_wingL_2", 3},
-				{"floating_balloon", "registration_frame", 3}, {"floating_balloon_icon", "registration_icon", 3},
+				{"floating_balloon", "registration_frame", 3}, {"floating_balloon_icon", family == Family::B ? "icon_Y_light" : "registration_icon", 3},
 				{"floating_arrow_left", "arrow_left", 3}, {"floating_arrow_right", "arrow_right", 3},
 				{"thumbnail_arrow_a", "dot_cursor_v_1", 2}, {"thumbnail_arrow_b", "dot_cursor_v_2", 2}, {"thumbnail_arrow_c", "dot_cursor_v_3", 2},
-				{"warning_popup", "popup_warning", 3}, {"warning_icon", "icon_casette_nes", 3},
+				{"warning_popup", "popup_warning", 3}, {"warning_icon", family == Family::B ? "icon_exclamation" : "icon_casette_nes", 3},
 				{"floating_smoke_1", "smoke_64_1", 3}, {"floating_smoke_2", "smoke_64_2", 3}, {"floating_smoke_3", "smoke_64_3", 3}, {"floating_smoke_4", "smoke_64_4", 3}, {"floating_smoke_5", "smoke_64_5", 3},
 				{"floating_smoke_small_1", "smoke_32_1", 3}, {"floating_smoke_small_2", "smoke_32_2", 3}, {"floating_smoke_small_3", "smoke_32_3", 3}, {"floating_smoke_small_4", "smoke_32_4", 3}, {"floating_smoke_small_5", "smoke_32_5", 3}
 			};
+			struct Blank { const char* layer; int width; int height; };
+			const Blank blanks[] = {
+				{"floating_frame", 120, 90}, {"floating_frame_small", 80, 60}, {"floating_large_frame", 160, 120}
+			};
+			const auto blankFor = [&](const char* layer) -> const Blank* {
+				if(family != Family::B)
+					return nullptr;
+				for(const auto& blank : blanks)
+					if(std::string(blank.layer) == layer)
+						return &blank;
+				return nullptr;
+			};
 			bool complete = true;
 			for(const auto& entry : floating)
-				complete = complete && atlas.find(std::string(entry.sprite) + ".png") != atlas.end();
+				complete = complete && (blankFor(entry.layer) != nullptr || atlas.find(std::string(entry.sprite) + ".png") != atlas.end());
 			for(int index = 1; index <= 9; ++index)
 				complete = complete && atlas.find("cursor_game_" + std::to_string(index) + ".png") != atlas.end();
 			if(complete)
@@ -691,7 +703,8 @@ namespace theme_layers
 			if(complete)
 				for(const auto& entry : floating)
 				{
-					const Image image = scale(sprite(sheet, atlas, entry.sprite), entry.factor);
+					const auto* blank = blankFor(entry.layer);
+				const Image image = blank != nullptr ? Image(blank->width, blank->height) : scale(sprite(sheet, atlas, entry.sprite), entry.factor);
 					layers.push_back({entry.layer, image});
 					if(std::string(entry.layer).find("wing") != std::string::npos)
 					{
