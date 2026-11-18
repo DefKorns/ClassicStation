@@ -33,6 +33,13 @@ struct ImageGridData
 	std::string texturePath;
 };
 
+const ScrollTier GRID_SCROLL_TIERS[] = {
+	{500, 500},
+	{1500, 160},
+	{0, 80}
+};
+const ScrollTierList GRID_SCROLL_STYLE = { 3, GRID_SCROLL_TIERS };
+
 template<typename T>
 class ImageGridComponent : public IList<ImageGridData, T>
 {
@@ -138,7 +145,7 @@ private:
 };
 
 template<typename T>
-ImageGridComponent<T>::ImageGridComponent(Window* window) : IList<ImageGridData, T>(window)
+ImageGridComponent<T>::ImageGridComponent(Window* window) : IList<ImageGridData, T>(window, GRID_SCROLL_STYLE)
 {
 	Vector2f screen = Vector2f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 
