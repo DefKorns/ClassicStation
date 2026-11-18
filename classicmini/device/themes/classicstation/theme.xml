@@ -4,6 +4,7 @@
 
 	<include>./console.xml</include>
 	<include>./layout.xml</include>
+	<include>./logo.xml</include>
 
 	<view name="basic, detailed, system, grid">
 		<image name="background" extra="true">
@@ -52,9 +53,9 @@
 			<visible>${barLogo}</visible>
 			<path>./assets/systems/logos/${system.theme}.svg</path>
 			<color>${barLogoColor}</color>
-			<pos>0.0602 0.9264</pos>
-			<maxSize>0.35 0.0778</maxSize>
-			<origin>0 0.5</origin>
+			<pos>${barLogoPos}</pos>
+			<maxSize>${barLogoMax}</maxSize>
+			<origin>0.5 0.5</origin>
 			<zIndex>20</zIndex>
 		</image>
 
@@ -118,6 +119,32 @@
 			<alignment>left</alignment>
 			<zIndex>70</zIndex>
 		</text>
+
+		<image name="swapSpaceIcon">
+			<pos>${swapIconPos}</pos>
+			<color>${barLogoColor}</color>
+			<size>0.019531 0.034722</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>70</zIndex>
+		</image>
+
+		<text name="swapSpace">
+			<pos>${swapTextPos}</pos>
+			<size>0.0625 0.038889</size>
+			<fontSize>0.0306</fontSize>
+			<color>${spaceText}</color>
+			<alignment>left</alignment>
+			<zIndex>70</zIndex>
+		</text>
+
+		<image name="overclockIcon">
+			<path>${overclockPath}</path>
+			<pos>${overclockPos}</pos>
+			<color>${overclockColor}</color>
+			<size>${overclockSize}</size>
+			<origin>${overclockOrigin}</origin>
+			<zIndex>${overclockZ}</zIndex>
+		</image>
 
 		<helpsystem name="suspend_help">
 			<pos>0.5 0.929167</pos>
@@ -416,7 +443,7 @@
 			<pos>0.2641 0.1597</pos>
 			<size>0.2383 0.0903</size>
 			<fontSize>0.07</fontSize>
-			<color>${titleText}</color>
+			<color>${detailText}</color>
 			<alignment>left</alignment>
 			<fitMinScale>0.5</fitMinScale>
 			<zIndex>40</zIndex>
@@ -591,9 +618,9 @@
 			<visible>${barLogo}</visible>
 			<path>./assets/systems/logos/${system.theme}.svg</path>
 			<color>${barLogoColor}</color>
-			<pos>0.0602 0.9264</pos>
-			<maxSize>0.35 0.0778</maxSize>
-			<origin>0 0.5</origin>
+			<pos>${barLogoPos}</pos>
+			<maxSize>${barLogoMax}</maxSize>
+			<origin>0.5 0.5</origin>
 			<zIndex>20</zIndex>
 		</image>
 		<image name="menu_strip" extra="true">
@@ -610,8 +637,8 @@
 
 		<image name="title_bar" extra="true">
 			<path>./title_bar.png</path>
-			<pos>${titleX} 0.2014</pos>
-			<size>${titleW} 0.0917</size>
+			<pos>${titleX} ${titleY}</pos>
+			<size>${titleW} ${titleH}</size>
 			<zIndex>10</zIndex>
 		</image>
 
@@ -635,8 +662,8 @@
 		</carousel>
 
 		<text name="systemInfo">
-			<pos>${titleX} 0.2014</pos>
-			<size>${titleW} 0.0917</size>
+			<pos>${titleX} ${titleY}</pos>
+			<size>${titleW} ${titleH}</size>
 			<fontSize>0.05</fontSize>
 			<color>${titleText}</color>
 			<alignment>center</alignment>
@@ -648,8 +675,8 @@
 	<view name="grid">
 		<image name="title_bar" extra="true">
 			<path>./title_bar.png</path>
-			<pos>${titleX} 0.2014</pos>
-			<size>${titleW} 0.0917</size>
+			<pos>${titleX} ${titleY}</pos>
+			<size>${titleW} ${titleH}</size>
 			<zIndex>10</zIndex>
 		</image>
 
@@ -658,8 +685,8 @@
 		</text>
 
 		<text name="md_name">
-			<pos>${titleX} 0.2014</pos>
-			<size>${titleW} 0.0917</size>
+			<pos>${titleX} ${titleY}</pos>
+			<size>${titleW} ${titleH}</size>
 			<fontSize>0.05</fontSize>
 			<color>${titleText}</color>
 			<alignment>center</alignment>
@@ -667,8 +694,8 @@
 		</text>
 
 		<imagegrid name="gamegrid">
-			<pos>${gridX} 0.2389</pos>
-			<size>1 0.4528</size>
+			<pos>${gridX} ${gridY}</pos>
+			<size>${gridW} 0.4528</size>
 			<margin>0 0</margin>
 			<autoLayout>5 1</autoLayout>
 			<autoLayoutSelectedZoom>1</autoLayoutSelectedZoom>
@@ -699,7 +726,7 @@
 		</gridtile>
 
 		<slots name="tile_slots">
-			<pos>${slotsX} 0.398611</pos>
+			<pos>${slotsX} ${slotsY}</pos>
 			<size>0.075 0.033333</size>
 			<emptyPath>./slot_empty.png</emptyPath>
 			<savedPath>./slot_saved.png</savedPath>
@@ -707,7 +734,7 @@
 		</slots>
 
 		<slots name="tile_slots_active">
-			<pos>${slotsX} 0.398611</pos>
+			<pos>${slotsX} ${slotsY}</pos>
 			<size>0.075 0.033333</size>
 			<emptyPath>./slot_empty_active.png</emptyPath>
 			<savedPath>./slot_saved_active.png</savedPath>
@@ -715,14 +742,14 @@
 		</slots>
 
 		<playersicon name="tile_players">
-			<pos>0.1375 ${playersY}</pos>
+			<pos>${playersX} ${playersY}</pos>
 			<size>${playersSize}</size>
 			<onePath>./players_one.png</onePath>
 			<manyPath>./players_many.png</manyPath>
 		</playersicon>
 
 		<playersicon name="tile_players_active">
-			<pos>0.1375 ${playersY}</pos>
+			<pos>${playersX} ${playersY}</pos>
 			<size>${playersSize}</size>
 			<onePath>./players_one_active.png</onePath>
 			<manyPath>./players_many_active.png</manyPath>
@@ -970,41 +997,36 @@
 		</image>
 
 		<text name="md_letters">
-			<pos>${titleX} 0.2014</pos>
-			<size>${titleW} 0.0917</size>
+			<pos>${titleX} ${titleY}</pos>
+			<size>${titleW} ${titleH}</size>
 			<fontSize>0.0667</fontSize>
 			<color>${titleText}</color>
 			<alignment>center</alignment>
 		</text>
 
 		<image name="thumbnail_strip">
+			<visibleCount>${thumbCount}</visibleCount>
 			<pos>${thumbPos}</pos>
 			<size>${thumbSize}</size>
 		</image>
 
 		<image name="thumbnail_arrow_a">
 			<path>./thumbnail_arrow_a.png</path>
-			<color>33CCFF</color>
 			<pos>${arrowPos}</pos>
-			<size>0.025 0.0222</size>
 			<origin>0.5 0.5</origin>
 			<zIndex>31</zIndex>
 		</image>
 
 		<image name="thumbnail_arrow_b">
 			<path>./thumbnail_arrow_b.png</path>
-			<color>33CCFF</color>
 			<pos>${arrowPos}</pos>
-			<size>0.025 0.0222</size>
 			<origin>0.5 0.5</origin>
 			<zIndex>31</zIndex>
 		</image>
 
 		<image name="thumbnail_arrow_c">
 			<path>./thumbnail_arrow_c.png</path>
-			<color>33CCFF</color>
 			<pos>${arrowPos}</pos>
-			<size>0.025 0.0222</size>
 			<origin>0.5 0.5</origin>
 			<zIndex>31</zIndex>
 		</image>

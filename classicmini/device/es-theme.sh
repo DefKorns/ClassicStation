@@ -42,7 +42,8 @@ fi
 [ -f "$theme_stamp" ] && exit 0
 
 background=$(sed -n 's|.*<backgroundColor>\(.*\)</backgroundColor>.*|\1|p' "$theme_dir/console.xml")
-[ -n "$wall" ] && background=666E66
+wall_back=$(sed -n 's|.*<wallBack>\(.*\)</wallBack>.*|\1|p' "$theme_dir/layout.xml")
+[ -n "$wall" ] && [ -n "$wall_back" ] && background=$wall_back
 rm -rf "$work"
 if "$es_dir/theme_layers" layers "$sprites_dir/$atlas.json" "$sprites_dir/$atlas.png" "$work" --wide-width 772 --title "$title" ${background:+--background "$background"} ${wall:+--wall "$wall"} >/dev/null 2>&1; then
   cp -a "$work/." "$theme_dir/"

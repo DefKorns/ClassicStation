@@ -2,28 +2,47 @@
 	<formatVersion>3</formatVersion>
 
 	<variables>
-		<titleX>0.0922</titleX>
-		<titleW>0.8156</titleW>
-		<helpY>0.8458</helpY>
+		<titleX>0.092188</titleX>
+		<titleW>0.815625</titleW>
+		<helpY>0.845833</helpY>
 		<helpIcon>0.05</helpIcon>
-		<gridX>0</gridX>
-		<tileBleed>-0.0016</tileBleed>
-		<slotsX>0.015625</slotsX>
-		<playersY>0.377778</playersY>
-		<playersSize>0.051563 0.058333</playersSize>
+		<gridX>-0.011719</gridX>
+		<tileBleed>-0.003906</tileBleed>
+		<slotsX>0.017969</slotsX>
+		<playersY>0.373611</playersY>
+		<playersSize>0.051562 0.058333</playersSize>
 		<helpText>FFFFFF</helpText>
 		<titleText>000000</titleText>
 		<spaceText>4D4F53</spaceText>
 		<barLogo>false</barLogo>
-		<tilePadding>0.009375 0.0847</tilePadding>
-		<thumbPos>0.5023 0.7708</thumbPos>
-		<thumbSize>0.025 0.0444</thumbSize>
-		<arrowPos>0.5023 0.7264</arrowPos>
+		<tilePadding>0.013281 0.084722</tilePadding>
+		<thumbPos>0.5 0.765278</thumbPos>
+		<thumbSize>0.03125 0.041667</thumbSize>
+		<arrowPos>0.5 0.727778</arrowPos>
 		<barLogoColor>4D4F53</barLogoColor>
-		<nandIconPos>0.09 0.083333</nandIconPos>
-		<nandTextPos>0.1025 0.0639</nandTextPos>
-		<diskIconPos>0.18 0.083333</diskIconPos>
-		<diskTextPos>0.1925 0.0639</diskTextPos>
 		<imageOnTop>true</imageOnTop>
+		<titleY>0.201389</titleY>
+		<titleH>0.091667</titleH>
+		<gridW>1.023438</gridW>
+		<gridY>0.238889</gridY>
+		<slotsY>0.394444</slotsY>
+		<playersX>0.139844</playersX>
+		<savePos>0.1 0.373611</savePos>
+		<saveSize>0.042188 0.058333</saveSize>
+		<wallBack>666E66</wallBack>
+		<thumbCount>21</thumbCount>
+		<nandIconPos>0.071875 0.083333</nandIconPos>
+		<nandTextPos>0.0836 0.0639</nandTextPos>
+		<diskIconPos>0.144531 0.083333</diskIconPos>
+		<diskTextPos>0.157 0.0639</diskTextPos>
+		<swapIconPos>0.21875 0.083333</swapIconPos>
+		<swapTextPos>0.232 0.0639</swapTextPos>
+		<overclockPath>./led_overclock.png</overclockPath>
+		<overclockPos>0 0.875</overclockPos>
+		<overclockSize>1 0.166667</overclockSize>
+		<overclockOrigin>0 0</overclockOrigin>
+		<overclockZ>6</overclockZ>
+		<overclockColor>FFFFFF</overclockColor>
+		<detailText>FFFFFF</detailText>
 	</variables>
 </theme>

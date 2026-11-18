@@ -2,28 +2,44 @@
 	<formatVersion>3</formatVersion>
 
 	<variables>
-		<titleX>0.0992</titleX>
-		<titleW>0.8016</titleW>
+		<titleX>0.099219</titleX>
+		<titleW>0.801562</titleW>
 		<helpY>0.85</helpY>
 		<helpIcon>0.041667</helpIcon>
-		<gridX>0.0023</gridX>
-		<tileBleed>-0.0039</tileBleed>
+		<gridX>0</gridX>
+		<tileBleed>-0.003906</tileBleed>
 		<slotsX>0.021875</slotsX>
-		<playersY>0.386111</playersY>
-		<playersSize>0.04453 0.045833</playersSize>
+		<playersY>0.381944</playersY>
+		<playersSize>0.044531 0.045833</playersSize>
 		<helpText>DB2B00</helpText>
 		<titleText>FFFFFF</titleText>
 		<spaceText>FFFFFF</spaceText>
 		<barLogo>true</barLogo>
-		<tilePadding>0.0383 0.0847</tilePadding>
-		<thumbPos>0.5023 0.7653</thumbPos>
-		<thumbSize>0.0234 0.0556</thumbSize>
-		<arrowPos>0.5023 0.7153</arrowPos>
+		<tilePadding>0.010937 0.084722</tilePadding>
+		<thumbPos>0.5 0.765278</thumbPos>
+		<thumbSize>0.03125 0.041667</thumbSize>
+		<arrowPos>0.5 0.727778</arrowPos>
 		<barLogoColor>DB2B00</barLogoColor>
 		<nandIconPos>0.859375 0.061111</nandIconPos>
 		<nandTextPos>0.871875 0.041667</nandTextPos>
 		<diskIconPos>0.859375 0.105556</diskIconPos>
 		<diskTextPos>0.871875 0.086111</diskTextPos>
 		<imageOnTop>false</imageOnTop>
+		<titleY>0.201389</titleY>
+		<titleH>0.091667</titleH>
+		<gridW>1</gridW>
+		<gridY>0.238889</gridY>
+		<slotsY>0.394444</slotsY>
+		<playersX>0.1375</playersX>
+		<thumbCount>30</thumbCount>
+		<swapIconPos>0.78 0.083333</swapIconPos>
+		<swapTextPos>0.7922 0.0639</swapTextPos>
+		<overclockPath>:/menu_overclock.svg</overclockPath>
+		<overclockPos>0.73 0.083333</overclockPos>
+		<overclockSize>0.019531 0.034722</overclockSize>
+		<overclockOrigin>0.5 0.5</overclockOrigin>
+		<overclockZ>70</overclockZ>
+		<overclockColor>DB2B00</overclockColor>
+		<detailText>FFFFFF</detailText>
 	</variables>
 </theme>

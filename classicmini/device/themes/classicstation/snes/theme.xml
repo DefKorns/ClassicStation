@@ -8,17 +8,17 @@
 		<image name="bar_logo" extra="true">
 			<visible>${barLogo}</visible>
 			<path>./../assets/systems/logos/snes.svg</path>
-			<pos>0.0602 0.8875</pos>
-			<maxSize>0.3211 0.0694</maxSize>
-			<origin>0 0</origin>
+			<pos>${barLogoPos}</pos>
+			<maxSize>${barLogoMax}</maxSize>
+			<origin>0.5 0.5</origin>
 		</image>
 	</view>
 
 	<view name="grid">
 		<image name="tile_save">
 			<path>./../save_icon.png</path>
-			<pos>0.0977 0.377778</pos>
-			<size>0.0422 0.0583</size>
+			<pos>${savePos}</pos>
+			<size>${saveSize}</size>
 			<origin>0 0</origin>
 		</image>
 	</view>
@@ -27,9 +27,9 @@
 		<image name="bar_logo" extra="true">
 			<visible>${barLogo}</visible>
 			<path>./../assets/systems/logos/snes.svg</path>
-			<pos>0.0602 0.8875</pos>
-			<maxSize>0.3211 0.0694</maxSize>
-			<origin>0 0</origin>
+			<pos>${barLogoPos}</pos>
+			<maxSize>${barLogoMax}</maxSize>
+			<origin>0.5 0.5</origin>
 		</image>
 	</view>
 </theme>
