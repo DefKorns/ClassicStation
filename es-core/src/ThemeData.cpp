@@ -215,6 +215,12 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "logoAlignment", STRING },
 		{ "maxLogoCount", FLOAT },
 		{ "scrollDuration", FLOAT },
+		{ "cardPath", PATH },
+		{ "cardActivePath", PATH },
+		{ "cardSize", NORMALIZED_PAIR },
+		{ "cardOffset", NORMALIZED_PAIR },
+		{ "chipPath", PATH },
+		{ "chipActivePath", PATH },
 		{ "zIndex", FLOAT },
 		{ "scrollSound", PATH } } }
 };

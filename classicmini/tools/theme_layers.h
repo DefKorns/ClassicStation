@@ -88,6 +88,8 @@ namespace theme_layers
 		int titleWidth = 1004;
 		int titleHeight = 53;
 		int cardScale = 3;
+		int chipWidth = 84;
+		int chipHeight = 33;
 		Rect cardWindow{49, 5, 148, 204};
 		int cardExtraTop = 56;
 		int barScale = 3;
@@ -320,6 +322,21 @@ namespace theme_layers
 		for(int y = window.y; y < window.y + window.h; ++y)
 			for(int x = window.x; x < window.x + window.w; ++x)
 				std::fill_n(result.at(x, y + extraTop), 4, static_cast<unsigned char>(0));
+		return result;
+	}
+
+	inline Image badgeShape(const Image& badge, int width, int height, int notch)
+	{
+		Image result(width, height);
+		const unsigned char* colour = badge.at(badge.width() / 2, 1);
+		for(int y = 0; y < height; ++y)
+			for(int x = 0; x < width; ++x)
+			{
+				const bool cornerX = x < notch || x >= width - notch;
+				const bool cornerY = y < notch || y >= height - notch;
+				if(!(cornerX && cornerY))
+					std::copy_n(colour, 4, result.at(x, y));
+			}
 		return result;
 	}
 
@@ -590,6 +607,13 @@ namespace theme_layers
 				layers.push_back({"players_many_active", scale(sprite(sheet, atlas, "icon_1P-2P_active"), 3)});
 			}
 		}
+		if(atlas.find("icon_1P.png") != atlas.end() && atlas.find("icon_1P_active.png") != atlas.end())
+		{
+			layers.push_back({"system_chip", badgeShape(sprite(sheet, atlas, "icon_1P"), options.chipWidth, options.chipHeight, 3)});
+			layers.push_back({"system_chip_active", badgeShape(sprite(sheet, atlas, "icon_1P_active"), options.chipWidth, options.chipHeight, 3)});
+		}
+		layers.push_back({"system_card", scale(sprite(sheet, atlas, "game_card"), options.cardScale)});
+		layers.push_back({"system_card_active", scale(sprite(sheet, atlas, "game_card_active"), options.cardScale)});
 		return layers;
 	}
 

@@ -477,9 +477,29 @@
 
 	<view name="system">
 		<image name="logo">
-			<path>./assets/systems/logos/${system.theme}.svg</path>
-			<color>FFFFFF</color>
+			<path>./assets/systems/cards/${system.theme}.png</path>
 		</image>
+
+		<text name="systemCardMaker">
+			<pos>0.010938 0.308333</pos>
+			<size>0.101563 0.047222</size>
+			<fontSize>0.0306</fontSize>
+			<color>6E6E6E</color>
+			<alignment>left</alignment>
+		</text>
+
+		<text name="systemCardYear">
+			<pos>0.115625 0.308333</pos>
+			<size>0.065625 0.045833</size>
+			<fontSize>0.0306</fontSize>
+			<color>FFFFFF</color>
+			<alignment>center</alignment>
+		</text>
+
+		<text name="logoText">
+			<color>1C1C1C</color>
+			<fontSize>0.04</fontSize>
+		</text>
 
 		<image name="menubar_top" extra="true">
 			<path>./menubar_top.png</path>
@@ -522,13 +542,19 @@
 
 		<carousel name="systemcarousel">
 			<type>horizontal</type>
-			<pos>-0.05 0.3</pos>
-			<size>1.1 0.4</size>
-			<logoSize>0.2 0.3</logoSize>
-			<logoScale>1.2</logoScale>
+			<pos>0.0023 0.220833</pos>
+			<size>1 0.5</size>
+			<logoSize>0.178125 0.283333</logoSize>
+			<logoScale>1</logoScale>
 			<logoAlignment>center</logoAlignment>
 			<maxLogoCount>5</maxLogoCount>
 			<scrollDuration>500</scrollDuration>
+			<cardPath>./system_card.png</cardPath>
+			<cardActivePath>./system_card_active.png</cardActivePath>
+			<cardSize>0.192188 0.375</cardSize>
+			<cardOffset>0 0.033333</cardOffset>
+			<chipPath>./system_chip.png</chipPath>
+			<chipActivePath>./system_chip_active.png</chipActivePath>
 			<color>00000000</color>
 			<zIndex>40</zIndex>
 		</carousel>

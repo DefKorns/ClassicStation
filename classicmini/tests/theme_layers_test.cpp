@@ -189,7 +189,7 @@ namespace
 		for(const Family family : {Family::A, Family::B})
 		{
 			const std::vector<Layer> layers = buildLayers(sheet, atlas, family, Options{});
-			check(layers.size() == 19, "nineteen layers without the player badges");
+			check(layers.size() == 21, "twenty-one layers without the player badges");
 			check(layers[0].name == "rating_filled" && layers[0].image.width() == 24 && layers[0].image.height() == 24, "rating icon scaled by 3 with a margin");
 			check(layers[2].name == "list_row" && layers[2].image.width() == 538 && layers[2].image.height() == 57, "row frame size");
 			check(layers[3].name == "list_selector" && layers[3].image.width() == 546 && layers[3].image.height() == 66, "selector frame size");

@@ -19,6 +19,10 @@ const int logoBuffersRight[] = { 1, 2, 5 };
 SystemView::SystemView(Window* window) : IList<SystemViewData, SystemData*>(window, LIST_SCROLL_STYLE_SLOW, LIST_ALWAYS_LOOP),
 										 mViewNeedsReload(true),
 										 mSystemInfo(window, "SYSTEM INFO", Font::get(FONT_SIZE_SMALL), 0x33333300, ALIGN_CENTER),
+										 mCard(window),
+										 mCardActive(window),
+										 mChip(window),
+										 mChipActive(window),
 										 mHeaderStatus(window),
 										 mIconBar(window)
 {
@@ -104,6 +108,19 @@ void SystemView::populate()
 
 			Vector2f denormalized = mCarousel.logoSize * e.data.logo->getOrigin();
 			e.data.logo->setPosition(denormalized.x(), denormalized.y(), 0.0);
+
+			if (!(*it)->getManufacturer().empty() && !(*it)->getYear().empty() && theme->getElement("system", "systemCardMaker", "text"))
+			{
+				e.data.maker = std::make_shared<TextComponent>(mWindow);
+				e.data.maker->applyTheme(theme, "system", "systemCardMaker", ThemeFlags::ALL ^ ThemeFlags::TEXT);
+				e.data.maker->setText((*it)->getManufacturer());
+				e.data.year = std::make_shared<TextComponent>(mWindow);
+				e.data.year->applyTheme(theme, "system", "systemCardYear", ThemeFlags::ALL ^ ThemeFlags::TEXT);
+				e.data.year->setText((*it)->getYear());
+				mChip.setResize(e.data.year->getSize());
+				mChipActive.setResize(e.data.year->getSize());
+			}
+
 			// delete any existing extras
 			for (auto extra : e.data.backgroundExtras)
 				delete extra;
@@ -617,6 +634,21 @@ void SystemView::renderCarousel(const Transform4x4f& trans)
 
 		int opacity = (int)Math::round(0x80 + ((0xFF - 0x80) * (1.0f - fabs(distance))));
 		opacity = Math::max((int) 0x80, opacity);
+		if (mCarousel.hasCards)
+			opacity = 0xFF;
+
+		const float active = Math::max(0.0f, 1.0f - fabs(distance));
+		Transform4x4f cardTrans = logoTrans;
+		if (mCarousel.hasCards)
+		{
+			cardTrans.translate(Vector3f(mCarousel.logoSize.x() / 2.0f + mCarousel.cardOffset.x(), mCarousel.logoSize.y() / 2.0f + mCarousel.cardOffset.y(), 0));
+			mCard.render(cardTrans);
+			if (active > 0.0f)
+			{
+				mCardActive.setOpacity((unsigned char)Math::round(active * 255.0f));
+				mCardActive.render(cardTrans);
+			}
+		}
 
 		const std::shared_ptr<GuiComponent> &comp = mEntries.at(index).data.logo;
 		if (mCarousel.type == VERTICAL_WHEEL || mCarousel.type == HORIZONTAL_WHEEL) {
@@ -626,6 +658,23 @@ void SystemView::renderCarousel(const Transform4x4f& trans)
 		comp->setScale(scale);
 		comp->setOpacity((unsigned char)opacity);
 		comp->render(logoTrans);
+
+		const SystemViewData& data = mEntries.at(index).data;
+		if (mCarousel.hasCards && data.maker && data.year)
+		{
+			Transform4x4f footerTrans = cardTrans;
+			footerTrans.translate(Vector3f(-mCarousel.cardSize.x() / 2.0f, -mCarousel.cardSize.y() / 2.0f, 0));
+			data.maker->render(footerTrans);
+			Transform4x4f chipTrans = footerTrans;
+			chipTrans.translate(Vector3f(data.year->getPosition().x(), data.year->getPosition().y(), 0));
+			mChip.render(chipTrans);
+			if (active > 0.0f)
+			{
+				mChipActive.setOpacity((unsigned char)Math::round(active * 255.0f));
+				mChipActive.render(chipTrans);
+			}
+			data.year->render(footerTrans);
+		}
 	}
 	Renderer::popClipRect();
 }
@@ -713,6 +762,9 @@ void  SystemView::getDefaultElements(void)
 	mCarousel.maxLogoCount = 3;
 	mCarousel.scrollDuration = 500;
 	mCarousel.zIndex = 40;
+	mCarousel.hasCards = false;
+	mCarousel.cardSize = Vector2f::Zero();
+	mCarousel.cardOffset = Vector2f::Zero();
 
 	// System Info Bar
 	mSystemInfo.setSize(mSize.x(), mSystemInfo.getFont()->getLetterHeight()*2.2f);
@@ -780,6 +832,24 @@ void SystemView::getCarouselFromTheme(const ThemeData::ThemeElement* elem)
 			mCarousel.logoAlignment = ALIGN_BOTTOM;
 		else
 			mCarousel.logoAlignment = ALIGN_CENTER;
+	}
+	if (elem->has("cardPath") && elem->has("cardActivePath") && elem->has("cardSize"))
+	{
+		mCard.setImage(elem->get<std::string>("cardPath"));
+		mCardActive.setImage(elem->get<std::string>("cardActivePath"));
+		mCarousel.cardSize = elem->get<Vector2f>("cardSize") * mSize;
+		mCard.setOrigin(0.5f, 0.5f);
+		mCardActive.setOrigin(0.5f, 0.5f);
+		mCard.setResize(mCarousel.cardSize);
+		mCardActive.setResize(mCarousel.cardSize);
+		mCarousel.hasCards = true;
+	}
+	if (elem->has("cardOffset"))
+		mCarousel.cardOffset = elem->get<Vector2f>("cardOffset") * mSize;
+	if (elem->has("chipPath") && elem->has("chipActivePath"))
+	{
+		mChip.setImage(elem->get<std::string>("chipPath"));
+		mChipActive.setImage(elem->get<std::string>("chipActivePath"));
 	}
 	if (elem->has("scrollSound"))
 		mScrollSound = elem->get<std::string>("scrollSound");

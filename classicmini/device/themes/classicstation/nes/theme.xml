@@ -14,9 +14,6 @@
 	</view>
 
 	<view name="system">
-		<image name="logo">
-			<path>./../assets/systems/logos/nes1.svg</path>
-		</image>
 		<image name="bar_logo" extra="true">
 			<path>./../assets/systems/logos/nes1.svg</path>
 			<pos>0.0602 0.8875</pos>
