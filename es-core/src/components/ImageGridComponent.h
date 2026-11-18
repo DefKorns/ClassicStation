@@ -111,6 +111,8 @@ private:
 	int mLastCursor;
 	std::string mDefaultGameTexture;
 	std::string mDefaultFolderTexture;
+	std::shared_ptr<TextureResource> mKeepGameTexture;
+	std::shared_ptr<TextureResource> mKeepFolderTexture;
 
 	// TILES
 	bool mLastRowPartial;
@@ -161,8 +163,10 @@ ImageGridComponent<T>::ImageGridComponent(Window* window) : IList<ImageGridData,
 
 	mEntriesDirty = true;
 	mLastCursor = 0;
-	mDefaultGameTexture = ":/cartridge.svg";
-	mDefaultFolderTexture = ":/folder.svg";
+	mDefaultGameTexture = ResourceManager::getInstance()->preferPng(":/cartridge.svg");
+	mDefaultFolderTexture = ResourceManager::getInstance()->preferPng(":/folder.svg");
+	mKeepGameTexture = TextureResource::get(mDefaultGameTexture, false, true);
+	mKeepFolderTexture = TextureResource::get(mDefaultFolderTexture, false, true);
 
 	mSize = screen * 0.80f;
 	mMargin = screen * 0.07f;
@@ -372,6 +376,7 @@ void ImageGridComponent<T>::applyTheme(const std::shared_ptr<ThemeData>& theme, 
 			{
 				std::string oldDefaultGameTexture = mDefaultGameTexture;
 				mDefaultGameTexture = path;
+				mKeepGameTexture = TextureResource::get(mDefaultGameTexture, false, true);
 
 				// mEntries are already loaded at this point,
 				// so we need to update them with new game image texture
@@ -395,6 +400,7 @@ void ImageGridComponent<T>::applyTheme(const std::shared_ptr<ThemeData>& theme, 
 			{
 				std::string oldDefaultFolderTexture = mDefaultFolderTexture;
 				mDefaultFolderTexture = path;
+				mKeepFolderTexture = TextureResource::get(mDefaultFolderTexture, false, true);
 
 				// mEntries are already loaded at this point,
 				// so we need to update them with new folder image texture
