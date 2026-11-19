@@ -41,10 +41,12 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) : Gui
 		row.elements.clear();
 		row.addElement(std::make_shared<TextComponent>(mWindow, "DISCARD UNSAVED SUSPEND POINT", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 		row.makeAcceptInputHandler([this] {
-			IGameListView* gamelist = getGamelist();
+			SystemData* system = mSystem;
 			Window* window = mWindow;
 			delete this;
-			window->pushGui(new GuiMsgBox(window, "DISCARD THE UNSAVED SUSPEND POINT?", "YES", [gamelist] { gamelist->discardFloating(); }, "NO", nullptr));
+			window->pushGui(new GuiMsgBox(window, "DISCARD THE UNSAVED SUSPEND POINT?", "YES", [system] {
+				ViewController::get()->getGameListView(system)->discardFloating();
+			}, "NO", nullptr));
 		});
 		mMenu.addRow(row);
 	}

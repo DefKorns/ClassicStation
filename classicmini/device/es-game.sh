@@ -247,17 +247,23 @@ if [ -n "$code" ]; then
   out=$volatile/$code/suspendpoint0
   floating=$volatile/$code/0
   resumed=
+  resume_dir=
   if [ "$resume" = floating ]; then
     resume=
     if [ -n "$native" ] && [ -f "$floating.state" ]; then
       resumed=$volatile/$code.resume.state
       cp "$floating.state" "$resumed"
+    elif [ -z "$native" ] && [ -d "$out" ]; then
+      resume_dir=$volatile/$code.resume.dir
+      rm -rf "$resume_dir"
+      mv "$out" "$resume_dir"
     fi
   fi
   rm -rf "$volatile"/*/suspendpoint0
   rm -f "$volatile"/*/0.state "$volatile"/*/0.state.png "$volatile"/*/0.state_time.txt
   mkdir -p "$profile/$code" "$volatile/$code"
   suspend_dir=$profile/$code/suspendpoint$resume
+  [ -n "$resume_dir" ] && suspend_dir=$resume_dir
   saved=$profile/$code/$resume
   if [ -n "$native" ]; then
     if [ ! -f "$profile/$code/save.sram" ] && [ -f "$profile/$code/cartridge.sram" ]; then
@@ -280,11 +286,11 @@ if [ -n "$code" ]; then
     case "$cmd" in
       *kachikachi*)
         cmd="$cmd --save-on-quit $out/state"
-        [ -n "$resume" ] && cmd="$cmd --load-state-file $suspend_dir/state --load-time-path $suspend_dir/state.time"
+        if [ -n "$resume" ] || [ -n "$resume_dir" ]; then cmd="$cmd --load-state-file $suspend_dir/state --load-time-path $suspend_dir/state.time"; fi
         ;;
       *)
         cmd="$cmd --rollback-mode record --rollback-output-dir $out/rollback/"
-        [ -n "$resume" ] && cmd="$cmd --load-time-path $suspend_dir//state.time --rollback-input-dir $suspend_dir/rollback/"
+        if [ -n "$resume" ] || [ -n "$resume_dir" ]; then cmd="$cmd --load-time-path $suspend_dir//state.time --rollback-input-dir $suspend_dir/rollback/"; fi
         ;;
     esac
   fi
@@ -302,6 +308,7 @@ launched=$(cut -d. -f1 /proc/uptime)
 PATH="$shim:$PATH" sh -c "$cmd"
 status=$?
 [ -n "${resumed:-}" ] && rm -f "$resumed"
+[ -n "${resume_dir:-}" ] && rm -rf "$resume_dir"
 autofireForUi
 if [ -n "$native" ] && [ -f "$floating.state" ]; then
   played=$(($(cut -d. -f1 /proc/uptime) - launched))

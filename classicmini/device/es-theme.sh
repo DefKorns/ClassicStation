@@ -107,9 +107,9 @@ if "$es_dir/theme_layers" layers "$sprites_dir/$atlas.json" "$sprites_dir/$atlas
   esac
   [ -f "$theme_dir/assets/systems/cards/originals_$original_card.png" ] && cp "$theme_dir/assets/systems/cards/originals_$original_card.png" "$theme_dir/assets/systems/cards/originals.png"
   [ "$1" = hvcj ] && [ -f "$sprites_dir/bottom_side_1280_120.png" ] && cp "$sprites_dir/bottom_side_1280_120.png" "$theme_dir/menubar_bottom_j.png"
-  if [ ! -f "$theme_dir/.es-themeset" ]; then
+  if [ ! -f "$theme_dir/.es-themeset" ] && grep -q '<string name="ThemeSet" value="simple" />' "$settings" 2>/dev/null; then
     sed -i 's|<string name="ThemeSet" value="simple" />|<string name="ThemeSet" value="classicstation" />|' "$settings"
-    : > "$theme_dir/.es-themeset"
+    grep -q '<string name="ThemeSet" value="classicstation" />' "$settings" && : > "$theme_dir/.es-themeset"
   fi
   {
     echo "$stamp"

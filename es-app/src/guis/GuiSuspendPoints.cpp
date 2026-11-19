@@ -422,7 +422,10 @@ void GuiSuspendPoints::saveSelected(SuspendPoints::SaveMode mode)
 
 void GuiSuspendPoints::confirmDelete(int slot)
 {
-	mWindow->pushGui(new GuiMsgBox(mWindow, "DELETE THIS SUSPEND POINT?", "YES", [this, slot] {
+	const std::weak_ptr<bool> alive = mAlive;
+	mWindow->pushGui(new GuiMsgBox(mWindow, "DELETE THIS SUSPEND POINT?", "YES", [this, slot, alive] {
+		if(alive.expired())
+			return;
 		UiSound::play("se_sys_delete.wav");
 		static_cast<void>(mPoints.remove(mCode, slot));
 		mSelected = slot;

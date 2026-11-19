@@ -107,6 +107,7 @@ private:
 	bool mStarted = false;
 	bool mClosing = false;
 	bool mHelpShown = false;
+	std::shared_ptr<bool> mAlive = std::make_shared<bool>(true);
 
 	Rect mPanelTheme;
 	Rect mCellTheme;
