@@ -352,7 +352,7 @@ void Settings::processBackwardCompatibility()
 		renameSetting<std::map<std::string, std::string>>(mStringMap, std::string("SlideshowScreenSaverImageDir"), std::string("SlideshowScreenSaverMediaDir"));
 	}
 
-	{ // slideshow folders moved off the home folder
+	{
 		const std::string oldDirectory = Utils::FileSystem::getHomePath() + "/.emulationstation/slideshow";
 		for(const auto& entry : { std::make_pair("SlideshowScreenSaverBackgroundAudioFile", "/audio/slideshow_bg.wav"), std::make_pair("SlideshowScreenSaverMediaDir", "/media") })
 		{
