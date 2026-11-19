@@ -396,7 +396,7 @@ float GuiSuspendPoints::slideOffset() const
 
 bool GuiSuspendPoints::isSaveKey(InputConfig* config, const Input& input) const
 {
-	return config->isMappedTo("a", input);
+	return config->isMappedTo("a", input) || (mCardFocus && config->isMappedTo("y", input));
 }
 
 void GuiSuspendPoints::saveSelected(SuspendPoints::SaveMode mode)
