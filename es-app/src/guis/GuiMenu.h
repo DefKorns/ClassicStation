@@ -8,6 +8,7 @@
 #include "components/OptionListComponent.h"
 #include "FileData.h"
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -29,7 +30,7 @@ public:
 	HelpStyle getHelpStyle() override;
 
 private:
-	enum Category { Display, System, Network, Library, Help, CategoryCount };
+	enum Category { Display, Sound, Library, Network, Tools, System, CategoryCount };
 
 	void showCategory(int category);
 	void addEntry(const char* name, unsigned int color, bool add_arrow, const std::function<void()>& func);
@@ -41,15 +42,16 @@ private:
 	void copyResourcesToUsb();
 	void openAbout();
 	void openDeveloper();
+	void openDeveloperPage(const std::map<std::string, std::string>& info);
 	void openSystemInfo();
 	void openCollectionSystemSettings();
 	void openConfigInput();
-	void openOtherSettings();
 	void openQuitMenu();
 	void openScraperSettings();
 	void openScreensaverOptions();
 	void openSoundSettings();
-	void openUISettings();
+	void openAppearanceSettings();
+	void openBehaviourSettings();
 	void openDisplaySettings();
 	void openThemeOptions(GuiComponent* parent);
 

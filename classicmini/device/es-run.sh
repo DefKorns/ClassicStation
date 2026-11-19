@@ -85,6 +85,7 @@ echo $! > /run/es-power.pid
 setsid sh "$es_dir/es-thermal-watch.sh" &
 echo $! > /run/es-thermal.pid
 mkdir -p "$es_dir/home/.emulationstation"
+[ -d /media/data ] && mkdir -p /media/data/emulationstation/slideshow/audio /media/data/emulationstation/slideshow/media
 for cfg in es_settings.cfg es_input.cfg; do
   [ -f "$es_dir/home/.emulationstation/$cfg" ] || cp "$es_dir/defaults/$cfg" "$es_dir/home/.emulationstation/"
 done

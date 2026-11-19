@@ -14,14 +14,19 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-source /etc/preinit
-script_init
+case "$1" in
+  overclock | swap | temperature | developer) ;;
+  *)
+    source /etc/preinit
+    script_init
+    ;;
+esac
 
 es_dir=/var/lib/hakchi/emulationstation
 usb_resources=/media/data/emulationstation/resources
 audio_dir=/media/data/emulationstation/audio
 audio_files="bgm_home.wav se_sys_cursor.wav se_sys_click.wav se_sys_click_short.wav se_sys_cancel.wav se_sys_click_game.wav se_sys_push.wav se_sys_attention.wav se_sys_lock.wav se_sys_unlock.wav se_sys_delete.wav"
-nand_keep="menu_display.svg menu_system.svg menu_network.svg menu_library.svg menu_help.svg menu_selected.png menu_disk.svg folder.svg opensans_hebrew_condensed_light.ttf opensans_hebrew_condensed_regular.ttf frame.png scroll_gradient.png splash.svg arrow.svg option_arrow.svg button.png button_filled.png checkbox_checked.svg checkbox_unchecked.svg on.svg off.svg slider_knob.svg textinput_ninepatch.png textinput_ninepatch_active.png star_filled.svg star_unfilled.svg busy_0.svg busy_1.svg busy_2.svg busy_3.svg window_icon_256.png help"
+nand_keep="menu_display.svg menu_system.svg menu_network.svg menu_library.svg menu_sound.svg menu_sound.png menu_help.svg menu_selected.png menu_disk.svg folder.svg opensans_hebrew_condensed_light.ttf opensans_hebrew_condensed_regular.ttf frame.png scroll_gradient.png splash.svg arrow.svg option_arrow.svg button.png button_filled.png checkbox_checked.svg checkbox_unchecked.svg on.svg off.svg slider_knob.svg textinput_ninepatch.png textinput_ninepatch_active.png star_filled.svg star_unfilled.svg busy_0.svg busy_1.svg busy_2.svg busy_3.svg window_icon_256.png help"
 home_disabled="0x7FFF"
 home_default="0x0024"
 home_prev_file=/var/lib/hakchi/emulationstation/home_combination.prev
@@ -331,6 +336,26 @@ case "$1" in
         free -m | awk '/buffers\/cache/ { free = $4 } /^Swap/ { used = $3; total = $2 } END { printf "%s MB free, swap %s / %s MB\n", free, used, total }'
         ;;
     esac
+    ;;
+  developer)
+    printf 'overclock_available=%s
+' "$(printState overclockAvailable)"
+    printf 'overclock_state=%s
+' "$(printState overclockActive)"
+    printf 'overclock_auto=%s
+' "$(printState test -f "$es_dir/overclock_auto")"
+    printf 'swap_available=%s
+' "$(printState swapAvailable)"
+    printf 'swap_state=%s
+' "$(printState swapActive)"
+    printf 'swap_size=%s
+' "$(swapSize)"
+    printf 'swap_info=%s
+' "$(sh "$0" swap info)"
+    printf 'temperature=%s
+' "$(sh "$0" temperature)"
+    printf 'cutoff=%s
+' "$(sh "$0" overclock cutoff)"
     ;;
   temperature)
     degrees=$(cat /sys/class/thermal/thermal_zone0/temp)

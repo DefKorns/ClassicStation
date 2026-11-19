@@ -23,7 +23,7 @@
 		<captionText>FFFFFFFF</captionText>
 		<barLogo>true</barLogo>
 		<nesBarPath>./../menubar_bottom.png</nesBarPath>
-		<nesBarLogo>false</nesBarLogo>
+		<nesBarLogo>true</nesBarLogo>
 		<tilePadding>0.013281 0.084722</tilePadding>
 		<thumbPos>0.5 0.765278</thumbPos>
 		<thumbSize>0.03125 0.041667</thumbSize>
@@ -56,7 +56,7 @@
 		<overclockColor>FFFFFF</overclockColor>
 		<detailText>FFFFFF</detailText>
 		<barLogoPath>./../assets/systems/logos/nes1.svg</barLogoPath>
-		<barLogoTint>FFFFFF</barLogoTint>
+		<barLogoTint>8E829D</barLogoTint>
 		<barLogoOrigin>0.5 0.5</barLogoOrigin>
 		<blankNes>:/blank_nes.png</blankNes>
 		<blankSnes>:/blank_snes-us.png</blankSnes>

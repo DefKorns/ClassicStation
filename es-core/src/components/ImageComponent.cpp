@@ -35,11 +35,22 @@ namespace
 	int sKickDirection = 1;
 	float sScrollCoast = 1.0f;
 	float sBackdropVisible = 1.0f;
+	float sHeaderLift = 0.0f;
 }
 
 void ImageComponent::setBackdropVisible(float visible)
 {
 	sBackdropVisible = visible;
+}
+
+void ImageComponent::setHeaderLift(float pixels)
+{
+	sHeaderLift = pixels;
+}
+
+float ImageComponent::headerLift()
+{
+	return sHeaderLift;
 }
 
 void ImageComponent::setScrollCoast(float factor)
@@ -509,6 +520,8 @@ void ImageComponent::render(const Transform4x4f& parentTrans)
 	}
 
 	Transform4x4f trans = parentTrans * getTransform();
+	if(mFollowHeaderLift)
+		trans.translate(Vector3f(0.0f, -sHeaderLift, 0.0f));
 	Renderer::setMatrix(trans);
 
 	if(mHideOnSuspend)
@@ -590,7 +603,7 @@ void ImageComponent::fadeIn(bool textureLoaded)
 	}
 }
 
-bool ImageComponent::hasImage()
+bool ImageComponent::hasImage() const
 {
 	return (bool)mTexture;
 }
@@ -633,6 +646,8 @@ void ImageComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const s
 		mScrollSpeed = elem->get<float>("scrollSpeed");
 	if(elem->has("hideOnSuspend"))
 		mHideOnSuspend = elem->get<bool>("hideOnSuspend");
+	if(elem->has("followHeaderLift"))
+		mFollowHeaderLift = elem->get<bool>("followHeaderLift");
 	if(properties & COLOR)
 	{
 		if(elem->has("color"))

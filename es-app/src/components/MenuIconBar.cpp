@@ -18,8 +18,8 @@
 
 namespace
 {
-	const char* const IconPaths[] = { ":/menu_display.svg", ":/menu_system.svg", ":/menu_network.svg", ":/menu_library.svg", ":/menu_help.svg" };
-	const char* const Names[] = { "Display", "Settings", "Network", "Library", "Help" };
+	const char* const IconPaths[] = { ":/menu_display.svg", ":/menu_sound.svg", ":/menu_library.svg", ":/menu_network.svg", ":/menu_system.svg", ":/menu_help.svg" };
+	const char* const Names[] = { "Display", "Sound", "Library", "Network", "Tools", "System" };
 	constexpr float IconSizeRatio = 48.0f / 720.0f;
 	constexpr float IconStepRatio = 0.118f;
 	constexpr float IconCenterRatio = 0.075f;
@@ -27,9 +27,16 @@ namespace
 	constexpr float FrameBleed = 4.0f;
 	constexpr float ThemedFrameBleed = 16.0f;
 	constexpr float SelectedIconScale = 1.2f;
+	constexpr float FrameHalfWidth = 0.8f;
+	constexpr float NeighbourHalfWidth = 0.5f;
+	constexpr float NeighbourGap = 4.0f;
 	constexpr int FrameCorner = 10;
 	constexpr int ThemedFrameCorner = 32;
 	constexpr int ScaleMs = 200;
+	constexpr int LiftMs = 200;
+	constexpr int FlyMs = 300;
+	constexpr int FlyReturnMs = 52;
+	constexpr float LiftRatio = 5.0f / 720.0f;
 	constexpr int SlideMs = 300;
 	constexpr int CaptionDelayMs = 250;
 	constexpr int CaptionGrowMs = 200;
@@ -67,8 +74,10 @@ namespace
 	}
 }
 
+std::vector<MenuIconBar*> MenuIconBar::sBars;
+
 MenuIconBar::MenuIconBar(Window* window)
-	: GuiComponent(window), mFrame(window, ":/menu_selected.png"), mCaption(window, ":/menu_caption.png"), mCaptionArrow(window), mCaptionLabel(window)
+	: GuiComponent(window), mFrame(window, ":/menu_selected.png"), mFlyFrame(window, ":/menu_selected.png"), mCaption(window, ":/menu_caption.png"), mCaptionArrow(window), mCaptionLabel(window)
 {
 	mFrame.setCornerSize(FrameCorner, FrameCorner);
 	mCaption.setCornerSize(12, 12);
@@ -88,8 +97,16 @@ MenuIconBar::MenuIconBar(Window* window)
 		mScaleTo[index] = 1.0f;
 		mScaleMs[index] = ScaleMs;
 	}
+	sBars.push_back(this);
+	mLiftMs = LiftMs;
 	layout();
 	retarget(true);
+}
+
+MenuIconBar::~MenuIconBar()
+{
+	sBars.erase(std::remove(sBars.begin(), sBars.end(), this), sBars.end());
+	publishLift();
 }
 
 bool MenuIconBar::animated() const
@@ -105,6 +122,55 @@ float MenuIconBar::scaleOf(std::size_t index) const
 float MenuIconBar::frameCentre() const
 {
 	return animated() ? eased(mFrameFrom, mFrameTo, mFrameMs, SlideMs) : mFrameTo;
+}
+
+void MenuIconBar::flyFromCard(const Vector4f& card)
+{
+	if(!mThemed || !animated())
+		return;
+	mFlyCard = card;
+	mFlyToIcon = true;
+	mFlyMs = 0;
+	mFlying = true;
+}
+
+void MenuIconBar::flyToCard(const Vector4f& card)
+{
+	if(!mThemed || !animated())
+		return;
+	mFlyCard = card;
+	mFlyToIcon = false;
+	mFlyMs = 0;
+	mFlying = true;
+}
+
+float MenuIconBar::liftNow() const
+{
+	if(!animated())
+		return mLiftTo;
+	return mLiftFrom + (mLiftTo - mLiftFrom) * std::min(1.0f, static_cast<float>(mLiftMs) / static_cast<float>(LiftMs));
+}
+
+void MenuIconBar::publishLift()
+{
+	float lift = 0.0f;
+	for(const MenuIconBar* bar : sBars)
+		if(bar->mThemed)
+			lift = std::max(lift, bar->liftNow());
+	ImageComponent::setHeaderLift(lift);
+}
+
+void MenuIconBar::setLifted(bool lifted, bool animate)
+{
+	mLifted = lifted;
+	const float target = mThemed && lifted ? LiftRatio * static_cast<float>(Renderer::getScreenHeight()) : 0.0f;
+	if(target == mLiftTo)
+		return;
+	mLiftFrom = animate ? liftNow() : target;
+	mLiftTo = target;
+	mLiftMs = animate ? 0 : LiftMs;
+	layout();
+	publishLift();
 }
 
 float MenuIconBar::captionScale() const
@@ -170,6 +236,7 @@ void MenuIconBar::applyTheme(const std::shared_ptr<ThemeData>& theme, const std:
 	}
 	layout();
 	retarget(true);
+	setLifted(mLifted, false);
 }
 
 void MenuIconBar::layout()
@@ -177,11 +244,12 @@ void MenuIconBar::layout()
 	const float width = static_cast<float>(Renderer::getScreenWidth());
 	const float height = static_cast<float>(Renderer::getScreenHeight());
 	const float count = static_cast<float>(mIcons.size());
-	mSize = mThemed ? mBoxSize.y() : height * IconSizeRatio;
 	mStep = mThemed ? mBoxSize.x() / count : height * IconStepRatio;
+	const float fit = mThemed ? std::max(0.1f, std::min(1.0f, (mStep - NeighbourGap) / ((FrameHalfWidth + NeighbourHalfWidth) * mBoxSize.y() + ThemedFrameBleed))) : 1.0f;
+	mSize = mThemed ? mBoxSize.y() * fit : height * IconSizeRatio;
 	mLeft = mThemed ? mBoxPos.x() : width * FirstCenterRatio - mStep / 2;
-	mCenterY = mThemed ? mBoxPos.y() + mBoxSize.y() / 2 : height * IconCenterRatio;
-	const float bleed = mThemed ? ThemedFrameBleed : FrameBleed;
+	mCenterY = (mThemed ? mBoxPos.y() + mBoxSize.y() / 2 : height * IconCenterRatio) - liftNow();
+	const float bleed = mThemed ? ThemedFrameBleed * fit : FrameBleed;
 
 	for (std::size_t index = 0; index < mIcons.size(); ++index)
 	{
@@ -219,6 +287,18 @@ void MenuIconBar::update(int deltaTime)
 		mFrameMs += deltaTime;
 		busy = true;
 	}
+	if(mLiftMs < LiftMs)
+	{
+		mLiftMs += deltaTime;
+		busy = true;
+	}
+	if(mFlying)
+	{
+		mFlyMs += deltaTime;
+		if(mFlyMs >= FlyMs || (!mFlyToIcon && mFlyMs > FlyReturnMs))
+			mFlying = false;
+		busy = true;
+	}
 	if(mFrameVisible)
 	{
 		mCaptionMs += deltaTime;
@@ -228,7 +308,10 @@ void MenuIconBar::update(int deltaTime)
 		mFrame.setEdgeColor(colour);
 	}
 	if(busy)
+	{
 		layout();
+		publishLift();
+	}
 }
 
 void MenuIconBar::render(const Transform4x4f& parentTrans)
@@ -236,7 +319,23 @@ void MenuIconBar::render(const Transform4x4f& parentTrans)
 	if (!mThemed)
 		return;
 
-	if (mFrameVisible)
+	if (mFlying)
+	{
+		const float time = std::min(1.0f, static_cast<float>(mFlyMs) / static_cast<float>(FlyMs));
+		const float t = mFlyToIcon ? outExpo(time) : 1.0f - outExpo(time);
+		const Vector3f iconPos = mFrame.getPosition();
+		const Vector2f iconSize = mFrame.getSize();
+		const float x = mFlyCard.x() + (iconPos.x() - mFlyCard.x()) * t;
+		const float y = mFlyCard.y() + (iconPos.y() - mFlyCard.y()) * t;
+		const float w = mFlyCard.z() + (iconSize.x() - mFlyCard.z()) * t;
+		const float h = mFlyCard.w() + (iconSize.y() - mFlyCard.w()) * t;
+		mFlyFrame.setEdgeColor(pulseColour(mPulseMs));
+		mFlyFrame.setCornerSize(ThemedFrameCorner, ThemedFrameCorner);
+		mFlyFrame.setSize(w, h);
+		mFlyFrame.setPosition(x, y);
+		mFlyFrame.render(parentTrans);
+	}
+	else if (mFrameVisible)
 		mFrame.render(parentTrans);
 	for (const auto& icon : mIcons)
 		icon->render(parentTrans);

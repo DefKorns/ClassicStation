@@ -187,9 +187,39 @@ void SystemView::goToSystem(SystemData* system, bool animate)
 
 void SystemView::setHeaderFocus(bool focus)
 {
+	const bool wasFocused = mHeaderFocus;
 	mHeaderFocus = focus && mIconBar.shown();
 	mIconBar.setFrameVisible(focus);
+	mIconBar.setLifted(focus, true);
+	if(mHeaderFocus && !wasFocused)
+	{
+		Vector4f card;
+		if(activeCardRect(card))
+			mIconBar.flyFromCard(card);
+		mCardHidden = true;
+		mCardGlow = 0.0f;
+		mCardRestorePending = false;
+	}
+	else if(!mHeaderFocus && wasFocused)
+	{
+		Vector4f card;
+		if(activeCardRect(card))
+			mIconBar.flyToCard(card);
+		mCardRestorePending = true;
+	}
 	updateHelpPrompts();
+}
+
+bool SystemView::activeCardRect(Vector4f& rect) const
+{
+	if(!mCarousel.hasCards || (mCarousel.type != HORIZONTAL && mCarousel.type != HORIZONTAL_WHEEL))
+		return false;
+	const float originX = mCarousel.pos.x() - mCarousel.origin.x() * mCarousel.size.x();
+	const float originY = mCarousel.pos.y() - mCarousel.origin.y() * mCarousel.size.y();
+	const float centreX = originX + mCarousel.size.x() / 2.0f + mCarousel.cardOffset.x();
+	const float centreY = originY + mCarousel.size.y() / 2.0f + mCarousel.cardOffset.y();
+	rect = Vector4f(centreX - mCarousel.cardSize.x() / 2.0f, centreY - mCarousel.cardSize.y() / 2.0f, mCarousel.cardSize.x(), mCarousel.cardSize.y());
+	return true;
 }
 
 void SystemView::openHeaderMenu()
@@ -307,6 +337,13 @@ bool SystemView::input(InputConfig* config, Input input)
 
 void SystemView::update(int deltaTime)
 {
+	if(mCardRestorePending && !mIconBar.flying())
+	{
+		mCardHidden = false;
+		mCardRestorePending = false;
+	}
+	if(!mCardHidden && mCardGlow < 1.0f)
+		mCardGlow = std::min(1.0f, mCardGlow + static_cast<float>(deltaTime) / 120.0f);
 	listUpdate(deltaTime);
 	GuiComponent::update(deltaTime);
 	mHeaderStatus.update(deltaTime);
@@ -671,7 +708,7 @@ void SystemView::renderCarousel(const Transform4x4f& trans)
 		if (mCarousel.hasCards)
 			opacity = 0xFF;
 
-		const float active = Math::max(0.0f, 1.0f - fabs(distance));
+		const float active = Math::max(0.0f, 1.0f - fabs(distance)) * mCardGlow;
 		Transform4x4f cardTrans = logoTrans;
 		if (mCarousel.hasCards)
 		{
@@ -926,4 +963,13 @@ void SystemView::onShow()
 void SystemView::onHide()
 {
 	mShowing = false;
+	if(mHeaderFocus || mCardRestorePending)
+	{
+		mHeaderFocus = false;
+		mCardRestorePending = false;
+		mCardHidden = false;
+		mCardGlow = 1.0f;
+		mIconBar.setFrameVisible(false);
+		mIconBar.setLifted(false, false);
+	}
 }

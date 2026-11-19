@@ -10,6 +10,16 @@
 
 Settings* Settings::sInstance = NULL;
 
+namespace
+{
+	std::string slideshowDirectory()
+	{
+		return Utils::FileSystem::isDirectory("/media/data")
+			? "/media/data/emulationstation/slideshow"
+			: Utils::FileSystem::getHomePath() + "/.emulationstation/slideshow";
+	}
+}
+
 // these values are NOT saved to es_settings.xml
 // since they're set through command-line arguments, and not the in-program settings menu
 std::vector<const char*> settings_dont_save {
@@ -130,9 +140,9 @@ void Settings::setDefaults()
 
 	mIntMap["ScreenSaverSwapMediaTimeout"] = 10000;
 	mBoolMap["SlideshowScreenSaverStretch"] = false;
-	mStringMap["SlideshowScreenSaverBackgroundAudioFile"] = Utils::FileSystem::getHomePath() + "/.emulationstation/slideshow/audio/slideshow_bg.wav";
+	mStringMap["SlideshowScreenSaverBackgroundAudioFile"] = slideshowDirectory() + "/audio/slideshow_bg.wav";
 	mBoolMap["SlideshowScreenSaverCustomMediaSource"] = false;
-	mStringMap["SlideshowScreenSaverMediaDir"] = Utils::FileSystem::getHomePath() + "/.emulationstation/slideshow/media";
+	mStringMap["SlideshowScreenSaverMediaDir"] = slideshowDirectory() + "/media";
 	mStringMap["SlideshowScreenSaverImageFilter"] = ".png,.jpg";
 	mStringMap["SlideshowScreenSaverVideoFilter"] = ".mp4,.avi";
 	mBoolMap["SlideshowScreenSaverRecurse"] = false;
@@ -340,6 +350,16 @@ void Settings::processBackwardCompatibility()
 		renameSetting<std::map<std::string, int>>(mIntMap, std::string("ScreenSaverSwapImageTimeout"), std::string("ScreenSaverSwapMediaTimeout"));
 		renameSetting<std::map<std::string, bool>>(mBoolMap, std::string("SlideshowScreenSaverCustomImageSource"), std::string("SlideshowScreenSaverCustomMediaSource"));
 		renameSetting<std::map<std::string, std::string>>(mStringMap, std::string("SlideshowScreenSaverImageDir"), std::string("SlideshowScreenSaverMediaDir"));
+	}
+
+	{
+		const std::string oldDirectory = Utils::FileSystem::getHomePath() + "/.emulationstation/slideshow";
+		for(const auto& entry : { std::make_pair("SlideshowScreenSaverBackgroundAudioFile", "/audio/slideshow_bg.wav"), std::make_pair("SlideshowScreenSaverMediaDir", "/media") })
+		{
+			auto it = mStringMap.find(entry.first);
+			if(it != mStringMap.end() && it->second == oldDirectory + entry.second)
+				it->second = slideshowDirectory() + entry.second;
+		}
 	}
 }
 

@@ -81,7 +81,7 @@ void GridTileComponent::render(const Transform4x4f& parentTrans)
 		mImage->setFadeEnabled(!sSmoothLoading);
 		if((!sSmoothLoading || !mImage->isAsyncPending()) && (backing & 0xFF) != 0)
 			Renderer::drawRect(-size.x() / 2.0f, -size.y() / 2.0f, size.x(), size.y(), backing, backing);
-		const float brightness = mSelected ? 1.0f : sUnselectedBrightness;
+		const float brightness = lit() ? 1.0f : sUnselectedBrightness;
 		const unsigned int imageColor = scaled(mCurrentProperties.mImageColor, brightness);
 		const unsigned int centerColor = scaled(mCurrentProperties.mBackgroundCenterColor, brightness);
 		const unsigned int edgeColor = scaled(mCurrentProperties.mBackgroundEdgeColor, brightness);
@@ -270,6 +270,23 @@ void GridTileComponent::setImage(const std::shared_ptr<TextureResource>& texture
 	resize();
 }
 
+void GridTileComponent::setCursorHidden(bool hidden)
+{
+	mCursorHidden = hidden;
+}
+
+bool GridTileComponent::lit() const
+{
+	return mSelected && !mCursorHidden;
+}
+
+void GridTileComponent::refreshHighlight()
+{
+	if (mOverlay)
+		mOverlay->setSelected(lit());
+	resize();
+}
+
 void GridTileComponent::setSelected(bool selected, bool allowAnimation, Vector3f* pPosition, bool force)
 {
 	if (mSelected == selected && !force)
@@ -279,7 +296,7 @@ void GridTileComponent::setSelected(bool selected, bool allowAnimation, Vector3f
 
 	mSelected = selected;
 	if (mOverlay)
-		mOverlay->setSelected(selected);
+		mOverlay->setSelected(selected && !mCursorHidden);
 
 	if (selected)
 	{
@@ -384,42 +401,48 @@ unsigned int mixColors(unsigned int first, unsigned int second, float percent)
 
 void GridTileComponent::calcCurrentProperties()
 {
-	mCurrentProperties = mSelected ? mSelectedProperties : mDefaultProperties;
+	mCurrentProperties = lit() ? mSelectedProperties : mDefaultProperties;
 
-	float zoomPercentInverse = 1.0 - mSelectedZoomPercent;
+	const float zoomPercent = lit() ? mSelectedZoomPercent : 0.0f;
+	float zoomPercentInverse = 1.0 - zoomPercent;
 
-	if (mSelectedZoomPercent != 0.0f && mSelectedZoomPercent != 1.0f) {
+	if (zoomPercent != 0.0f && zoomPercent != 1.0f) {
 		if (mDefaultProperties.mSize != mSelectedProperties.mSize) {
-			mCurrentProperties.mSize = mDefaultProperties.mSize * zoomPercentInverse + mSelectedProperties.mSize * mSelectedZoomPercent;
+			mCurrentProperties.mSize = mDefaultProperties.mSize * zoomPercentInverse + mSelectedProperties.mSize * zoomPercent;
 		}
 
 		if (mDefaultProperties.mPadding != mSelectedProperties.mPadding)
 		{
-			mCurrentProperties.mPadding = mDefaultProperties.mPadding * zoomPercentInverse + mSelectedProperties.mPadding * mSelectedZoomPercent;
+			mCurrentProperties.mPadding = mDefaultProperties.mPadding * zoomPercentInverse + mSelectedProperties.mPadding * zoomPercent;
 		}
 
 		if (mDefaultProperties.mImageColor != mSelectedProperties.mImageColor)
 		{
-			mCurrentProperties.mImageColor = mixColors(mDefaultProperties.mImageColor, mSelectedProperties.mImageColor, mSelectedZoomPercent);
+			mCurrentProperties.mImageColor = mixColors(mDefaultProperties.mImageColor, mSelectedProperties.mImageColor, zoomPercent);
 		}
 
-		mCurrentProperties.mBackgroundBleed = mDefaultProperties.mBackgroundBleed * zoomPercentInverse + mSelectedProperties.mBackgroundBleed * mSelectedZoomPercent;
+		mCurrentProperties.mBackgroundBleed = mDefaultProperties.mBackgroundBleed * zoomPercentInverse + mSelectedProperties.mBackgroundBleed * zoomPercent;
 
 		if (mDefaultProperties.mBackgroundCornerSize != mSelectedProperties.mBackgroundCornerSize)
 		{
-			mCurrentProperties.mBackgroundCornerSize = mDefaultProperties.mBackgroundCornerSize * zoomPercentInverse + mSelectedProperties.mBackgroundCornerSize * mSelectedZoomPercent;
+			mCurrentProperties.mBackgroundCornerSize = mDefaultProperties.mBackgroundCornerSize * zoomPercentInverse + mSelectedProperties.mBackgroundCornerSize * zoomPercent;
 		}
 
 		if (mDefaultProperties.mBackgroundCenterColor != mSelectedProperties.mBackgroundCenterColor)
 		{
-			mCurrentProperties.mBackgroundCenterColor = mixColors(mDefaultProperties.mBackgroundCenterColor, mSelectedProperties.mBackgroundCenterColor, mSelectedZoomPercent);
+			mCurrentProperties.mBackgroundCenterColor = mixColors(mDefaultProperties.mBackgroundCenterColor, mSelectedProperties.mBackgroundCenterColor, zoomPercent);
 		}
 
 		if (mDefaultProperties.mBackgroundEdgeColor != mSelectedProperties.mBackgroundEdgeColor)
 		{
-			mCurrentProperties.mBackgroundEdgeColor = mixColors(mDefaultProperties.mBackgroundEdgeColor, mSelectedProperties.mBackgroundEdgeColor, mSelectedZoomPercent);
+			mCurrentProperties.mBackgroundEdgeColor = mixColors(mDefaultProperties.mBackgroundEdgeColor, mSelectedProperties.mBackgroundEdgeColor, zoomPercent);
 		}
 	}
+}
+
+Vector2f GridTileComponent::getBackgroundSize() const
+{
+	return mCurrentProperties.mSize + mCurrentProperties.mBackgroundBleed * 2.0f;
 }
 
 Vector3f GridTileComponent::getBackgroundPosition()

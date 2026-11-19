@@ -25,6 +25,7 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "suspendShift", FLOAT },
 		{ "demoShift", FLOAT },
 		{ "hideOnSuspend", BOOLEAN },
+		{ "followHeaderLift", BOOLEAN },
 		{ "pos", RESOLUTION_PAIR },
 		{ "size", RESOLUTION_PAIR },
 		{ "maxSize", RESOLUTION_PAIR },

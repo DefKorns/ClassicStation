@@ -42,6 +42,8 @@ void TextComponent::setColor(unsigned int color)
 {
 	mColor = color;
 	mColorOpacity = mColor & 0x000000FF;
+	if(mOpacity != 255)
+		mColor = (mColor & 0xFFFFFF00) | static_cast<unsigned char>(static_cast<float>(mOpacity) / 255.f * static_cast<float>(mColorOpacity));
 	onColorChanged();
 }
 

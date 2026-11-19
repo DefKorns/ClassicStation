@@ -56,6 +56,7 @@
 			<path>./menubar_top.png</path>
 			<pos>0 -0.033333</pos>
 			<size>1 0.166667</size>
+			<followHeaderLift>true</followHeaderLift>
 			<zIndex>5</zIndex>
 		</image>
 		<image name="menubar_bottom" extra="true">
@@ -92,6 +93,7 @@
 			<path>./ui/menu_strip.png</path>
 			<pos>0.3125 -0.033333</pos>
 			<size>0.375 0.166667</size>
+			<followHeaderLift>true</followHeaderLift>
 			<zIndex>6</zIndex>
 		</image>
 
@@ -673,6 +675,7 @@
 			<path>./menubar_top.png</path>
 			<pos>0 -0.033333</pos>
 			<size>1 0.166667</size>
+			<followHeaderLift>true</followHeaderLift>
 			<zIndex>5</zIndex>
 		</image>
 		<image name="menubar_bottom" extra="true">
@@ -695,6 +698,7 @@
 			<path>./ui/menu_strip.png</path>
 			<pos>0.3125 -0.033333</pos>
 			<size>0.375 0.166667</size>
+			<followHeaderLift>true</followHeaderLift>
 			<zIndex>6</zIndex>
 		</image>
 

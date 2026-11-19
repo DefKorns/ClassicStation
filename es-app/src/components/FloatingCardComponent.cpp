@@ -148,10 +148,6 @@ void FloatingCardComponent::render(const Transform4x4f& parentTrans)
 		part(FrameSmall).render(trans);
 		part(wingB ? WingSmallLeftB : WingSmallLeftA).render(trans);
 		part(wingB ? WingSmallRightB : WingSmallRightA).render(trans);
-		const int phase = mElapsedMs % 1000;
-		ImageComponent& dpad = part(phase >= 17 && phase < 517 ? DownB : DownA);
-		dpad.setOrigin(0.5f, 0.5f);
-		dpad.setPosition(part(IconBack).getPosition());
-		dpad.render(trans);
+		part(IconBack).render(trans);
 	}
 }

@@ -233,10 +233,49 @@ bool BasicGameListView::input(InputConfig* config, Input input)
 	return ISimpleGameListView::input(config, input);
 }
 
+void BasicGameListView::update(int deltaTime)
+{
+	if(mListRestorePending && !mIconBar.flying())
+	{
+		mList.setCursorHidden(false);
+		mListRestorePending = false;
+	}
+	ISimpleGameListView::update(deltaTime);
+}
+
+void BasicGameListView::onHide()
+{
+	ISimpleGameListView::onHide();
+	if(mHeaderFocus || mListRestorePending)
+	{
+		mHeaderFocus = false;
+		mListRestorePending = false;
+		mIconBar.setFrameVisible(false);
+		mIconBar.setLifted(false, false);
+		mList.setCursorHidden(false);
+	}
+}
+
 void BasicGameListView::setHeaderFocus(bool focus)
 {
+	const bool wasFocused = mHeaderFocus;
 	mHeaderFocus = focus && mIconBar.shown();
 	mIconBar.setFrameVisible(focus);
+	mIconBar.setLifted(focus, true);
+	if(mHeaderFocus && !wasFocused)
+	{
+		mRowRectValid = mList.selectedRowRect(mRowRect);
+		if(mRowRectValid)
+			mIconBar.flyFromCard(mRowRect);
+		mList.setCursorHidden(true);
+		mListRestorePending = false;
+	}
+	else if(!mHeaderFocus && wasFocused)
+	{
+		if(mRowRectValid)
+			mIconBar.flyToCard(mRowRect);
+		mListRestorePending = true;
+	}
 	updateHelpPrompts();
 }
 
