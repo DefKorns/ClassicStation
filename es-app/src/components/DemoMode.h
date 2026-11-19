@@ -128,9 +128,10 @@ private:
 	bool mTag = false;
 	bool mSkit = false;
 	bool mSkitLoaded = false;
-	bool mNaturalEnd = false;
 	int mSkitMs = 0;
 	int mSampleIndex = -1;
+	int mSampleFrame = 0;
+	bool mAmbient = false;
 	float mSampleX = 0.0f;
 	float mSampleY = 0.0f;
 	double mSkyScroll = 0.0;

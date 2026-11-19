@@ -65,7 +65,6 @@ namespace
 	constexpr float SampleSize = 144.0f;
 	constexpr float RingSize = 96.0f;
 	constexpr float DesignWidth = 1280.0f;
-	constexpr int SkitCooldownMs = 60000;
 	const char* const SkitSoundPath = "/usr/share/ui/hvc/resources/sounds/hvc/skit_sound_v65_20171205.wav";
 
 	struct RingSpot
@@ -317,8 +316,7 @@ void DemoMode::advanceStage(int deltaTime)
 		{
 			mStage = Stage::Idle;
 			mActive = false;
-			mCooldownMs = mNaturalEnd ? SkitCooldownMs : 0;
-			mNaturalEnd = false;
+			mCooldownMs = 0;
 			setDemoProgress(0.0f);
 			setDemoHelpHidden(false);
 		}
@@ -389,8 +387,8 @@ void DemoMode::startSkit()
 {
 	mSkitMs = 0;
 	mSampleIndex = -1;
+	mAmbient = false;
 	mSkyScroll = 0.0;
-	mNaturalEnd = false;
 	mShown = 0;
 	mFading = false;
 	startFade(0x000000FF);
@@ -405,25 +403,29 @@ void DemoMode::advanceSkit(int deltaTime)
 	mSkitMs += deltaTime;
 	mSkyScroll = std::fmod(mSkyScroll + deltaTime * SkyPixelsPerMs, SkyHeight);
 
-	const int inSamples = mSkitMs - SkitDelayMs;
-	if(inSamples >= 0 && inSamples < SkitSamples * SkitSampleMs)
+	const bool ambient = mSkitMs >= SkitEndMs;
+	if(ambient && !mAmbient)
 	{
-		const int index = inSamples / SkitSampleMs;
-		if(index != mSampleIndex)
+		mAmbient = true;
+		if(mSkitSound)
+			mSkitSound->stop();
+	}
+
+	const int origin = ambient ? SkitEndMs : SkitDelayMs;
+	const int inSamples = mSkitMs - origin;
+	if(ambient || (inSamples >= 0 && inSamples < SkitSamples * SkitSampleMs))
+	{
+		const int window = inSamples / SkitSampleMs + (ambient ? SkitSamples : 0);
+		if(window != mSampleIndex)
 		{
-			mSampleIndex = index;
-			mSampleX = index == 0 ? 0.0f : static_cast<float>(roll(-350, 350));
-			mSampleY = index == 0 ? 0.0f : static_cast<float>(roll(-160, 160));
+			mSampleIndex = window;
+			mSampleFrame = ambient ? roll(0, SkitSamples - 1) : window;
+			mSampleX = window == 0 ? 0.0f : static_cast<float>(roll(-350, 350));
+			mSampleY = window == 0 ? 0.0f : static_cast<float>(roll(-160, 160));
 		}
 	}
 	else
 		mSampleIndex = -1;
-
-	if(mSkitMs >= SkitEndMs)
-	{
-		mNaturalEnd = true;
-		cancel();
-	}
 }
 
 void DemoMode::renderSkit(const Transform4x4f& parentTrans)
@@ -454,12 +456,12 @@ void DemoMode::renderSkit(const Transform4x4f& parentTrans)
 
 	if(mSampleIndex >= 0)
 	{
-		const int inWindow = (mSkitMs - SkitDelayMs) % SkitSampleMs;
+		const int inWindow = (mSkitMs - (mSkitMs >= SkitEndMs ? SkitEndMs : SkitDelayMs)) % SkitSampleMs;
 		const float alpha = inWindow > SkitFadeStartMs ? 1.0f - static_cast<float>(inWindow) / static_cast<float>(SkitSampleMs) : 1.0f;
-		drawCentred(mSampleLarge[static_cast<std::size_t>(mSampleIndex)], mSampleX, mSampleY, SampleSize, SampleSize, alpha);
+		drawCentred(mSampleLarge[static_cast<std::size_t>(mSampleFrame)], mSampleX, mSampleY, SampleSize, SampleSize, alpha);
 	}
 
-	if(mSkitMs >= SkitRingMs)
+	if(mSkitMs >= SkitRingMs && mSkitMs < SkitEndMs)
 	{
 		drawCentred(mLogo, 0.0f, 0.0f, LogoWidth, LogoHeight, 1.0f);
 		for(int index = 0; index < SkitSamples; ++index)
