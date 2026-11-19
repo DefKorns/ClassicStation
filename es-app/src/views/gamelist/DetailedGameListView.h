@@ -51,6 +51,7 @@ private:
 	SuspendSlotsComponent mSlots;
 	PlayersIconComponent mPlayersIcon;
 	InfoLine mInfoLine;
+	bool mLogoOnly = false;
 
 	std::vector<TextComponent*> getMDLabels();
 	std::vector<GuiComponent*> getMDValues();

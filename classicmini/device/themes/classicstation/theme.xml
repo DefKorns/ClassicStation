@@ -496,6 +496,7 @@
 		</text>
 
 		<image name="md_marquee">
+			<logoOnly>true</logoOnly>
 			<pos>0.2641 0.2048</pos>
 			<maxSize>0.2383 0.0903</maxSize>
 			<origin>0 0.5</origin>
@@ -767,6 +768,7 @@
 		</text>
 
 		<imagegrid name="gamegrid">
+			<smoothScroll>true</smoothScroll>
 			<suspendShift>0.095833</suspendShift>
 			<demoShift>0.833333</demoShift>
 			<pos>${gridX} ${gridY}</pos>

@@ -65,6 +65,18 @@ void ThumbnailStripComponent::setEntries(std::vector<std::string> paths)
 	mPosition = 0.0f;
 }
 
+void ThumbnailStripComponent::updateEntry(int index, std::string path)
+{
+	if(index < 0 || index >= static_cast<int>(mPaths.size()))
+		return;
+	mPaths[static_cast<std::size_t>(index)] = std::move(path);
+	mWidths[static_cast<std::size_t>(index)] = 0.0f;
+	for(auto& assigned : mAssigned)
+		if(assigned == index)
+			assigned = -1;
+	mTotalDirty = true;
+}
+
 void ThumbnailStripComponent::setPosition(float index)
 {
 	const float count = static_cast<float>(mPaths.size());

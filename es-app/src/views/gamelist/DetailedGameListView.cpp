@@ -2,7 +2,7 @@
 
 #include "animations/LambdaAnimation.h"
 #include "views/ViewController.h"
-#include "Settings.h"
+#include "utils/FileSystemUtil.h"
 #include <sstream>
 
 DetailedGameListView::DetailedGameListView(Window* window, FileData* root) :
@@ -121,6 +121,8 @@ DetailedGameListView::DetailedGameListView(Window* window, FileData* root) :
 void DetailedGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& theme)
 {
 	BasicGameListView::onThemeChanged(theme);
+	const ThemeData::ThemeElement* marqueeElement = theme->getElement(getName(), "md_marquee", "image");
+	mLogoOnly = marqueeElement != nullptr && marqueeElement->has("logoOnly") && marqueeElement->get<bool>("logoOnly");
 	for(GuiComponent* extra : mThemeExtras)
 		if(extra->showsOnScroll())
 			extra->setOpacity(0);
@@ -272,9 +274,8 @@ void DetailedGameListView::updateInfoPanel()
 		mThumbnail.setImageAsync(file->getThumbnailPath());
 		mImage.setImageAsync(file->getImagePath());
 		const std::string marquee = file->getMarqueePath();
-		const bool logoOnly = Settings::getInstance()->getString("ThemeSet") == "classicstation";
-		const bool hasLogo = logoOnly && marquee.find("-marquee.") != std::string::npos;
-		mMarquee.setImageAsync(logoOnly && !hasLogo ? std::string() : marquee);
+		const bool hasLogo = mLogoOnly && Utils::FileSystem::getFileName(marquee).find("-marquee.") != std::string::npos;
+		mMarquee.setImageAsync(mLogoOnly && !hasLogo ? std::string() : marquee);
 		mDescription.setText(file->metadata.get("desc"));
 
 		mRating.setValue(file->metadata.get("rating"));

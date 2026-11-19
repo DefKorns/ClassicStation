@@ -259,6 +259,7 @@ if [ -n "$code" ]; then
     if [ -n "$native" ] && [ -f "$floating.state" ]; then
       resumed=$volatile/$code.resume.state
       cp "$floating.state" "$resumed"
+      [ -f "$floating.state.png" ] && cp "$floating.state.png" "$resumed.png"
       resumed_time=$(cat "$floating.state_time.txt" 2>/dev/null)
       case $resumed_time in ''|*[!0-9]*) resumed_time=0 ;; esac
     elif [ -z "$native" ] && [ -d "$out" ]; then
@@ -318,7 +319,14 @@ autofireForGames
 launched=$(cut -d. -f1 /proc/uptime)
 PATH="$shim:$PATH" sh -c "$cmd"
 status=$?
-[ -n "${resumed:-}" ] && rm -f "$resumed"
+if [ -n "${resumed:-}" ]; then
+  if [ ! -f "$floating.state" ]; then
+    cp "$resumed" "$floating.state"
+    [ -f "$resumed.png" ] && cp "$resumed.png" "$floating.state.png"
+    printf '%s' "$resumed_time" > "$floating.state_time.txt"
+  fi
+  rm -f "$resumed" "$resumed.png"
+fi
 if [ -n "${resume_dir:-}" ]; then
   if [ ! -f "$out/state.png" ]; then
     rm -rf "$out"

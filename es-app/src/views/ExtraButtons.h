@@ -15,11 +15,15 @@
 #include <cstdlib>
 #include <string>
 
-inline bool hasExtraButtons()
+inline bool isFamicomPad()
 {
 	const char* pad = std::getenv("ES_PAD");
-	const bool famicomPad = pad != nullptr && std::string(pad) == "nes";
-	return !famicomPad || InputManager::getInstance()->hasJoystickOtherThan("Nintendo Clovercon");
+	return pad != nullptr && std::string(pad) == "nes";
+}
+
+inline bool hasExtraButtons()
+{
+	return !isFamicomPad() || InputManager::getInstance()->hasJoystickOtherThan("Nintendo Clovercon");
 }
 
 #endif // ES_APP_VIEWS_EXTRA_BUTTONS_H

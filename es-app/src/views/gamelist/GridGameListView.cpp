@@ -273,6 +273,7 @@ namespace
 void GridGameListView::populateList(const std::vector<FileData*>& files)
 {
 	mGrid.clear();
+	mThumbJobs.clear();
 	mHeaderText.setText(mRoot->getSystem()->getFullName());
 	if (files.size() > 0)
 	{
@@ -292,6 +293,8 @@ void GridGameListView::populateList(const std::vector<FileData*>& files)
 
 			std::string thumbnail = (*it)->metadata.get("thumbnail");
 			bool verified = false;
+			bool deferred = false;
+			std::string scrapedPath;
 			if (thumbnail.empty())
 				thumbnail = image;
 			if (image.find("/downloaded_images/") != std::string::npos && thumbnail.find("/downloaded_images/") == std::string::npos)
@@ -308,6 +311,11 @@ void GridGameListView::populateList(const std::vector<FileData*>& files)
 					thumbnail = scraped;
 					verified = true;
 				}
+				else
+				{
+					deferred = true;
+					scrapedPath = scraped;
+				}
 			}
 			if (thumbnail == image && image.size() > 4 && image.compare(image.size() - 4, 4, ".png") == 0)
 			{
@@ -318,7 +326,12 @@ void GridGameListView::populateList(const std::vector<FileData*>& files)
 					verified = true;
 				}
 			}
-			if (thumbnail.empty() || (!verified && !ResourceManager::getInstance()->fileExists(thumbnail)))
+			if (deferred && !verified)
+			{
+				thumbnail = ":/cartridge.svg";
+				mThumbJobs.push_back({static_cast<int>(thumbnails.size()), image, scrapedPath});
+			}
+			else if (thumbnail.empty() || (!verified && !ResourceManager::getInstance()->fileExists(thumbnail)))
 				thumbnail = ":/cartridge.svg";
 			thumbnails.push_back(thumbnail);
 		}
@@ -353,7 +366,8 @@ void GridGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& theme)
 	}
 	mLetters.applyTheme(theme, getName(), "md_letters", ThemeFlags::ALL ^ ThemeFlags::TEXT);
 	mLetters.setZIndex(45);
-	const bool smooth = Settings::getInstance()->getString("ThemeSet") == "classicstation";
+	const ThemeData::ThemeElement* gridElement = theme->getElement(getName(), "gamegrid", "imagegrid");
+	const bool smooth = gridElement != nullptr && gridElement->has("smoothScroll") && gridElement->get<bool>("smoothScroll");
 	mGrid.setSmoothScroll(smooth);
 	GridTileComponent::setSmoothLoading(smooth);
 	mHasLetters = theme->getElement(getName(), "md_letters", "text") != nullptr;
@@ -362,7 +376,6 @@ void GridGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& theme)
 	using namespace ThemeFlags;
 
 	mGrid.applyTheme(theme, getName(), "gamegrid", ALL);
-	const ThemeData::ThemeElement* gridElement = theme->getElement(getName(), "gamegrid", "imagegrid");
 	if(gridElement == nullptr || !gridElement->has("gameImage"))
 	{
 		const std::string blank = blankImageFor(mRoot->getSystem()->getThemeFolder());
@@ -795,6 +808,18 @@ void GridGameListView::update(int deltaTime)
 	{
 		mInfoPending = false;
 		updateInfoPanel();
+	}
+	if(!mThumbJobs.empty() && !mGrid.isScrolling())
+	{
+		int done = 0;
+		while(!mThumbJobs.empty() && done < MaxThumbnailsPerPass)
+		{
+			const ThumbJob job = mThumbJobs.back();
+			mThumbJobs.pop_back();
+			++done;
+			if(saveThumbnail(job.image, job.scraped, 30, 40))
+				mThumbnails.updateEntry(job.index, job.scraped);
+		}
 	}
 	mDemo.update(deltaTime, mGrid.size() > 0, mGrid.getPosition().y() + 0.075f * static_cast<float>(Renderer::getScreenHeight()));
 	mFloatingCard.update(deltaTime);

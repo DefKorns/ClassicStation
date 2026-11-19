@@ -214,6 +214,8 @@ void GridTileComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, cons
 	mSelectedProperties.mSize = getSelectedTileSize();
 	mSelectedProperties.mPadding = mDefaultProperties.mPadding;
 	mSelectedProperties.mImageOnTop = mDefaultProperties.mImageOnTop;
+	mSelectedProperties.mBackingColor = mDefaultProperties.mBackingColor;
+	mSelectedProperties.mImageOffset = mDefaultProperties.mImageOffset;
 	mSelectedProperties.mBackgroundImage = mDefaultProperties.mBackgroundImage;
 	mSelectedProperties.mBackgroundCornerSize = mDefaultProperties.mBackgroundCornerSize;
 

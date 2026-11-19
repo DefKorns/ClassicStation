@@ -114,6 +114,13 @@ private:
 	std::shared_ptr<bool> mAlive = std::make_shared<bool>(true);
 	bool mPerGameBlanks = false;
 	bool mThumbsSkipped = false;
+	struct ThumbJob
+	{
+		int index;
+		std::string image;
+		std::string scraped;
+	};
+	std::vector<ThumbJob> mThumbJobs;
 	bool mHasLetters = false;
 	std::string mLettersText;
 };

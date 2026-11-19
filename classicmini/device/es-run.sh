@@ -35,7 +35,7 @@ stopPowerWatch(){
 }
 
 restore_ui=1
-trap 'autofireForGames; [ ! -f /tmp/es-stopping ] && stopPowerWatch; [ "$restore_ui" = 1 ] && [ ! -f /tmp/es-stopping ] && { drawSplash clover; type stockUistart >/dev/null 2>&1 && stockUistart || uistart; }' EXIT
+trap '[ -n "$guard_pid" ] && kill "$guard_pid" 2>/dev/null; autofireForGames; [ ! -f /tmp/es-stopping ] && stopPowerWatch; [ "$restore_ui" = 1 ] && [ ! -f /tmp/es-stopping ] && { drawSplash clover; type stockUistart >/dev/null 2>&1 && stockUistart || uistart; }' EXIT
 uistop
 guardStockUi(){
   local waited=0
@@ -49,6 +49,7 @@ guardStockUi(){
   done
 }
 guardStockUi &
+guard_pid=$!
 autofireForUi
 stopPowerWatch
 setsid sh "$es_dir/es-power-watch.sh" &
@@ -77,7 +78,7 @@ sh "$es_dir/es-favorites.sh" /tmp/es-library "$es_dir/favorites.txt"
 settings_file=$es_dir/home/.emulationstation/es_settings.cfg
 if [ -s /tmp/es-library/originals.txt ] && [ ! -f "$es_dir/originals_seeded" ] && [ -f "$settings_file" ]; then
   grep -q 'name="CollectionSystemsAuto" value="[^"]*originals' "$settings_file" || sed -i 's|\(name="CollectionSystemsAuto" value="[^"]*\)"|\1,originals"|; s|value=",originals"|value="originals"|' "$settings_file"
-  : > "$es_dir/originals_seeded"
+  grep -q 'name="CollectionSystemsAuto" value="[^"]*originals' "$settings_file" && : > "$es_dir/originals_seeded"
 fi
 sh "$es_dir/es-systems.sh" /tmp/es-library "$es_dir/es_systems.cfg" "$es_dir/home/.emulationstation/es_systems.cfg"
 [ -f /media/data/emulationstation/audio/bgm_home.wav ] || sh "$es_dir/es-tools.sh" audio import >/dev/null 2>&1

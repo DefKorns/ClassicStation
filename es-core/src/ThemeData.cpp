@@ -18,6 +18,7 @@ std::vector<std::string> ThemeData::sSupportedFeatures { { "video" }, { "carouse
 std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> ThemeData::sElementMap {
 	{ "image", {
 		{ "fadeWithInfo", BOOLEAN },
+		{ "logoOnly", BOOLEAN },
 		{ "showOnScroll", BOOLEAN },
 		{ "visibleCount", FLOAT },
 		{ "scrollSpeed", FLOAT },
@@ -39,6 +40,7 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "visible", BOOLEAN },
 		{ "zIndex", FLOAT } } },
 	{ "imagegrid", {
+		{ "smoothScroll", BOOLEAN },
 		{ "suspendShift", FLOAT },
 		{ "demoShift", FLOAT },
 		{ "pos", RESOLUTION_PAIR },

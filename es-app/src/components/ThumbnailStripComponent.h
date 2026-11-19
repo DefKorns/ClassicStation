@@ -27,6 +27,7 @@ public:
 
 	void setEntries(std::vector<std::string> paths);
 	void setPosition(float index);
+	void updateEntry(int index, std::string path);
 
 	bool enabled() const { return mEnabled; }
 

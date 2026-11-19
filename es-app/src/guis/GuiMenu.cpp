@@ -10,6 +10,7 @@
 #include <array>
 #include "guis/GuiGeneralScreensaverOptions.h"
 #include "guis/GuiMsgBox.h"
+#include "views/ExtraButtons.h"
 #include "guis/GuiScraperStart.h"
 #include "guis/GuiVirtualKeyboard.h"
 #include "guis/GuiSettings.h"
@@ -165,8 +166,7 @@ void GuiMenu::addToggle(const char* name, const std::string& stateArguments, con
 
 bool GuiMenu::isFamicomPad()
 {
-	const char* pad = std::getenv("ES_PAD");
-	return pad != nullptr && std::string(pad) == "nes";
+	return ::isFamicomPad();
 }
 
 void GuiMenu::openController()

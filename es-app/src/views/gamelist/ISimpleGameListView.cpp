@@ -18,10 +18,7 @@
 namespace
 {
 	int sTileGeneration = 0;
-}
 
-namespace
-{
 	std::string gameCode(const FileData* game)
 	{
 		return Utils::FileSystem::getStem(game->getPath());
