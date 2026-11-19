@@ -99,6 +99,13 @@ wall_back=$(sed -n 's|.*<wallBack>\(.*\)</wallBack>.*|\1|p' "$theme_dir/layout.x
 rm -rf "$work"
 if "$es_dir/theme_layers" layers "$sprites_dir/$atlas.json" "$sprites_dir/$atlas.png" "$work" --wide-width 772 --title "$title" --logo-align "$logo_align" ${background:+--background "$background"} ${wall:+--wall "$wall"} >/dev/null 2>&1; then
   cp -a "$work/." "$theme_dir/"
+  case $layout in
+    nes) original_card=nes ;;
+    hvc | hvcj) original_card=hvc ;;
+    snes_*) original_card=$layout ;;
+    *) original_card= ;;
+  esac
+  [ -f "$theme_dir/assets/systems/cards/originals_$original_card.png" ] && cp "$theme_dir/assets/systems/cards/originals_$original_card.png" "$theme_dir/assets/systems/cards/originals.png"
   [ "$1" = hvcj ] && [ -f "$sprites_dir/bottom_side_1280_120.png" ] && cp "$sprites_dir/bottom_side_1280_120.png" "$theme_dir/menubar_bottom_j.png"
   if [ ! -f "$theme_dir/.es-themeset" ]; then
     sed -i 's|<string name="ThemeSet" value="simple" />|<string name="ThemeSet" value="classicstation" />|' "$settings"
@@ -107,7 +114,7 @@ if "$es_dir/theme_layers" layers "$sprites_dir/$atlas.json" "$sprites_dir/$atlas
   {
     echo "$stamp"
     (cd "$work" && find . -type f -exec md5sum {} +)
-    (cd "$theme_dir" && find layout.xml wall_bg.png top_label.png menubar_bottom_j.png demo -type f -exec md5sum {} + 2>/dev/null)
+    (cd "$theme_dir" && find layout.xml wall_bg.png top_label.png menubar_bottom_j.png assets/systems/cards/originals.png demo -type f -exec md5sum {} + 2>/dev/null)
   } > "$theme_stamp"
 fi
 rm -rf "$work"
