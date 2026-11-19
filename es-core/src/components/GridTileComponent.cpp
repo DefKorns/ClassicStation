@@ -22,11 +22,8 @@ void GridTileComponent::setUnselectedBrightness(float brightness)
 	sUnselectedBrightness = brightness;
 }
 
-GridTileComponent::GridTileComponent(Window* window) : GuiComponent(window), mBackground(window, ":/frame.png"), mBadge(window)
+GridTileComponent::GridTileComponent(Window* window) : GuiComponent(window), mBackground(window, ":/frame.png")
 {
-	mBadge.setImage(":/suspend_marker.png");
-	mBadge.setOrigin(0.5f, 0.5f);
-	mBadge.setResize(30.0f, 36.0f);
 	mDefaultProperties.mSize = getDefaultTileSize();
 	mDefaultProperties.mPadding = Vector2f(16.0f, 16.0f);
 	mDefaultProperties.mImageColor = 0xAAAAAABB;
@@ -75,9 +72,19 @@ void GridTileComponent::render(const Transform4x4f& parentTrans)
 		if(!mImage->isAsyncPending() && (backing & 0xFF) != 0)
 			Renderer::drawRect(-size.x() / 2.0f, -size.y() / 2.0f, size.x(), size.y(), backing, backing);
 		const float brightness = mSelected ? 1.0f : sUnselectedBrightness;
-		mImage->setColorShift(scaled(mCurrentProperties.mImageColor, brightness));
-		mBackground.setCenterColor(scaled(mCurrentProperties.mBackgroundCenterColor, brightness));
-		mBackground.setEdgeColor(scaled(mCurrentProperties.mBackgroundEdgeColor, brightness));
+		const unsigned int imageColor = scaled(mCurrentProperties.mImageColor, brightness);
+		const unsigned int centerColor = scaled(mCurrentProperties.mBackgroundCenterColor, brightness);
+		const unsigned int edgeColor = scaled(mCurrentProperties.mBackgroundEdgeColor, brightness);
+		if(!mShownKnown || imageColor != mShownImage || centerColor != mShownCenter || edgeColor != mShownEdge)
+		{
+			mImage->setColorShift(imageColor);
+			mBackground.setCenterColor(centerColor);
+			mBackground.setEdgeColor(edgeColor);
+			mShownImage = imageColor;
+			mShownCenter = centerColor;
+			mShownEdge = edgeColor;
+			mShownKnown = true;
+		}
 		Transform4x4f imageTrans = trans;
 		imageTrans.translate(Vector3f(mCurrentProperties.mImageOffset.x(), mCurrentProperties.mImageOffset.y(), 0.0f));
 		if(mCurrentProperties.mImageOnTop)
@@ -97,13 +104,6 @@ void GridTileComponent::render(const Transform4x4f& parentTrans)
 			overlayTrans.translate(Vector3f(-mCurrentProperties.mSize.x() / 2.0f, -mCurrentProperties.mSize.y() / 2.0f, 0.0f));
 			mOverlay->render(overlayTrans);
 		}
-
-		if (mMarked)
-		{
-			Transform4x4f badgeTrans = trans;
-			badgeTrans.translate(Vector3f(-mCurrentProperties.mSize.x() / 2.0f + 19.0f, -mCurrentProperties.mSize.y() / 2.0f + 14.0f, 0.0f));
-			mBadge.render(badgeTrans);
-		}
 	}
 }
 
@@ -121,9 +121,6 @@ void GridTileComponent::applyCurrentProperties()
 
 	mBackground.setImagePath(mCurrentProperties.mBackgroundImage);
 
-	mImage->setColorShift(mCurrentProperties.mImageColor);
-	mBackground.setCenterColor(mCurrentProperties.mBackgroundCenterColor);
-	mBackground.setEdgeColor(mCurrentProperties.mBackgroundEdgeColor);
 
 	resize();
 }

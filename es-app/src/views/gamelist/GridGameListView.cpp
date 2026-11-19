@@ -254,6 +254,11 @@ const std::string GridGameListView::getImagePath(FileData* file)
 	return file->getThumbnailPath();
 }
 
+namespace
+{
+	constexpr int MaxThumbnailsPerPass = 8;
+}
+
 void GridGameListView::populateList(const std::vector<FileData*>& files)
 {
 	mGrid.clear();
@@ -261,6 +266,7 @@ void GridGameListView::populateList(const std::vector<FileData*>& files)
 	if (files.size() > 0)
 	{
 		std::vector<std::string> thumbnails;
+		int generated = 0;
 		for (auto it = files.cbegin(); it != files.cend(); it++)
 		{
 			const std::string image = getImagePath(*it);
@@ -272,8 +278,13 @@ void GridGameListView::populateList(const std::vector<FileData*>& files)
 			if (image.find("/downloaded_images/") != std::string::npos && thumbnail.find("/downloaded_images/") == std::string::npos)
 			{
 				const std::string scraped = thumbnailPathFor(image);
-				if (Utils::FileSystem::exists(scraped) || saveThumbnail(image, scraped, 30, 40))
+				if (Utils::FileSystem::exists(scraped))
 					thumbnail = scraped;
+				else if (generated < MaxThumbnailsPerPass && saveThumbnail(image, scraped, 30, 40))
+				{
+					++generated;
+					thumbnail = scraped;
+				}
 			}
 			if (thumbnail == image && image.size() > 4 && image.compare(image.size() - 4, 4, ".png") == 0)
 			{
@@ -289,6 +300,7 @@ void GridGameListView::populateList(const std::vector<FileData*>& files)
 	}
 	else
 	{
+		mThumbnails.setEntries(std::vector<std::string>());
 		addPlaceholder();
 	}
 	updateArrows();
@@ -725,7 +737,8 @@ void GridGameListView::update(int deltaTime)
 	mLetters.setVisible(fast);
 	if(fast)
 	{
-		mLetters.setText(Utils::String::toUpper(mGrid.getSelectedName().substr(0, 2)));
+		const std::string selectedName = mGrid.getSelectedName();
+		mLetters.setText(Utils::String::toUpper(selectedName.substr(0, Utils::String::moveCursor(selectedName, 0, 2))));
 		mName.setVisible(false);
 		mCode.setVisible(false);
 		mFavorite.setVisible(false);

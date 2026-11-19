@@ -34,6 +34,7 @@ struct SystemViewData
 	unsigned int yearColor = 0;
 	unsigned int yearActiveColor = 0;
 	unsigned int yearShownColor = 0;
+	Vector2f yearSize = Vector2f::Zero();
 	std::vector<GuiComponent*> backgroundExtras;
 };
 
@@ -57,6 +58,8 @@ struct SystemViewCarousel
 	bool hasCards;
 	Vector2f cardSize;
 	Vector2f cardOffset;
+	std::string transitionStyle;
+	bool fastInfo = false;
 };
 
 class SystemView : public IList<SystemViewData, SystemData*>

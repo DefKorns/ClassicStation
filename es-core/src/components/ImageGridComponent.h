@@ -76,8 +76,6 @@ public:
 		mOverlayUpdater = std::move(updater);
 	}
 	float getVisualCursor() const { return static_cast<float>(mCursor) + (mCameraMoving && !isVerticalConst() ? mCameraDirection * (1.0f - mCamera) : 0.0f); }
-		void setMarkFunction(std::function<bool(const T&)> markFunction) { mMarkFunction = std::move(markFunction); }
-	void refreshMarks() { updateTiles(false, false); }
 
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
@@ -147,7 +145,6 @@ private:
 	std::vector< std::shared_ptr<GridTileComponent> > mTiles;
 
 	int mStartPosition;
-	std::function<bool(const T&)> mMarkFunction;
 	std::function<std::shared_ptr<GridTileOverlay>()> mOverlayFactory;
 	std::function<void(GridTileOverlay&, const T&)> mOverlayUpdater;
 
@@ -169,7 +166,7 @@ private:
 };
 
 template<typename T>
-ImageGridComponent<T>::ImageGridComponent(Window* window) : IList<ImageGridData, T>(window, GRID_SCROLL_STYLE, LIST_ALWAYS_LOOP)
+ImageGridComponent<T>::ImageGridComponent(Window* window) : IList<ImageGridData, T>(window, GRID_SCROLL_STYLE, LIST_PAUSE_AT_END)
 {
 	Vector2f screen = Vector2f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 
@@ -372,6 +369,8 @@ void ImageGridComponent<T>::applyTheme(const std::shared_ptr<ThemeData>& theme, 
 			if (elem->has("scrollLoop"))
 				mScrollLoop = (elem->get<bool>("scrollLoop"));
 		}
+
+		this->mLoopType = mScrollLoop ? LIST_ALWAYS_LOOP : LIST_PAUSE_AT_END;
 
 		if (elem->has("adjacentGap"))
 			mAdjacentGap = elem->get<float>("adjacentGap") * static_cast<float>(Renderer::getScreenWidth());
@@ -715,7 +714,6 @@ void ImageGridComponent<T>::updateTileAtPos(int tilePos, int imgPos, bool allowA
 	else
 	{
 		tile->setVisible(true);
-		tile->setMarked(mMarkFunction && mMarkFunction(mEntries.at(imgPos).object));
 
 		std::string imagePath = mEntries.at(imgPos).data.texturePath;
 

@@ -126,8 +126,7 @@ void SystemView::populate()
 				e.data.year = std::make_shared<TextComponent>(mWindow);
 				e.data.year->applyTheme(theme, "system", "systemCardYear", ThemeFlags::ALL ^ ThemeFlags::TEXT);
 				e.data.year->setText((*it)->getYear());
-				mChip.setResize(e.data.year->getSize());
-				mChipActive.setResize(e.data.year->getSize());
+				e.data.yearSize = e.data.year->getSize();
 			}
 
 			// delete any existing extras
@@ -343,8 +342,8 @@ void SystemView::onCursorChanged(const CursorState& /*state*/)
 	cancelAnimation(1);
 	cancelAnimation(2);
 
-	const std::string transition_style = "slide";
-	const bool goFast = true;
+	const std::string transition_style = mCarousel.transitionStyle.empty() ? Settings::getInstance()->getString("TransitionStyle") : mCarousel.transitionStyle;
+	const bool goFast = mCarousel.fastInfo || transition_style == "instant";
 	const float infoStartOpacity = mSystemInfo.getOpacity() / 255.f;
 
 	Animation* infoFadeOut = new LambdaAnimation(
@@ -700,9 +699,11 @@ void SystemView::renderCarousel(const Transform4x4f& trans)
 			data.maker->render(footerTrans);
 			Transform4x4f chipTrans = footerTrans;
 			chipTrans.translate(Vector3f(data.year->getPosition().x(), data.year->getPosition().y(), 0));
+			mChip.setResize(data.yearSize);
 			mChip.render(chipTrans);
 			if (active > 0.0f)
 			{
+				mChipActive.setResize(data.yearSize);
 				mChipActive.setOpacity((unsigned char)Math::round(active * 255.0f));
 				mChipActive.render(chipTrans);
 			}
@@ -776,6 +777,8 @@ void  SystemView::getDefaultElements(void)
 {
 	// Carousel
 	mCarousel.type = HORIZONTAL;
+	mCarousel.transitionStyle.clear();
+	mCarousel.fastInfo = false;
 	mCarousel.logoAlignment = ALIGN_CENTER;
 	mCarousel.size.x() = mSize.x();
 	mCarousel.size.y() = 0.2325f * mSize.y();
@@ -886,6 +889,10 @@ void SystemView::getCarouselFromTheme(const ThemeData::ThemeElement* elem)
 	}
 	if (elem->has("scrollSound"))
 		mScrollSound = elem->get<std::string>("scrollSound");
+	if (elem->has("transitionStyle"))
+		mCarousel.transitionStyle = elem->get<std::string>("transitionStyle");
+	if (elem->has("fastInfo"))
+		mCarousel.fastInfo = elem->get<bool>("fastInfo");
 }
 
 void SystemView::onShow()

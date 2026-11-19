@@ -97,7 +97,9 @@ private:
 	unsigned char mBaseOpacity = 255;
 	void applyOpacity();
 	bool mFadeEnabled = true;
-	void advanceScroll(int deltaTime);	float mScrollFactor = 1.0f;	float mBoostSpeed = 0.0f;
+	void advanceScroll(int deltaTime);
+	float mScrollFactor = 1.0f;
+	float mBoostSpeed = 0.0f;
 	int mBoostMs = 0;
 	int mScrollDirection = 1;
 	int mKickSeen = 0;

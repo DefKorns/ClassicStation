@@ -46,7 +46,6 @@ public:
 
 	void forceSize(Vector2f size, float selectedZoom);
 	void setShiftX(float shift) { mShiftX = shift; }
-	void setMarked(bool marked) { mMarked = marked; }
 	void setOverlay(std::shared_ptr<GridTileOverlay> overlay) { mOverlay = std::move(overlay); }
 	GridTileOverlay* getOverlay() const { return mOverlay.get(); }
 
@@ -64,9 +63,11 @@ private:
 
 	std::shared_ptr<ImageComponent> mImage;
 	NinePatchComponent mBackground;
-	ImageComponent mBadge;
 	std::shared_ptr<GridTileOverlay> mOverlay;
-	bool mMarked = false;
+	unsigned int mShownImage = 0;
+	unsigned int mShownCenter = 0;
+	unsigned int mShownEdge = 0;
+	bool mShownKnown = false;
 
 	GridTileProperties mDefaultProperties;
 	GridTileProperties mSelectedProperties;

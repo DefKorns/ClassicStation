@@ -266,8 +266,11 @@ void ImageComponent::update(int deltaTime)
 	{
 		if(!Settings::getInstance()->getBool("BackgroundAnimation"))
 		{
-			mScrollOffset = 0.0f;
-			updateVertices();
+			if(mScrollOffset != 0.0f)
+			{
+				mScrollOffset = 0.0f;
+				updateVertices();
+			}
 		}
 		else
 			advanceScroll(deltaTime);

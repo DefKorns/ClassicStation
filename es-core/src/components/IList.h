@@ -75,7 +75,7 @@ protected:
 	std::shared_ptr<Font> mTitleOverlayFont;
 
 	const ScrollTierList& mTierList;
-	const ListLoopType mLoopType;
+	ListLoopType mLoopType;
 
 	std::vector<Entry> mEntries;
 

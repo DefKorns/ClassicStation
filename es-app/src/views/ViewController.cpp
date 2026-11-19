@@ -521,7 +521,7 @@ void ViewController::render(const Transform4x4f& parentTrans)
 
 	if(mWindow->peekGui() == this)
 	{
-		if(drewView)
+		if(drewView || mState.viewing == SYSTEM_SELECT)
 			mWindow->renderHelpPromptsEarly();
 		else
 			mWindow->skipHelpPrompts();

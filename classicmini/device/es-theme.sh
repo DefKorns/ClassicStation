@@ -53,7 +53,7 @@ fi
 case "$1" in
   hvcj)
     rm -f "$theme_dir"/demo/block_*.png "$theme_dir"/demo/mario_*.png "$theme_dir"/demo/luigi_*.png
-    if [ ! -f "$theme_dir/demo/skit_b_16.png" ] && [ -f "$sprites_dir/starrysky_1280_534x2_indexcolor.png" ]; then
+    if [ ! -f "$theme_dir/demo/.skit_done" ] && [ -f "$sprites_dir/starrysky_1280_534x2_indexcolor.png" ]; then
       mkdir -p "$theme_dir/demo"
       cp "$sprites_dir/starrysky_1280_534x2_indexcolor.png" "$theme_dir/demo/skit_sky.png"
       cp "$sprites_dir/j50_colorlogo_480_280_171129.png" "$theme_dir/demo/skit_logo.png"
@@ -62,6 +62,7 @@ case "$1" in
         "$es_dir/theme_layers" scale "$sample" "$theme_dir/demo/skit_a_$number.png" 3
         "$es_dir/theme_layers" scale "$sample" "$theme_dir/demo/skit_b_$number.png" 2
       done
+      : > "$theme_dir/demo/.skit_done"
     fi
     ;;
   snes)
@@ -86,15 +87,15 @@ if [ "$1" = hvcj ] && [ -f "$sprites_dir/new_clover_j_logo.png" ]; then
 else
   rm -f "$theme_dir/top_label.png"
 fi
-stamp="$atlas $layout $(md5sum "$sprites_dir/$atlas.png" "$theme_dir/layout_$layout.xml" 2>/dev/null | cut -d ' ' -f 1 | tr '\n' ' ')"
+logo_align=center
+[ "$layout" = nes ] && logo_align=left
+stamp="$atlas $layout $title $logo_align $(stat -c '%s-%Y' "$sprites_dir/$atlas.png" "$es_dir/theme_layers" "$theme_dir/layout_$layout.xml" 2>/dev/null | tr '\n' ' ')"
 [ "$(head -n 1 "$theme_stamp" 2>/dev/null)" = "$stamp" ] && exit 0
 
 background=$(sed -n 's|.*<backgroundColor>\(.*\)</backgroundColor>.*|\1|p' "$theme_dir/console.xml")
 wall_back=$(sed -n 's|.*<wallBack>\(.*\)</wallBack>.*|\1|p' "$theme_dir/layout.xml")
 [ -n "$wall_back" ] && background=$wall_back
 rm -rf "$work"
-logo_align=center
-[ "$layout" = nes ] && logo_align=left
 if "$es_dir/theme_layers" layers "$sprites_dir/$atlas.json" "$sprites_dir/$atlas.png" "$work" --wide-width 772 --title "$title" --logo-align "$logo_align" ${background:+--background "$background"} ${wall:+--wall "$wall"} >/dev/null 2>&1; then
   cp -a "$work/." "$theme_dir/"
   [ "$1" = hvcj ] && [ -f "$sprites_dir/bottom_side_1280_120.png" ] && cp "$sprites_dir/bottom_side_1280_120.png" "$theme_dir/menubar_bottom_j.png"
@@ -105,7 +106,7 @@ if "$es_dir/theme_layers" layers "$sprites_dir/$atlas.json" "$sprites_dir/$atlas
   {
     echo "$stamp"
     (cd "$work" && find . -type f -exec md5sum {} +)
-    (cd "$theme_dir" && find layout.xml wall_bg.png top_label.png menubar_bottom_j.png .es-themeset demo -type f -exec md5sum {} + 2>/dev/null)
+    (cd "$theme_dir" && find layout.xml wall_bg.png top_label.png menubar_bottom_j.png demo -type f -exec md5sum {} + 2>/dev/null)
   } > "$theme_stamp"
 fi
 rm -rf "$work"

@@ -114,14 +114,19 @@ swapActive() {
 }
 
 swapCreate() {
-  local size_mb="$1" free_kb need_mb
+  local size_mb="$1" free_kb need_mb old_kb
   need_mb=$((size_mb + swap_margin_mb))
   free_kb=$(df -k /media | tail -n 1 | awk '{ print $4 }')
+  old_kb=$(du -k "$swap_file" 2>/dev/null | awk '{ print $1 }')
+  old_kb=${old_kb:-0}
+  rm -f "$swap_file.tmp"
   if [ "$free_kb" -lt $((need_mb * 1024)) ]; then
-    echo "Not enough free space on the SD card: $need_mb MB needed."
-    return 1
+    if [ $((free_kb + old_kb)) -lt $((need_mb * 1024)) ]; then
+      echo "Not enough free space on the SD card: $need_mb MB needed."
+      return 1
+    fi
+    rm -f "$swap_file"
   fi
-  rm -f "$swap_file" "$swap_file.tmp"
   if dd if=/dev/zero of="$swap_file.tmp" bs=1M count="$size_mb" 2>/dev/null && chmod 600 "$swap_file.tmp" \
     && mkswap "$swap_file.tmp" >/dev/null 2>&1 && sync && mv "$swap_file.tmp" "$swap_file"; then
     return 0
@@ -327,7 +332,9 @@ case "$1" in
     esac
     ;;
   temperature)
-    printf "%s C, %s MHz\n" "$(cat /sys/class/thermal/thermal_zone0/temp)" "$(($(cat "$cpu_freq_dir/scaling_cur_freq") / 1000))"
+    degrees=$(cat /sys/class/thermal/thermal_zone0/temp)
+    [ "$degrees" -lt 1000 ] 2>/dev/null || degrees=$((degrees / 1000))
+    printf "%s C, %s MHz\n" "$degrees" "$(($(cat "$cpu_freq_dir/scaling_cur_freq") / 1000))"
     ;;
   audio)
     case "$2" in

@@ -236,6 +236,8 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "chipPath", PATH },
 		{ "chipActivePath", PATH },
 		{ "zIndex", FLOAT },
+		{ "transitionStyle", STRING },
+		{ "fastInfo", BOOLEAN },
 		{ "scrollSound", PATH } } }
 };
 
