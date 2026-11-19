@@ -92,7 +92,9 @@ background=$(sed -n 's|.*<backgroundColor>\(.*\)</backgroundColor>.*|\1|p' "$the
 wall_back=$(sed -n 's|.*<wallBack>\(.*\)</wallBack>.*|\1|p' "$theme_dir/layout.xml")
 [ -n "$wall_back" ] && background=$wall_back
 rm -rf "$work"
-if "$es_dir/theme_layers" layers "$sprites_dir/$atlas.json" "$sprites_dir/$atlas.png" "$work" --wide-width 772 --title "$title" ${background:+--background "$background"} ${wall:+--wall "$wall"} >/dev/null 2>&1; then
+logo_align=center
+[ "$layout" = nes ] && logo_align=left
+if "$es_dir/theme_layers" layers "$sprites_dir/$atlas.json" "$sprites_dir/$atlas.png" "$work" --wide-width 772 --title "$title" --logo-align "$logo_align" ${background:+--background "$background"} ${wall:+--wall "$wall"} >/dev/null 2>&1; then
   cp -a "$work/." "$theme_dir/"
   [ "$1" = hvcj ] && [ -f "$sprites_dir/bottom_side_1280_120.png" ] && cp "$sprites_dir/bottom_side_1280_120.png" "$theme_dir/menubar_bottom_j.png"
   { echo "$atlas $layout"; (cd "$work" && find . -type f -exec md5sum {} +); } > "$theme_stamp"

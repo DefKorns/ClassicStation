@@ -313,6 +313,18 @@ void GridGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& theme)
 	using namespace ThemeFlags;
 
 	mGrid.applyTheme(theme, getName(), "gamegrid", ALL);
+	const ThemeData::ThemeElement* gridElement = theme->getElement(getName(), "gamegrid", "imagegrid");
+	if(gridElement == nullptr || !gridElement->has("gameImage"))
+	{
+		static const std::map<std::string, std::string> blanks = {
+			{"fds", "blank_fds"}, {"gb", "blank_gb"}, {"gbc", "blank_gbc"}, {"gba", "blank_gba"}, {"n64", "blank_n64"},
+			{"megadrive", "blank_genesis"}, {"sega32x", "blank_32x"}, {"mastersystem", "blank_sms"}, {"gamegear", "blank_gg"},
+			{"pcengine", "blank_pce"}, {"neogeo", "blank_neogeo"}, {"atari2600", "blank_2600"}, {"arcade", "blank_arcade"},
+			{"pc", "blank_dos"}, {"ports", "blank_app"}};
+		const auto blank = blanks.find(mRoot->getSystem()->getThemeFolder());
+		if(blank != blanks.end())
+			mGrid.setDefaultGameImage(":/" + blank->second + ".png");
+	}
 	mName.applyTheme(theme, getName(), "md_name", ALL);
 	mMarquee.applyTheme(theme, getName(), "md_marquee", POSITION | ThemeFlags::SIZE | Z_INDEX | ROTATION | VISIBLE);
 	mImage.applyTheme(theme, getName(), "md_image", POSITION | ThemeFlags::SIZE | Z_INDEX | ROTATION | VISIBLE);
@@ -724,6 +736,11 @@ void GridGameListView::update(int deltaTime)
 		mLettersShown = false;
 		mName.setVisible(true);
 		mCode.setVisible(true);
+		mInfoPending = true;
+	}
+	if(mInfoPending && !mGrid.isScrolling())
+	{
+		mInfoPending = false;
 		updateInfoPanel();
 	}
 	mDemo.update(deltaTime, mGrid.size() > 0, mGrid.getPosition().y() + 0.075f * static_cast<float>(Renderer::getScreenHeight()));

@@ -84,7 +84,7 @@ namespace
 		std::cerr << "usage: theme_layers info <atlas.json>\n"
 		             "       theme_layers demo <characters.png> <out_dir> [--scale N]\n"
 		             "       theme_layers scale <in.png> <out.png> <factor>\n"
-		             "       theme_layers layers <atlas.json> <atlas.png> <out_dir> [--icon-scale N] [--frame-scale N] [--row WxH] [--wide-width N] [--title WxH] [--selector WxH] [--background RRGGBB] [--wall PNG]\n";
+		             "       theme_layers layers <atlas.json> <atlas.png> <out_dir> [--icon-scale N] [--frame-scale N] [--row WxH] [--wide-width N] [--title WxH] [--selector WxH] [--logo-align left] [--background RRGGBB] [--wall PNG]\n";
 		return 2;
 	}
 
@@ -133,6 +133,7 @@ namespace
 
 		Options options;
 		std::string consoleLogoPath;
+		bool logoLeft = false;
 		for(int i = 5; i < argc; ++i)
 		{
 			const std::string flag = argv[i];
@@ -151,6 +152,8 @@ namespace
 				options.wideWidth = std::atoi(value.c_str());
 			else if(flag == "--wall")
 				options.wall = loadPng(value);
+			else if(flag == "--logo-align")
+				logoLeft = value == "left";
 			else if(flag == "--console-logo")
 				consoleLogoPath = value;
 			else if(flag == "--background")
@@ -195,7 +198,7 @@ namespace
 			char text[512];
 			std::snprintf(text, sizeof text,
 				"<theme>\n\t<formatVersion>3</formatVersion>\n\n\t<variables>\n\t\t<barLogoPos>%.6f %.6f</barLogoPos>\n\t\t<barLogoMax>%.6f %.6f</barLogoMax>\n\t</variables>\n</theme>\n",
-				(left + width / 2.0) / options.screenWidth, (top + height / 2.0) / 720.0, width / options.screenWidth, height / 720.0);
+				(logoLeft ? left : left + width / 2.0) / options.screenWidth, (top + height / 2.0) / 720.0, width / options.screenWidth, height / 720.0);
 			writeFile(outDir + "/logo.xml", text);
 		}
 

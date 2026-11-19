@@ -84,6 +84,26 @@ public:
 	void render(const Transform4x4f& parentTrans) override;
 	virtual void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
 
+	void setDefaultGameImage(const std::string& path)
+	{
+		if (!ResourceManager::getInstance()->fileExists(path))
+		{
+			LOG(LogWarning) << "Could not replace default game image, check path: " << path;
+			return;
+		}
+
+		const std::string oldDefaultGameTexture = mDefaultGameTexture;
+		mDefaultGameTexture = path;
+		mKeepGameTexture = TextureResource::get(mDefaultGameTexture, false, true);
+
+		for (auto it = mEntries.begin(); it != mEntries.end(); it++)
+		{
+			if ((*it).data.texturePath == oldDefaultGameTexture)
+				(*it).data.texturePath = mDefaultGameTexture;
+		}
+	}
+
+
 	void onSizeChanged() override;
 	inline void setCursorChangedCallback(const std::function<void(CursorState state)>& func) { mCursorChangedCallback = func; }
 
@@ -365,28 +385,7 @@ void ImageGridComponent<T>::applyTheme(const std::shared_ptr<ThemeData>& theme, 
 			mAnimate = true;
 
 		if (elem->has("gameImage"))
-		{
-			std::string path = elem->get<std::string>("gameImage");
-
-			if (!ResourceManager::getInstance()->fileExists(path))
-			{
-				LOG(LogWarning) << "Could not replace default game image, check path: " << path;
-			}
-			else
-			{
-				std::string oldDefaultGameTexture = mDefaultGameTexture;
-				mDefaultGameTexture = path;
-				mKeepGameTexture = TextureResource::get(mDefaultGameTexture, false, true);
-
-				// mEntries are already loaded at this point,
-				// so we need to update them with new game image texture
-				for (auto it = mEntries.begin(); it != mEntries.end(); it++)
-				{
-					if ((*it).data.texturePath == oldDefaultGameTexture)
-						(*it).data.texturePath = mDefaultGameTexture;
-				}
-			}
-		}
+			setDefaultGameImage(elem->get<std::string>("gameImage"));
 
 		if (elem->has("folderImage"))
 		{

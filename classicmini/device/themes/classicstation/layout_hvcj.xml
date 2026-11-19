@@ -25,6 +25,9 @@
 		<nesBarLogo>false</nesBarLogo>
 		<barLogoPath>./../assets/systems/logos/famicom.svg</barLogoPath>
 		<barLogoTint>F3BF3F</barLogoTint>
+		<barLogoOrigin>0.5 0.5</barLogoOrigin>
+		<blankNes>:/blank_jp.png</blankNes>
+		<blankSnes>:/blank_snes-eu-jp.png</blankSnes>
 		<wallBack>EBE2D5</wallBack>
 		<tilePadding>0.010937 0.084722</tilePadding>
 		<thumbPos>0.5 0.765278</thumbPos>

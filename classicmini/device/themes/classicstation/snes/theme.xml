@@ -10,11 +10,14 @@
 			<path>./../assets/systems/logos/snes.svg</path>
 			<pos>${barLogoPos}</pos>
 			<maxSize>${barLogoMax}</maxSize>
-			<origin>0.5 0.5</origin>
+			<origin>${barLogoOrigin}</origin>
 		</image>
 	</view>
 
 	<view name="grid">
+		<imagegrid name="gamegrid">
+			<gameImage>${blankSnes}</gameImage>
+		</imagegrid>
 		<image name="tile_save">
 			<path>./../save_icon.png</path>
 			<pos>${savePos}</pos>
@@ -29,7 +32,7 @@
 			<path>./../assets/systems/logos/snes.svg</path>
 			<pos>${barLogoPos}</pos>
 			<maxSize>${barLogoMax}</maxSize>
-			<origin>0.5 0.5</origin>
+			<origin>${barLogoOrigin}</origin>
 		</image>
 	</view>
 </theme>

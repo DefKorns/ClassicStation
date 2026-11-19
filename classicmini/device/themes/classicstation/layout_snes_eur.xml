@@ -56,6 +56,9 @@
 		<detailText>FFFFFF</detailText>
 		<barLogoPath>./../assets/systems/logos/nes1.svg</barLogoPath>
 		<barLogoTint>FFFFFF</barLogoTint>
+		<barLogoOrigin>0.5 0.5</barLogoOrigin>
+		<blankNes>:/blank_nes.png</blankNes>
+		<blankSnes>:/blank_snes-eu-jp.png</blankSnes>
 		<dividerColor>FFFFFF</dividerColor>
 		<labelVisible>false</labelVisible>
 		<labelPath>./divider.png</labelPath>

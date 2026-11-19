@@ -17,8 +17,14 @@
 			<color>${barLogoTint}</color>
 			<pos>${barLogoPos}</pos>
 			<maxSize>${barLogoMax}</maxSize>
-			<origin>0.5 0.5</origin>
+			<origin>${barLogoOrigin}</origin>
 		</image>
+	</view>
+
+	<view name="grid">
+		<imagegrid name="gamegrid">
+			<gameImage>${blankNes}</gameImage>
+		</imagegrid>
 	</view>
 
 	<view name="system">
@@ -34,7 +40,7 @@
 			<color>${barLogoTint}</color>
 			<pos>${barLogoPos}</pos>
 			<maxSize>${barLogoMax}</maxSize>
-			<origin>0.5 0.5</origin>
+			<origin>${barLogoOrigin}</origin>
 		</image>
 	</view>
 </theme>
