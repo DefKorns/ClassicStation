@@ -45,6 +45,7 @@ if [ -n "$media_root" ]; then
       done
       rm -f "${theme_dst:?}/$manifest"
     done
+    rm -f "${theme_dst:?}/.es-themeset"
     find "$theme_dst" -depth -mindepth 1 -type d -exec rmdir {} + 2>/dev/null
     rmdir "$theme_dst" 2>/dev/null
   done
