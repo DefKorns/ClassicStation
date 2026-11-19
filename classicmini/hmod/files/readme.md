@@ -14,6 +14,8 @@ Known issues: no video playback; the first boot builds the library, which takes 
 
 On the NES, games that run on the console's canoe emulator only get the composite and phosphor effects in CRT filter mode; the CRT smoothing, scanline strength and size settings do not apply to them, so those options can look like they do nothing there.
 
+ClassicStation hides the actions that need the X, Y, L and R buttons when the firmware is a Famicom one (Famicom Mini or Shonen Jump), because those consoles shipped with a two-button pad. This follows the firmware, not the pad: on an SNES Classic running one of those firmwares the actions stay hidden even though its pads have every button, unless you plug in another controller.
+
 To report a problem, send `/var/lib/hakchi/emulationstation/home/.emulationstation/es_log.txt` and, after a crash, `/var/lib/hakchi/emulationstation/crash.log` (over ssh as root).
 
 **Needs an SD card or USB stick.** While it installs, the hmod mounts the card itself and puts its themes in `/media/data/emulationstation/themes`: `classicstation` (the default on all the consoles, its artwork is generated on the console from its own sprite atlas the first time ClassicStation starts) and [es-theme-simple](https://github.com/RetroPie/es-theme-simple); nothing of the themes goes to the NAND. Without a card or stick the install stops and EmulationStation is not installed; the hakchi log says so, but the PC may still report the install as done and mark the module as installed, so remove it in hakchi before trying again. Extra themes go in the same folder. Updating keeps the theme files you changed.
