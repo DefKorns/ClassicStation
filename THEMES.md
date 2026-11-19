@@ -898,3 +898,28 @@ EmulationStation borrows the concept of "nine patches" from Android (or "9-Slice
 The help system is a special element that displays a context-sensitive list of actions the user can take at any time.  You should try and keep the position constant throughout every screen.  Keep in mind the "default" settings (including position) are used whenever the user opens a menu.
 
 [*Check out the "official" themes for some more examples!*](http://aloshi.com/emulationstation#themes)
+
+ClassicStation additions
+========================
+
+A theme is an ordinary EmulationStation theme with a few additions that this port reads:
+
+- `imagegrid`: `scrollDuration` (ms) and `adjacentGap` (fraction of the screen width between the selected cover and
+  its neighbors). `carousel`: `scrollDuration`.
+- `menuIcons` container: where the header icon bar goes, in the systems and the games views. The bar is only drawn
+  when the theme defines this container; without it there are no icons and the menu opens with Start.
+- Games view: `md_divider`, `md_arrow_left`, `md_arrow_right` and `md_scrollbar` images. The arrows only show when the
+  list has more games than fit. A game without description uses the `md_name_nodesc`, `md_developer_nodesc` and
+  `md_genre_nodesc` layouts and hides the divider.
+- Suspend point list: `suspend_panel`, `suspend_cell`, `suspend_cell_selected`, `suspend_frame`,
+  `suspend_frame_selected` (each an `image` stretched to its box, or a `ninepatch`), `suspend_shot`, `suspend_lock`,
+  `suspend_gauge`, `suspend_cell_next` (where the second cell goes, which sets the spacing), and `suspend_title`,
+  `suspend_label` and `suspend_notice` (position, text color, font and size).
+- The `favoriteIconVisible` theme variable: the game list shows a heart before the name of a favorite unless the theme
+  sets it to `false`.
+- `nandSpace`, `diskSpace` and their icons: the free space of the NAND and of the SD card.
+- A theme `ui/` folder overrides the built-in menu icons (`menu_*.svg`), the highlight (`menu_selected.png`) and the
+  suspend point art.
+- `followHeaderLift` on an image: it moves up with the header icon bar when the bar rises.
+
+With no theme or no such elements the port keeps its built-in look.

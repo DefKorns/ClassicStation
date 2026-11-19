@@ -6,8 +6,9 @@ ClassicStation is a fork of [RetroPie/EmulationStation](https://github.com/Retro
 ## Branches
 
 - `stable`: a copy of `upstream/stable`. Only fast-forwarded, never committed to.
-- `classicstation`: where I work. It gets upstream with `git merge stable`.
-- `main`: what I release. `classicstation` goes in once it has been tested, and tags are made here.
+- `classicstation`: where I work. It gets upstream with `git merge stable`. During the alpha, the releases and their
+  tags are made here too.
+- `main`: the main branch. `classicstation` goes in once it has been tested, and after the alpha the tags are made here.
 
 ## Updating
 
@@ -40,3 +41,12 @@ doesn't merge or push. `git rerere` is on, so a conflict I already resolved once
   has the game names, and the hmod never shipped the tables.
 - The CPack and Debian packaging, the `USE_MESA_GLES` option, RetroPie's `README.md` and its issue template.
 - Kiosk UI mode, with `--force-kiosk`. Kid mode stays.
+
+## Changed to build and run on the console
+
+- libvlc removed: the video component is a stub that shows the snapshot image.
+- `std::put_time` replaced by `strftime` (libstdc++ 4.9 has none).
+- `SDL_JoystickGetVendor/Product` guarded (SDL 2.0.4 on the console has none).
+
+The rest of this repository is EmulationStation itself; the port is what lives in `classicmini/` and the small hooks it
+needs in `es-app` and `es-core`.
