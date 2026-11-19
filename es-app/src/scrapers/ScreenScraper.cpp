@@ -179,6 +179,19 @@ void screenscraper_generate_scraper_requests(const ScraperSearchParams& params,
 
 }
 
+namespace
+{
+	std::string imageExtension(const std::string& format)
+	{
+		static const char* const allowed[] = {"png", "jpg", "jpeg", "gif"};
+		const std::string lower = Utils::String::toLower(format);
+		for(const char* extension : allowed)
+			if(lower == extension)
+				return "." + lower;
+		return std::string();
+	}
+}
+
 void ScreenScraperRequest::process(const std::unique_ptr<HttpReq>& req, std::vector<ScraperSearchResult>& results)
 {
 	assert(req->status() == HttpReq::REQ_SUCCESS);
@@ -311,9 +324,9 @@ void ScreenScraperRequest::processGame(const pugi::xml_document& xmldoc, std::ve
 				result.imageUrl = Utils::String::replace(art.text().get(), " ", "%20");
 
 				// Get the media type returned by ScreenScraper
-				std::string media_type = art.attribute("format").value();
+				const std::string media_type = imageExtension(art.attribute("format").value());
 				if (!media_type.empty())
-					result.imageType = "." + media_type;
+					result.imageType = media_type;
 
 				// Ask for the same image, but with a smaller size, for the thumbnail displayed during scraping
 				result.thumbnailUrl = result.imageUrl + "&maxheight=250";
@@ -325,9 +338,9 @@ void ScreenScraperRequest::processGame(const pugi::xml_document& xmldoc, std::ve
 			if (wheel)
 			{
 				result.marqueeUrl = Utils::String::replace(wheel.text().get(), " ", "%20");
-				const std::string wheelType = wheel.attribute("format").value();
+				const std::string wheelType = imageExtension(wheel.attribute("format").value());
 				if (!wheelType.empty())
-					result.marqueeType = "." + wheelType;
+					result.marqueeType = wheelType;
 			}
 		}
 

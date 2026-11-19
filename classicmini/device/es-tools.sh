@@ -324,7 +324,7 @@ case "$1" in
         echo "Swap file disabled. No restart needed. The file stays on the SD card."
         ;;
       boot)
-        [ "$(swapConfGet enabled)" = 1 ] && swapAvailable && swapFileReady && ! swapActive && swapon -p 0 "$swap_file" >/dev/null 2>&1
+        [ "$(swapConfGet enabled)" = 1 ] && swapAvailable && [ -f "$swap_file" ] && ! swapActive && swapon -p 0 "$swap_file" >/dev/null 2>&1
         ;;
       info)
         free -m | awk '/buffers\/cache/ { free = $4 } /^Swap/ { used = $3; total = $2 } END { printf "%s MB free, swap %s / %s MB\n", free, used, total }'

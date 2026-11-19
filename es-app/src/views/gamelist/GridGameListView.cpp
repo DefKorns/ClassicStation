@@ -273,26 +273,34 @@ void GridGameListView::populateList(const std::vector<FileData*>& files)
 			mGrid.add((*it)->getName(), image, *it);
 
 			std::string thumbnail = (*it)->metadata.get("thumbnail");
+			bool verified = false;
 			if (thumbnail.empty())
 				thumbnail = image;
 			if (image.find("/downloaded_images/") != std::string::npos && thumbnail.find("/downloaded_images/") == std::string::npos)
 			{
 				const std::string scraped = thumbnailPathFor(image);
 				if (Utils::FileSystem::exists(scraped))
+				{
 					thumbnail = scraped;
+					verified = true;
+				}
 				else if (generated < MaxThumbnailsPerPass && saveThumbnail(image, scraped, 30, 40))
 				{
 					++generated;
 					thumbnail = scraped;
+					verified = true;
 				}
 			}
 			if (thumbnail == image && image.size() > 4 && image.compare(image.size() - 4, 4, ".png") == 0)
 			{
 				const std::string small = image.substr(0, image.size() - 4) + "_small.png";
 				if (Utils::FileSystem::exists(small))
+				{
 					thumbnail = small;
+					verified = true;
+				}
 			}
-			if (thumbnail.empty() || !ResourceManager::getInstance()->fileExists(thumbnail))
+			if (thumbnail.empty() || (!verified && !ResourceManager::getInstance()->fileExists(thumbnail)))
 				thumbnail = ":/cartridge.svg";
 			thumbnails.push_back(thumbnail);
 		}

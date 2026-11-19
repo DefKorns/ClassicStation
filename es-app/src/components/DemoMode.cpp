@@ -372,7 +372,13 @@ bool DemoMode::locateSkit(const std::string& folder)
 	if(folder.empty())
 		return false;
 	if(mSkitLoaded)
-		return true;
+	{
+		if(folder == mSkitFolder && ResourceManager::getInstance()->fileExists(folder + "skit_sky.png"))
+			return true;
+		mSampleLarge.clear();
+		mSampleRing.clear();
+		mSkitLoaded = false;
+	}
 
 	const auto add = [&](ImageComponent& image, const std::string& name)
 	{
@@ -403,6 +409,7 @@ bool DemoMode::locateSkit(const std::string& folder)
 	if(load(mSampleLarge, "skit_a_") && load(mSampleRing, "skit_b_"))
 	{
 		mSkitLoaded = true;
+		mSkitFolder = folder;
 		return true;
 	}
 	mSampleLarge.clear();
@@ -501,7 +508,15 @@ bool DemoMode::locateBlocks(const std::string& folder)
 	if(folder.empty())
 		return false;
 	if(mLoaded)
-		return true;
+	{
+		if(folder == mLoadedFolder && ResourceManager::getInstance()->fileExists(folder + (mTag ? "mario_run01.png" : "block_2.png")))
+			return true;
+		mMarioFrames.clear();
+		mLuigiFrames.clear();
+		mBlockFrames.clear();
+		mPortraitSources.clear();
+		mLoaded = false;
+	}
 
 	const auto add = [&](std::deque<ImageComponent>& frames, const std::string& path)
 	{
@@ -532,6 +547,7 @@ bool DemoMode::locateBlocks(const std::string& folder)
 	if(load(mMarioFrames, "mario", 5) && load(mLuigiFrames, "luigi", 5) && load(mBlockFrames, "block", 3))
 	{
 		mLoaded = true;
+		mLoadedFolder = folder;
 		loadPortraits(folder);
 		return true;
 	}
@@ -543,6 +559,7 @@ bool DemoMode::locateBlocks(const std::string& folder)
 	{
 		mTag = true;
 		mLoaded = true;
+		mLoadedFolder = folder;
 		return true;
 	}
 	mMarioFrames.clear();

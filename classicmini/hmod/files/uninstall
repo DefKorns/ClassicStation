@@ -60,6 +60,9 @@ if [ -n "$media_root" ]; then
   done
   rmdir "$audio_dst" 2>/dev/null
   es_media=$media_root/data/emulationstation
+  swapoff /media/data/emulationstation/classicstation.swap 2>/dev/null
+  swapoff "$es_media/classicstation.swap" 2>/dev/null
+  rm -f "${es_media:?}/classicstation.swap" "${es_media:?}/classicstation.swap.tmp" "${es_media:?}/swap.conf" "${es_media:?}/swap.conf.tmp"
   if [ -d "$es_media" ] && [ -z "$(find "$es_media" -type f 2>/dev/null | head -n 1)" ]; then
     rm -rf "${es_media:?}"
   fi
@@ -70,6 +73,10 @@ if [ -n "$media_root" ]; then
 fi
 rmdir "$media_mnt" 2>/dev/null
 
+if [ -f /run/es-thermal.pid ]; then
+  kill -TERM -- "-$(cat /run/es-thermal.pid)" 2>/dev/null
+  rm -f /run/es-thermal.pid
+fi
 rm -f "$mountpoint/var/lib/clover/autotest" /run/es-run.pid
 for item in "${es_dir:?}"/* "${es_dir:?}"/.[!.]*; do
   [ -e "$item" ] && [ "${item##*/}" != favorites.txt ] && rm -rf "${item:?}"

@@ -32,6 +32,7 @@ namespace
 	constexpr int FloatBobMs = 1800;
 	constexpr float FloatBobPixels = 6.0f;
 	constexpr int FloatWingMs = 180;
+	constexpr int FloatWrapMs = 900000;
 	constexpr float FloatRise = 142.0f;
 	enum FloatPart { FloatCard, FloatActive, FloatFrame, FloatWingA, FloatWingB, FloatWingLeftA, FloatWingLeftB, FloatBalloon, FloatBalloonIcon, FloatArrowLeft, FloatArrowRight, FloatRing, FloatPartCount };
 	const char* const FloatNames[FloatPartCount] = {
@@ -601,7 +602,7 @@ bool GuiSuspendPoints::input(InputConfig* config, Input input)
 
 void GuiSuspendPoints::update(int deltaTime)
 {
-	mFloatMs += deltaTime;
+	mFloatMs = (mFloatMs + deltaTime) % FloatWrapMs;
 	const int duration = mClosing ? SlideMs : WallInMs;
 	const int step = mStarted ? std::min(deltaTime, MaxStepMs) : 0;
 	mStarted = true;

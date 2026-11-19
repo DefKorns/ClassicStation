@@ -155,6 +155,8 @@ private:
 	bool mTag = false;
 	bool mSkit = false;
 	bool mSkitLoaded = false;
+	std::string mLoadedFolder;
+	std::string mSkitFolder;
 	int mSkitMs = 0;
 	int mSampleIndex = -1;
 	int mSampleFrame = 0;

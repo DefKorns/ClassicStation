@@ -45,6 +45,10 @@ if [ "$kind" = snes ]; then
   layout=snes_$region
   [ -f "${sprites_dir%/sprites}/layout/asset/sprite/wallpaper/wall.png" ] && wall=${sprites_dir%/sprites}/layout/asset/sprite/wallpaper/wall.png
 fi
+logo_align=center
+[ "$layout" = nes ] && logo_align=left
+stamp="$atlas $layout $title $logo_align $(stat -c '%s-%Y' "$sprites_dir/$atlas.png" "$es_dir/theme_layers" "$theme_dir/layout_$layout.xml" 2>/dev/null | tr '\n' ' ')"
+[ -f "$theme_dir/layout.xml" ] && [ "$(head -n 1 "$theme_stamp" 2>/dev/null)" = "$stamp" ] && exit 0
 [ -f "$theme_dir/layout_$layout.xml" ] && cp "$theme_dir/layout_$layout.xml" "$theme_dir/layout.xml"
 demo_sprites=${sprites_dir%/sprites}/layout/asset/sprite
 if [ "$kind" = snes ] && [ -d "$demo_sprites/mario" ] && [ ! -f "$theme_dir/demo/luigi_run01.png" ]; then
@@ -88,10 +92,6 @@ if [ "$1" = hvcj ] && [ -f "$sprites_dir/new_clover_j_logo.png" ]; then
 else
   rm -f "$theme_dir/top_label.png"
 fi
-logo_align=center
-[ "$layout" = nes ] && logo_align=left
-stamp="$atlas $layout $title $logo_align $(stat -c '%s-%Y' "$sprites_dir/$atlas.png" "$es_dir/theme_layers" "$theme_dir/layout_$layout.xml" 2>/dev/null | tr '\n' ' ')"
-[ "$(head -n 1 "$theme_stamp" 2>/dev/null)" = "$stamp" ] && exit 0
 
 background=$(sed -n 's|.*<backgroundColor>\(.*\)</backgroundColor>.*|\1|p' "$theme_dir/console.xml")
 wall_back=$(sed -n 's|.*<wallBack>\(.*\)</wallBack>.*|\1|p' "$theme_dir/layout.xml")

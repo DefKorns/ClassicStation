@@ -69,7 +69,8 @@ void HeaderStatus::applyTheme(const std::shared_ptr<ThemeData>& theme, const std
 void HeaderStatus::refreshOverclock()
 {
 	const long maximum = readNumber("cpuinfo_max_freq");
-	mOverclockActive = maximum > 0 && readNumber("scaling_max_freq") == maximum && readNumber("cpuinfo_boot_freq") != maximum;
+	const long boot = readNumber("cpuinfo_boot_freq");
+	mOverclockActive = maximum > 0 && boot > 0 && readNumber("scaling_max_freq") == maximum && boot != maximum;
 	mOverclockElapsedMs = 0;
 	if(mOverclockDefault)
 		placeDefaultOverclock();

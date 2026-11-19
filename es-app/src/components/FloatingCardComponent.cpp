@@ -21,6 +21,7 @@ namespace
 	constexpr int BobPeriodMs = 1800;
 	constexpr float BobPixels = 6.0f;
 	constexpr int WingFrameMs = 180;
+	constexpr int WrapMs = 900000;
 	constexpr int SmokeFrameMs = 70;
 
 	const char* const PartNames[] = {
@@ -106,7 +107,7 @@ void FloatingCardComponent::erase()
 void FloatingCardComponent::update(int deltaTime)
 {
 	GuiComponent::update(deltaTime);
-	mElapsedMs += deltaTime;
+	mElapsedMs = (mElapsedMs + deltaTime) % WrapMs;
 	if(mEraseMs >= 0)
 	{
 		mEraseMs += deltaTime;

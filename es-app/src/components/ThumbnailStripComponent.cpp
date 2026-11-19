@@ -18,6 +18,7 @@ namespace
 	constexpr int ArrowFrameMs = 33;
 	constexpr int ArrowSequence[] = { 0, 1, 1, 1, 2, 2, 2, 1, 1, 1, 0, 0, 0 };
 	constexpr int ArrowSequenceLength = sizeof(ArrowSequence) / sizeof(ArrowSequence[0]);
+	constexpr int ArrowWrapMs = ArrowFrameMs * ArrowSequenceLength * 1000;
 	const char* const ArrowNames[] = { "thumbnail_arrow_a", "thumbnail_arrow_b", "thumbnail_arrow_c" };
 }
 
@@ -75,7 +76,7 @@ void ThumbnailStripComponent::setPosition(float index)
 void ThumbnailStripComponent::update(int deltaTime)
 {
 	GuiComponent::update(deltaTime);
-	mElapsedMs += deltaTime;
+	mElapsedMs = (mElapsedMs + deltaTime) % ArrowWrapMs;
 	for(auto& image : mImages)
 		image->update(deltaTime);
 }

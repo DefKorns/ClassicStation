@@ -17,13 +17,17 @@ cpu_freq_dir=/sys/devices/system/cpu/cpu0/cpufreq
 thermal_limit=80
 
 while sleep 5; do
-  [ "$(cat "$cpu_freq_dir/scaling_max_freq")" = "$(cat "$cpu_freq_dir/cpuinfo_max_freq")" ] || continue
-  [ "$(cat "$cpu_freq_dir/cpuinfo_boot_freq")" != "$(cat "$cpu_freq_dir/cpuinfo_max_freq")" ] || continue
-  temp=$(cat /sys/class/thermal/thermal_zone0/temp)
+  read -r scaling_max < "$cpu_freq_dir/scaling_max_freq" || continue
+  read -r cpu_max < "$cpu_freq_dir/cpuinfo_max_freq" || continue
+  read -r boot_freq < "$cpu_freq_dir/cpuinfo_boot_freq" || continue
+  case $boot_freq in "" | *[!0-9]*) continue ;; esac
+  [ "$scaling_max" = "$cpu_max" ] || continue
+  [ "$boot_freq" != "$cpu_max" ] || continue
+  read -r temp < /sys/class/thermal/thermal_zone0/temp || continue
   case $temp in "" | *[!0-9]*) continue ;; esac
   [ "$temp" -lt 1000 ] || temp=$((temp / 1000))
   if [ "$temp" -ge "$thermal_limit" ]; then
-    cat "$cpu_freq_dir/cpuinfo_boot_freq" > "$cpu_freq_dir/scaling_max_freq"
+    echo "$boot_freq" > "$cpu_freq_dir/scaling_max_freq"
     echo "$temp" > /tmp/es-oc-cutoff
   fi
 done
