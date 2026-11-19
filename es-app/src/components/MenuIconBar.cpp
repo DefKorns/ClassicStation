@@ -166,6 +166,7 @@ void MenuIconBar::applyTheme(const std::shared_ptr<ThemeData>& theme, const std:
 		const Vector2f screen(static_cast<float>(Renderer::getScreenWidth()), static_cast<float>(Renderer::getScreenHeight()));
 		mBoxPos = elem->get<Vector2f>("pos") * screen;
 		mBoxSize = elem->get<Vector2f>("size") * screen;
+		mCaptionLabel.setColor(elem->has("captionColor") ? elem->get<unsigned int>("captionColor") : 0x000000FFu);
 	}
 	layout();
 	retarget(true);

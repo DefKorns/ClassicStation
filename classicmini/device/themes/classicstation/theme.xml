@@ -98,6 +98,7 @@
 		<container name="menuIcons">
 			<pos>0.3125 0.0361</pos>
 			<size>0.375 0.1</size>
+			<captionColor>${captionText}</captionColor>
 		</container>
 
 		<helpsystem name="help">
@@ -700,6 +701,7 @@
 		<container name="menuIcons">
 			<pos>0.3125 0.0361</pos>
 			<size>0.375 0.1</size>
+			<captionColor>${captionText}</captionColor>
 		</container>
 
 		<image name="title_bar" extra="true">

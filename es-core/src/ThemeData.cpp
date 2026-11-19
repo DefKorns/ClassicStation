@@ -135,6 +135,7 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "favoriteSlotAlways", BOOLEAN },
 		{ "zIndex", FLOAT } } },
 	{ "container", {
+		{ "captionColor", COLOR },
 		{ "dim", FLOAT },
 		{ "pos", RESOLUTION_PAIR },
 		{ "size", RESOLUTION_PAIR },

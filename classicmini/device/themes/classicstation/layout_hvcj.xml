@@ -20,6 +20,7 @@
 		<menuHelp>FFFFFF</menuHelp>
 		<suspendDim>0.5</suspendDim>
 		<spaceText>F3BF3F</spaceText>
+		<captionText>000000FF</captionText>
 		<barLogo>true</barLogo>
 		<nesBarPath>./../menubar_bottom_j.png</nesBarPath>
 		<nesBarLogo>false</nesBarLogo>

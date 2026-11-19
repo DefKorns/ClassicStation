@@ -19,7 +19,8 @@
 		<suspendHelp>FFFFFF</suspendHelp>
 		<menuHelp>FFFFFF</menuHelp>
 		<suspendDim>0.5</suspendDim>
-		<spaceText>4D4F53</spaceText>
+		<spaceText>8E829D</spaceText>
+		<captionText>FFFFFFFF</captionText>
 		<barLogo>true</barLogo>
 		<nesBarPath>./../menubar_bottom.png</nesBarPath>
 		<nesBarLogo>false</nesBarLogo>
@@ -41,12 +42,12 @@
 		<saveSize>0.042188 0.058333</saveSize>
 		<wallBack>000000</wallBack>
 		<thumbCount>21</thumbCount>
-		<nandIconPos>0.071875 0.083333</nandIconPos>
-		<nandTextPos>0.0836 0.0639</nandTextPos>
-		<diskIconPos>0.144531 0.083333</diskIconPos>
-		<diskTextPos>0.157 0.0639</diskTextPos>
-		<swapIconPos>0.21875 0.083333</swapIconPos>
-		<swapTextPos>0.232 0.0639</swapTextPos>
+		<nandIconPos>0.108 0.083333</nandIconPos>
+		<nandTextPos>0.1197 0.0639</nandTextPos>
+		<diskIconPos>0.1757 0.083333</diskIconPos>
+		<diskTextPos>0.1877 0.0639</diskTextPos>
+		<swapIconPos>0.2437 0.083333</swapIconPos>
+		<swapTextPos>0.2557 0.0639</swapTextPos>
 		<overclockPath>./led_overclock.png</overclockPath>
 		<overclockPos>0 0.875</overclockPos>
 		<overclockSize>1 0.166667</overclockSize>
