@@ -411,6 +411,7 @@
 			<horizontalMargin>0.0219</horizontalMargin>
 			<alignment>left</alignment>
 			<fontSize>0.0444</fontSize>
+			<scrollSound>/media/data/emulationstation/audio/se_sys_cursor.wav</scrollSound>
 			<lineSpacing>1.78</lineSpacing>
 			<fitMinScale>0.7</fitMinScale>
 			<primaryColor>1C1C1C</primaryColor>
@@ -587,6 +588,7 @@
 			<horizontalMargin>0.0370</horizontalMargin>
 			<alignment>left</alignment>
 			<fontSize>0.0444</fontSize>
+			<scrollSound>/media/data/emulationstation/audio/se_sys_cursor.wav</scrollSound>
 			<lineSpacing>1.78</lineSpacing>
 			<fitMinScale>0.7</fitMinScale>
 			<primaryColor>1C1C1C</primaryColor>
@@ -675,6 +677,7 @@
 
 		<carousel name="systemcarousel">
 			<type>horizontal</type>
+			<scrollSound>/media/data/emulationstation/audio/se_sys_cursor.wav</scrollSound>
 			<pos>${gridX} 0.220833</pos>
 			<size>${gridW} 0.5</size>
 			<logoSize>0.178125 0.283333</logoSize>
