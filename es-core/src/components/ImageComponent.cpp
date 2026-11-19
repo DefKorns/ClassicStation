@@ -48,6 +48,11 @@ void ImageComponent::setHeaderLift(float pixels)
 	sHeaderLift = pixels;
 }
 
+float ImageComponent::headerLift()
+{
+	return sHeaderLift;
+}
+
 void ImageComponent::setScrollCoast(float factor)
 {
 	sScrollCoast = factor;
@@ -598,7 +603,7 @@ void ImageComponent::fadeIn(bool textureLoaded)
 	}
 }
 
-bool ImageComponent::hasImage()
+bool ImageComponent::hasImage() const
 {
 	return (bool)mTexture;
 }

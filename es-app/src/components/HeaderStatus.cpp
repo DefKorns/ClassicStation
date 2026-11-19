@@ -104,7 +104,8 @@ void HeaderStatus::update(int deltaTime)
 
 void HeaderStatus::render(const Transform4x4f& parentTrans)
 {
-	const Transform4x4f lifted = demoLift(parentTrans);
+	Transform4x4f lifted = demoLift(parentTrans);
+	lifted.translate(Vector3f(0.0f, -ImageComponent::headerLift(), 0.0f));
 	if(mDiskShown)
 		mDisk.render(lifted);
 	if(mNandShown)

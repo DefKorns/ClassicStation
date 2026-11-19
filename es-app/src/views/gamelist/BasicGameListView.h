@@ -23,6 +23,7 @@ public:
 	virtual const char* getName() const override { return "basic"; }
 
 	virtual bool input(InputConfig* config, Input input) override;
+	void update(int deltaTime) override;
 	virtual std::vector<HelpPrompt> getHelpPrompts() override;
 	virtual void launch(FileData* game) override;
 
@@ -41,6 +42,9 @@ protected:
 	TextListComponent<FileData*> mList;
 	MenuIconBar mIconBar;
 	bool mHeaderFocus = false;
+	bool mListRestorePending = false;
+	bool mRowRectValid = false;
+	Vector4f mRowRect;
 	std::unique_ptr<FileData> mPlaceholder;
 	std::shared_ptr<bool> mAlive = std::make_shared<bool>(true);
 };

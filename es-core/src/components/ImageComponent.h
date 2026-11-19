@@ -36,6 +36,7 @@ public:
 	void setFadeEnabled(bool enabled) { mFadeEnabled = enabled; }
 	static void setBackdropVisible(float visible);
 	static void setHeaderLift(float pixels);
+	static float headerLift();
 	// Resize the image to fit this size. If one axis is zero, scale that axis to maintain aspect ratio.
 	// If both are non-zero, potentially break the aspect ratio.  If both are zero, no resizing.
 	// Can be set before or after an image is loaded.
@@ -78,7 +79,7 @@ public:
 
 	Vector2f getSize() const override;
 
-	bool hasImage();
+	bool hasImage() const;
 
 	void render(const Transform4x4f& parentTrans) override;
 

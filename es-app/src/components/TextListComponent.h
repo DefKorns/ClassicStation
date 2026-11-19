@@ -4,6 +4,7 @@
 
 #include "components/IList.h"
 #include "math/Misc.h"
+#include "math/Vector4f.h"
 #include "utils/StringUtil.h"
 #include "Log.h"
 #include "Settings.h"
@@ -87,6 +88,8 @@ public:
 	}
 
 	inline void setSelectorHeight(float selectorScale) { mSelectorHeight = selectorScale; }
+	inline void setCursorHidden(bool hidden) { mCursorHidden = hidden; }
+	bool selectedRowRect(Vector4f& rect) const;
 	inline void setSelectorOffsetY(float selectorOffsetY) { mSelectorOffsetY = selectorOffsetY; }
 	inline void setSelectorColor(unsigned int color) { mSelectorColor = color; }
 	inline void setSelectorColorEnd(unsigned int color) { mSelectorColorEnd = color; }
@@ -115,6 +118,7 @@ private:
 	float mFitMinScale;
 	float mLineSpacing;
 	float mSelectorHeight;
+	bool mCursorHidden = false;
 	float mSelectorOffsetY;
 	unsigned int mSelectorColor;
 	unsigned int mSelectorColorEnd;
@@ -167,6 +171,20 @@ TextListComponent<T>::TextListComponent(Window* window) :
 }
 
 template <typename T>
+bool TextListComponent<T>::selectedRowRect(Vector4f& rect) const
+{
+	if(size() == 0 || mViewportHeight <= 0)
+		return false;
+	const float entrySize = Math::max(mFont->getHeight(1.0), (float)mFont->getSize()) * mLineSpacing;
+	const float top = (this->mSize.y() - (mViewportHeight * entrySize)) * 0.5f + (mCursor - mViewportTop) * entrySize + mSelectorOffsetY;
+	const Vector2f selector = mSelectorImage.hasImage() ? mSelectorImage.getSize() : Vector2f(this->mSize.x(), mSelectorHeight);
+	const float x = this->mPosition.x() - this->mOrigin.x() * this->mSize.x();
+	const float y = this->mPosition.y() - this->mOrigin.y() * this->mSize.y() + top;
+	rect = Vector4f(x, y, selector.x(), selector.y());
+	return true;
+}
+
+template <typename T>
 void TextListComponent<T>::render(const Transform4x4f& parentTrans)
 {
 	Transform4x4f trans = parentTrans * getTransform();
@@ -199,7 +217,8 @@ void TextListComponent<T>::render(const Transform4x4f& parentTrans)
 
 	float y = (mSize.y() - (mViewportHeight * entrySize)) * 0.5f;
 
-	if (mSelectorImage.hasImage()) {
+	if (mCursorHidden) {
+	} else if (mSelectorImage.hasImage()) {
 		mSelectorImage.setPosition(0.f, y + (mCursor - mViewportTop)*entrySize + mSelectorOffsetY, 0.f);
 		mSelectorImage.render(trans);
 	} else {
@@ -219,7 +238,7 @@ void TextListComponent<T>::render(const Transform4x4f& parentTrans)
 		typename IList<TextListData, T>::Entry& entry = mEntries.at((unsigned int)i);
 
 		unsigned int color;
-		if(mCursor == i && mSelectedColor)
+		if(mCursor == i && mSelectedColor && !mCursorHidden)
 			color = mSelectedColor;
 		else
 			color = mColors[entry.data.colorId];
