@@ -48,7 +48,12 @@ fi
 logo_align=center
 [ "$layout" = nes ] && logo_align=left
 stamp="$atlas $layout $title $logo_align $(stat -c '%s-%Y' "$sprites_dir/$atlas.png" "$es_dir/theme_layers" "$theme_dir/layout_$layout.xml" 2>/dev/null | tr '\n' ' ')"
-[ -f "$theme_dir/layout.xml" ] && [ "$(head -n 1 "$theme_stamp" 2>/dev/null)" = "$stamp" ] && exit 0
+themeIntact() {
+  tail -n +2 "$theme_stamp" 2>/dev/null | while read -r _ listed; do
+    [ -f "$theme_dir/$listed" ] || exit 1
+  done
+}
+[ -f "$theme_dir/layout.xml" ] && [ "$(head -n 1 "$theme_stamp" 2>/dev/null)" = "$stamp" ] && themeIntact && exit 0
 [ -f "$theme_dir/layout_$layout.xml" ] && cp "$theme_dir/layout_$layout.xml" "$theme_dir/layout.xml"
 demo_sprites=${sprites_dir%/sprites}/layout/asset/sprite
 if [ "$kind" = snes ] && [ -d "$demo_sprites/mario" ] && [ ! -f "$theme_dir/demo/luigi_run01.png" ]; then
@@ -82,16 +87,6 @@ case "$1" in
     fi
     ;;
 esac
-if [ "$1" = hvcj ] && [ -f "$sprites_dir/bg_image_1280x534_v6.png" ]; then
-  cp "$sprites_dir/bg_image_1280x534_v6.png" "$theme_dir/wall_bg.png"
-else
-  rm -f "$theme_dir/wall_bg.png"
-fi
-if [ "$1" = hvcj ] && [ -f "$sprites_dir/new_clover_j_logo.png" ]; then
-  cp "$sprites_dir/new_clover_j_logo.png" "$theme_dir/top_label.png"
-else
-  rm -f "$theme_dir/top_label.png"
-fi
 
 background=$(sed -n 's|.*<backgroundColor>\(.*\)</backgroundColor>.*|\1|p' "$theme_dir/console.xml")
 wall_back=$(sed -n 's|.*<wallBack>\(.*\)</wallBack>.*|\1|p' "$theme_dir/layout.xml")
@@ -99,6 +94,16 @@ wall_back=$(sed -n 's|.*<wallBack>\(.*\)</wallBack>.*|\1|p' "$theme_dir/layout.x
 rm -rf "$work"
 if "$es_dir/theme_layers" layers "$sprites_dir/$atlas.json" "$sprites_dir/$atlas.png" "$work" --wide-width 772 --title "$title" --logo-align "$logo_align" ${background:+--background "$background"} ${wall:+--wall "$wall"} >/dev/null 2>&1; then
   cp -a "$work/." "$theme_dir/"
+  if [ "$1" = hvcj ] && [ -f "$sprites_dir/bg_image_1280x534_v6.png" ]; then
+    cp "$sprites_dir/bg_image_1280x534_v6.png" "$theme_dir/wall_bg.png"
+  else
+    rm -f "$theme_dir/wall_bg.png"
+  fi
+  if [ "$1" = hvcj ] && [ -f "$sprites_dir/new_clover_j_logo.png" ]; then
+    cp "$sprites_dir/new_clover_j_logo.png" "$theme_dir/top_label.png"
+  else
+    rm -f "$theme_dir/top_label.png"
+  fi
   case $layout in
     nes) original_card=nes ;;
     hvc | hvcj) original_card=hvc ;;

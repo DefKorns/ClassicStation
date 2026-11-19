@@ -308,7 +308,8 @@ for desktop in "$originals_root"/*/*/CLV-*/CLV-*.desktop "$originals_root"/CLV-*
   [ "${desktop##*/}" = "$code.desktop" ] || continue
   [ -f "$out/originals/$code.desktop" ] && continue
   info=$(awk -v sep="$us" '
-    function esc(s) { gsub(/&/, "\&amp;", s); gsub(/</, "\&lt;", s); gsub(/>/, "\&gt;", s); return s }
+    function rep(s, from, to,   r, i) { r = ""; while ((i = index(s, from)) > 0) { r = r substr(s, 1, i - 1) to; s = substr(s, i + length(from)) } return r s }
+    function esc(s) { return rep(rep(rep(s, "&", "&amp;"), "<", "&lt;"), ">", "&gt;") }
     { gsub(/\r/, "") }
     /^\[Description\]/ { indesc = 1; next }
     /^\[/ { indesc = 0 }
@@ -328,7 +329,7 @@ EOF
   tool=${exec_line%% *}
   wrapper=/bin/${tool##*/}-wr
   [ -x "$wrapper" ] && exec_line="$wrapper ${exec_line#* }"
-  exec_line=$(printf '%s' "$exec_line" | sed 's|/usr/share/games/|/var/squashfs/usr/share/games/|g')
+  exec_line=$(printf '%s' "$exec_line" | sed 's|/var/squashfs/usr/share/games/|/usr/share/games/|g; s|/usr/share/games/|/var/squashfs/usr/share/games/|g')
   awk -v launch="$exec_line" -v saves="/var/saves/$code" '/^Exec=/ { print "Exec=" launch; next } /^Path=/ { print "Path=" saves; next } { print }' "$desktop" > "$out/originals/$code.desktop"
   icon=$game_dir/$code.png
   [ -f "$icon" ] || icon=

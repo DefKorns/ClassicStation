@@ -248,11 +248,14 @@ if [ -n "$code" ]; then
   floating=$volatile/$code/0
   resumed=
   resume_dir=
+  resumed_time=0
   if [ "$resume" = floating ]; then
     resume=
     if [ -n "$native" ] && [ -f "$floating.state" ]; then
       resumed=$volatile/$code.resume.state
       cp "$floating.state" "$resumed"
+      resumed_time=$(cat "$floating.state_time.txt" 2>/dev/null)
+      case $resumed_time in ''|*[!0-9]*) resumed_time=0 ;; esac
     elif [ -z "$native" ] && [ -d "$out" ]; then
       resume_dir=$volatile/$code.resume.dir
       rm -rf "$resume_dir"
@@ -308,7 +311,14 @@ launched=$(cut -d. -f1 /proc/uptime)
 PATH="$shim:$PATH" sh -c "$cmd"
 status=$?
 [ -n "${resumed:-}" ] && rm -f "$resumed"
-[ -n "${resume_dir:-}" ] && rm -rf "$resume_dir"
+if [ -n "${resume_dir:-}" ]; then
+  if [ ! -f "$out/state.png" ]; then
+    rm -rf "$out"
+    mv "$resume_dir" "$out"
+  else
+    rm -rf "$resume_dir"
+  fi
+fi
 autofireForUi
 if [ -n "$native" ] && [ -f "$floating.state" ]; then
   played=$(($(cut -d. -f1 /proc/uptime) - launched))
@@ -321,6 +331,7 @@ if [ -n "$native" ] && [ -f "$floating.state" ]; then
     case $previous in ''|*[!0-9]*) previous=0 ;; esac
     played=$((played + previous))
   fi
+  played=$((played + ${resumed_time:-0}))
   printf '%s' "$played" > "$floating.state_time.txt"
 fi
 exit $status

@@ -125,6 +125,7 @@ swapCreate() {
       echo "Not enough free space on the SD card: $need_mb MB needed."
       return 1
     fi
+    swapConfSet enabled 0
     rm -f "$swap_file"
   fi
   if dd if=/dev/zero of="$swap_file.tmp" bs=1M count="$size_mb" 2>/dev/null && chmod 600 "$swap_file.tmp" \
