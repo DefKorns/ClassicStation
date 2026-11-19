@@ -21,6 +21,7 @@ while sleep 5; do
   [ "$(cat "$cpu_freq_dir/cpuinfo_boot_freq")" != "$(cat "$cpu_freq_dir/cpuinfo_max_freq")" ] || continue
   temp=$(cat /sys/class/thermal/thermal_zone0/temp)
   case $temp in "" | *[!0-9]*) continue ;; esac
+  [ "$temp" -lt 1000 ] || temp=$((temp / 1000))
   if [ "$temp" -ge "$thermal_limit" ]; then
     cat "$cpu_freq_dir/cpuinfo_boot_freq" > "$cpu_freq_dir/scaling_max_freq"
     echo "$temp" > /tmp/es-oc-cutoff

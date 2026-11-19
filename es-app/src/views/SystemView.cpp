@@ -110,7 +110,7 @@ void SystemView::populate()
 			Vector2f denormalized = mCarousel.logoSize * e.data.logo->getOrigin();
 			e.data.logo->setPosition(denormalized.x(), denormalized.y(), 0.0);
 
-			if (!(*it)->getManufacturer().empty() && !(*it)->getYear().empty() && theme->getElement("system", "systemCardMaker", "text"))
+			if (!(*it)->getManufacturer().empty() && !(*it)->getYear().empty() && theme->getElement("system", "systemCardMaker", "text") && theme->getElement("system", "systemCardYear", "text"))
 			{
 				e.data.maker = std::make_shared<TextComponent>(mWindow);
 				e.data.maker->applyTheme(theme, "system", "systemCardMaker", ThemeFlags::ALL ^ ThemeFlags::TEXT);

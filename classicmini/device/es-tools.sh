@@ -301,8 +301,10 @@ case "$1" in
         ;;
       enable)
         swapAvailable || { echo "Swap needs an ext4 SD card or USB stick."; exit 1; }
-        swapActive && ! swapFileReady && swapoff "$swap_file"
-        if swapActive; then echo "Swap is already enabled."; exit 0; fi
+        if swapActive && ! swapFileReady; then
+          swapoff "$swap_file" || { echo "Not enough free memory to resize the swap. Close games and try again."; exit 1; }
+        fi
+        if swapActive; then swapConfSet enabled 1; echo "Swap is already enabled."; exit 0; fi
         swapFileReady || swapCreate "$(swapSize)" || exit 1
         swapon -p 0 "$swap_file" || { echo "Could not enable the swap file."; exit 1; }
         swapConfSet enabled 1

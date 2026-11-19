@@ -282,7 +282,7 @@ readGames | while IFS=$us read -r menu code exe ext icon name desc year players 
   [ -n "$cover" ] && small=$cover
   thumb=$game_dir/${code}_small.png
   [ -f "$thumb" ] || thumb=$small
-  case $default_covers in *" $code "*) [ -z "$cover" ] && { icon=; small=; } ;; esac
+  case $default_covers in *" $code "*) [ -z "$cover" ] && { icon=; small=; thumb=; } ;; esac
 
   {
     echo "  <game>"

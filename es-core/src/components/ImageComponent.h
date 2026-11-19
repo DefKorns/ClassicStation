@@ -94,6 +94,8 @@ private:
 	float mScrollSpeed = 0.0f;
 	float mScrollOffset = 0.0f;
 	bool mHideOnSuspend = false;
+	unsigned char mBaseOpacity = 255;
+	void applyOpacity();
 	bool mFadeEnabled = true;
 	void advanceScroll(int deltaTime);	float mScrollFactor = 1.0f;	float mBoostSpeed = 0.0f;
 	int mBoostMs = 0;

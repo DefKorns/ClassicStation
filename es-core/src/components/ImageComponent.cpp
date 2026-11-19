@@ -68,6 +68,7 @@ ImageComponent::ImageComponent(Window* window, bool forceLoad, bool dynamic) : G
 	mFadeOpacity(0), mFading(false), mRotateByTargetSize(false), mTopLeftCrop(0.0f, 0.0f), mBottomRightCrop(1.0f, 1.0f),
 	mAsyncPending(false)
 {
+	mKickSeen = sKickCount;
 	updateColors();
 }
 
@@ -426,7 +427,16 @@ void ImageComponent::setColorGradientHorizontal(bool horizontal)
 
 void ImageComponent::setOpacity(unsigned char opacity)
 {
-	mOpacity = opacity;
+	mBaseOpacity = opacity;
+	applyOpacity();
+}
+
+void ImageComponent::applyOpacity()
+{
+	const unsigned char effective = mHideOnSuspend ? static_cast<unsigned char>(static_cast<float>(mBaseOpacity) * sBackdropVisible + 0.5f) : mBaseOpacity;
+	if(effective == mOpacity)
+		return;
+	mOpacity = effective;
 	updateColors();
 }
 
@@ -499,11 +509,7 @@ void ImageComponent::render(const Transform4x4f& parentTrans)
 	Renderer::setMatrix(trans);
 
 	if(mHideOnSuspend)
-	{
-		const unsigned char opacity = static_cast<unsigned char>(255.0f * sBackdropVisible + 0.5f);
-		if(opacity != mOpacity)
-			setOpacity(opacity);
-	}
+		applyOpacity();
 
 	if(mTexture && mOpacity > 0 && !mAsyncPending)
 	{

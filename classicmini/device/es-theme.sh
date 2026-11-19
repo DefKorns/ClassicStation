@@ -86,7 +86,8 @@ if [ "$1" = hvcj ] && [ -f "$sprites_dir/new_clover_j_logo.png" ]; then
 else
   rm -f "$theme_dir/top_label.png"
 fi
-[ "$(head -n 1 "$theme_stamp" 2>/dev/null)" = "$atlas $layout" ] && exit 0
+stamp="$atlas $layout $(md5sum "$sprites_dir/$atlas.png" "$theme_dir/layout_$layout.xml" 2>/dev/null | cut -d ' ' -f 1 | tr '\n' ' ')"
+[ "$(head -n 1 "$theme_stamp" 2>/dev/null)" = "$stamp" ] && exit 0
 
 background=$(sed -n 's|.*<backgroundColor>\(.*\)</backgroundColor>.*|\1|p' "$theme_dir/console.xml")
 wall_back=$(sed -n 's|.*<wallBack>\(.*\)</wallBack>.*|\1|p' "$theme_dir/layout.xml")
@@ -97,8 +98,15 @@ logo_align=center
 if "$es_dir/theme_layers" layers "$sprites_dir/$atlas.json" "$sprites_dir/$atlas.png" "$work" --wide-width 772 --title "$title" --logo-align "$logo_align" ${background:+--background "$background"} ${wall:+--wall "$wall"} >/dev/null 2>&1; then
   cp -a "$work/." "$theme_dir/"
   [ "$1" = hvcj ] && [ -f "$sprites_dir/bottom_side_1280_120.png" ] && cp "$sprites_dir/bottom_side_1280_120.png" "$theme_dir/menubar_bottom_j.png"
-  { echo "$atlas $layout"; (cd "$work" && find . -type f -exec md5sum {} +); } > "$theme_stamp"
-  sed -i 's|<string name="ThemeSet" value="simple" />|<string name="ThemeSet" value="classicstation" />|' "$settings"
+  if [ ! -f "$theme_dir/.es-themeset" ]; then
+    sed -i 's|<string name="ThemeSet" value="simple" />|<string name="ThemeSet" value="classicstation" />|' "$settings"
+    : > "$theme_dir/.es-themeset"
+  fi
+  {
+    echo "$stamp"
+    (cd "$work" && find . -type f -exec md5sum {} +)
+    (cd "$theme_dir" && find layout.xml wall_bg.png top_label.png menubar_bottom_j.png .es-themeset demo -type f -exec md5sum {} + 2>/dev/null)
+  } > "$theme_stamp"
 fi
 rm -rf "$work"
 exit 0
