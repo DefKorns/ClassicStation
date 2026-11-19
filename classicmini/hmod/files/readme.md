@@ -12,6 +12,8 @@ Select+Down (held for about a second) leaves a game. You can switch it on or off
 
 Known issues: no video playback; the first boot builds the library, which takes a while on large collections; the interface slows down while the scraper runs; the NES Classic is tested much less than the SNES Classic; games need the RetroArch hmod and its cores (the KMFD RetroArch with fceumm has worked on the Famicom); NES games with the Nestopia core can look blurry because the core enables its NTSC filter (turn "NTSC Filter" off in the core options, or use FCEUmm).
 
+On the NES, games that run on the console's canoe emulator only get the composite and phosphor effects in CRT filter mode; the CRT smoothing, scanline strength and size settings do not apply to them, so those options can look like they do nothing there.
+
 To report a problem, send `/var/lib/hakchi/emulationstation/home/.emulationstation/es_log.txt` and, after a crash, `/var/lib/hakchi/emulationstation/crash.log` (over ssh as root).
 
 **Needs an SD card or USB stick.** While it installs, the hmod mounts the card itself and puts its themes in `/media/data/emulationstation/themes`: `classicstation` (the default on all the consoles, its artwork is generated on the console from its own sprite atlas the first time ClassicStation starts) and [es-theme-simple](https://github.com/RetroPie/es-theme-simple); nothing of the themes goes to the NAND. Without a card or stick the install stops and EmulationStation is not installed; the hakchi log says so, but the PC may still report the install as done and mark the module as installed, so remove it in hakchi before trying again. Extra themes go in the same folder. Updating keeps the theme files you changed.

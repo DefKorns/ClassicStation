@@ -257,6 +257,17 @@ const std::string GridGameListView::getImagePath(FileData* file)
 namespace
 {
 	constexpr int MaxThumbnailsPerPass = 8;
+
+	std::string blankImageFor(const std::string& themeFolder)
+	{
+		static const std::map<std::string, std::string> blanks = {
+			{"fds", "blank_fds"}, {"gb", "blank_gb"}, {"gbc", "blank_gbc"}, {"gba", "blank_gba"}, {"n64", "blank_n64"},
+			{"megadrive", "blank_genesis"}, {"sega32x", "blank_32x"}, {"mastersystem", "blank_sms"}, {"gamegear", "blank_gg"},
+			{"pcengine", "blank_pce"}, {"neogeo", "blank_neogeo"}, {"atari2600", "blank_2600"}, {"arcade", "blank_arcade"},
+			{"pc", "blank_dos"}, {"ports", "blank_app"}};
+		const auto blank = blanks.find(themeFolder);
+		return blank == blanks.end() ? std::string() : ":/" + blank->second + ".png";
+	}
 }
 
 void GridGameListView::populateList(const std::vector<FileData*>& files)
@@ -269,7 +280,9 @@ void GridGameListView::populateList(const std::vector<FileData*>& files)
 		int generated = 0;
 		for (auto it = files.cbegin(); it != files.cend(); it++)
 		{
-			const std::string image = getImagePath(*it);
+			std::string image = getImagePath(*it);
+			if(image.empty() && mPerGameBlanks && mRoot->getSystem()->isCollection())
+				image = blankImageFor((*it)->getSourceFileData()->getSystem()->getThemeFolder());
 			mGrid.add((*it)->getName(), image, *it);
 
 			std::string thumbnail = (*it)->metadata.get("thumbnail");
@@ -336,15 +349,13 @@ void GridGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& theme)
 	const ThemeData::ThemeElement* gridElement = theme->getElement(getName(), "gamegrid", "imagegrid");
 	if(gridElement == nullptr || !gridElement->has("gameImage"))
 	{
-		static const std::map<std::string, std::string> blanks = {
-			{"fds", "blank_fds"}, {"gb", "blank_gb"}, {"gbc", "blank_gbc"}, {"gba", "blank_gba"}, {"n64", "blank_n64"},
-			{"megadrive", "blank_genesis"}, {"sega32x", "blank_32x"}, {"mastersystem", "blank_sms"}, {"gamegear", "blank_gg"},
-			{"pcengine", "blank_pce"}, {"neogeo", "blank_neogeo"}, {"atari2600", "blank_2600"}, {"arcade", "blank_arcade"},
-			{"pc", "blank_dos"}, {"ports", "blank_app"}};
-		const auto blank = blanks.find(mRoot->getSystem()->getThemeFolder());
-		if(blank != blanks.end())
-			mGrid.setDefaultGameImage(":/" + blank->second + ".png");
+		const std::string blank = blankImageFor(mRoot->getSystem()->getThemeFolder());
+		if(!blank.empty())
+			mGrid.setDefaultGameImage(blank);
+		mPerGameBlanks = true;
 	}
+	else
+		mPerGameBlanks = false;
 	mName.applyTheme(theme, getName(), "md_name", ALL);
 	mMarquee.applyTheme(theme, getName(), "md_marquee", POSITION | ThemeFlags::SIZE | Z_INDEX | ROTATION | VISIBLE);
 	mImage.applyTheme(theme, getName(), "md_image", POSITION | ThemeFlags::SIZE | Z_INDEX | ROTATION | VISIBLE);

@@ -984,6 +984,7 @@ void CollectionSystemManager::populateAutoCollection(CollectionSystemData* sysDa
 		std::map<std::string, int> randomCustColl = Settings::getInstance()->getMap("RandomCollectionSystemsCustom");
 		mapsForRandomColl["RandomCollectionSystemsCustom"] = randomCustColl;
 	}
+	std::set<std::string> favoriteCodes;
 	// Only iterate through game systems, not collections yet
 	for(auto sysIt = SystemData::sSystemVector.cbegin(); sysIt != SystemData::sSystemVector.cend(); sysIt++)
 	{
@@ -1007,7 +1008,8 @@ void CollectionSystemManager::populateAutoCollection(CollectionSystemData* sysDa
 							break;
 						case AUTO_FAVORITES:
 							// we may still want to add files we don't want in auto collections in "favorites"
-							include = (*gameIt)->metadata.get("favorite") == "true";
+							include = (*gameIt)->metadata.get("favorite") == "true"
+								&& favoriteCodes.insert(Utils::FileSystem::getStem((*gameIt)->getPath())).second;
 							break;
 						case AUTO_ALL_GAMES:
 							break;

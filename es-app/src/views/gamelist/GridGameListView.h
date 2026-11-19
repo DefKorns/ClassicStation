@@ -112,6 +112,7 @@ private:
 	bool mHeaderFocus = false;
 	int mScrollCursor = 0;
 	std::shared_ptr<bool> mAlive = std::make_shared<bool>(true);
+	bool mPerGameBlanks = false;
 };
 
 #endif // ES_APP_VIEWS_GAME_LIST_GRID_GAME_LIST_VIEW_H
