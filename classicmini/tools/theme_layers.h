@@ -310,7 +310,10 @@ namespace theme_layers
 		if(family == Family::A)
 			return findBakedLogo(bar, 22, 340);
 		const Rect logo = findBakedLogo(bar, 21, 340, 29, 28, 150);
-		return logo.h > 0 && logo.h < 21 && logo.w < 300 ? logo : Rect{0, 0, 0, 0};
+		if(logo.h > 0 && logo.h < 21 && logo.w < 300)
+			return logo;
+		const Rect centre = findBakedLogo(bar, 20, 266, 166, 165, 150);
+		return centre.h > 0 && centre.h < 21 && centre.w < 120 ? centre : Rect{0, 0, 0, 0};
 	}
 
 	inline void clearArea(Image& image, const Rect& area, int sourceX = 0)

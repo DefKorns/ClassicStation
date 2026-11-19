@@ -20,6 +20,7 @@ const int logoBuffersRight[] = { 1, 2, 5 };
 SystemView::SystemView(Window* window) : IList<SystemViewData, SystemData*>(window, LIST_SCROLL_STYLE_SLOW, LIST_ALWAYS_LOOP),
 										 mViewNeedsReload(true),
 										 mSystemInfo(window, "SYSTEM INFO", Font::get(FONT_SIZE_SMALL), 0x33333300, ALIGN_CENTER),
+										 mSystemCount(window, "", Font::get(FONT_SIZE_SMALL), 0x33333300, ALIGN_CENTER),
 										 mCard(window),
 										 mCardActive(window),
 										 mChip(window),
@@ -350,11 +351,12 @@ void SystemView::onCursorChanged(const CursorState& /*state*/)
 		[infoStartOpacity, this] (float t)
 	{
 		mSystemInfo.setOpacity((unsigned char)(Math::lerp(infoStartOpacity, 0.f, t) * 255));
+		mSystemCount.setOpacity((unsigned char)(Math::lerp(infoStartOpacity, 0.f, t) * 255));
 	}, (int)(infoStartOpacity * (goFast ? 10 : 150)));
 
 	unsigned int gameCount = getSelected()->getDisplayedGameCount();
 	unsigned int favoriteCount = 0;
-	const bool showFavorites = getSelected()->isGameSystem() && !getSelected()->isCollection();
+	const bool showFavorites = getSelected()->isGameSystem() && (!getSelected()->isCollection() || mHasSystemCount);
 	if(showFavorites)
 		for(const FileData* game : getSelected()->getRootFolder()->getFilesRecursive(GAME))
 			if(game->metadata.get("favorite") == "true")
@@ -373,13 +375,23 @@ void SystemView::onCursorChanged(const CursorState& /*state*/)
 				ss << " (" << favoriteCount << " FAVORITE" << (favoriteCount == 1 ? "" : "S") << ")";
 		}
 
-		mSystemInfo.setText(ss.str());
+		if(mHasSystemCount && getSelected()->isGameSystem())
+		{
+			mSystemInfo.setText(Utils::String::toUpper(getSelected()->getFullName()));
+			mSystemCount.setText(ss.str());
+		}
+		else
+		{
+			mSystemInfo.setText(ss.str());
+			mSystemCount.setText("");
+		}
 	}, false, 1);
 
 	Animation* infoFadeIn = new LambdaAnimation(
 		[this](float t)
 	{
 		mSystemInfo.setOpacity((unsigned char)(Math::lerp(0.f, 1.f, t) * 255));
+		mSystemCount.setOpacity((unsigned char)(Math::lerp(0.f, 1.f, t) * 255));
 	}, goFast ? 10 : 300);
 
 	// wait 600ms to fade in
@@ -544,6 +556,15 @@ void  SystemView::getViewElements(const std::shared_ptr<ThemeData>& theme)
 	const ThemeData::ThemeElement* sysInfoElem = theme->getElement("system", "systemInfo", "text");
 	if (sysInfoElem)
 		mSystemInfo.applyTheme(theme, "system", "systemInfo", ThemeFlags::ALL);
+
+	mHasSystemCount = theme->getElement("system", "systemCount", "text") != nullptr;
+	if(mHasSystemCount && sysInfoElem)
+	{
+		mSystemCount.applyTheme(theme, "system", "systemCount", ThemeFlags::ALL ^ (ThemeFlags::POSITION | ThemeFlags::SIZE));
+		mSystemCount.setPosition(mSystemInfo.getPosition());
+		const Vector2f infoSize = mSystemInfo.getSize();
+		mSystemCount.setSize(infoSize.x() - 0.02f * static_cast<float>(Renderer::getScreenWidth()), infoSize.y());
+	}
 
 	mHeaderStatus.applyTheme(theme, "system", false);
 	mIconBar.applyTheme(theme, "system");
@@ -717,6 +738,8 @@ void SystemView::renderInfoBar(const Transform4x4f& trans)
 {
 	Renderer::setMatrix(trans);
 	mSystemInfo.render(trans);
+	if(mHasSystemCount)
+		mSystemCount.render(trans);
 }
 
 // Draw background extras

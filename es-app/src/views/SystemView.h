@@ -102,6 +102,8 @@ private:
 
 	SystemViewCarousel mCarousel;
 	TextComponent mSystemInfo;
+	TextComponent mSystemCount;
+	bool mHasSystemCount = false;
 	ImageComponent mCard;
 	ImageComponent mCardActive;
 	ImageComponent mChip;

@@ -740,6 +740,14 @@
 			<backgroundColor>00000000</backgroundColor>
 			<zIndex>50</zIndex>
 		</text>
+
+		<text name="systemCount">
+			<fontSize>0.0306</fontSize>
+			<color>8A8A8A</color>
+			<alignment>right</alignment>
+			<backgroundColor>00000000</backgroundColor>
+			<zIndex>50</zIndex>
+		</text>
 	</view>
 
 	<view name="grid">

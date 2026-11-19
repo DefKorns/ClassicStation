@@ -18,7 +18,7 @@ source /etc/preinit
 script_init
 
 out=${1:?output dir}
-store=${ES_STORE:-$(findGameStorage)} || { echo "no games storage" >&2; exit 1; }
+store=${ES_STORE:-$(findGameStorage)} || store=
 max_depth=8
 covers=/media/data/emulationstation/covers
 us=$(printf '\037')
@@ -262,6 +262,7 @@ rm -rf "$out"
 mkdir -p "$out"
 seen=" "
 
+if [ -n "$store" ]; then
 readGames | while IFS=$us read -r menu code exe ext icon name desc year players genre cover; do
   game_dir=$store/$menu/$code
   system=other
@@ -299,14 +300,71 @@ readGames | while IFS=$us read -r menu code exe ext icon name desc year players 
     echo "  </game>"
   } >> "$parts/$system.xml"
 done
+fi
 
 originals_root=${squashfs:-/var/squashfs}/usr/share/games
+stock_only=
+ls "$parts"/*.xml >/dev/null 2>&1 || stock_only=1
 : > "$out/originals.txt"
 for desktop in "$originals_root"/*/*/CLV-*/CLV-*.desktop "$originals_root"/CLV-*/CLV-*.desktop; do
   [ -f "$desktop" ] || continue
-  code=${desktop%/*}
-  code=${code##*/}
-  [ "${desktop##*/}" = "$code.desktop" ] && echo "$code" >> "$out/originals.txt"
+  game_dir=${desktop%/*}
+  code=${game_dir##*/}
+  [ "${desktop##*/}" = "$code.desktop" ] || continue
+  if [ -z "$stock_only" ]; then
+    echo "$code" >> "$out/originals.txt"
+    continue
+  fi
+  info=$(awk -v sep="$us" '
+    function rep(s, from, to,   r, i) { r = ""; while ((i = index(s, from)) > 0) { r = r substr(s, 1, i - 1) to; s = substr(s, i + length(from)) } return r s }
+    function esc(s) { return rep(rep(rep(s, "&", "&amp;"), "<", "&lt;"), ">", "&gt;") }
+    { gsub(/\r/, "") }
+    /^\[Description\]/ { indesc = 1; next }
+    /^\[/ { indesc = 0 }
+    indesc { t = $0; sub(/^Text *= */, "", t); if (t != "") ds = (ds == "" ? t : ds " " t) }
+    !hn && /^Name *=/ { sub(/^Name *= */, ""); nm = $0; hn = 1 }
+    !hp && /^Players *=/ { sub(/^Players *= */, ""); pl = $0; hp = 1 }
+    !hr && /^ReleaseDate *=/ { sub(/^ReleaseDate *= */, ""); rel = $0; hr = 1 }
+    !hg && /^Genre *=/ { sub(/^Genre *= */, ""); ge = $0; hg = 1 }
+    !hs && /^sortRawGenre *=/ { sub(/^sortRawGenre *= */, ""); sg = $0; hs = 1 }
+    END { if (ge == "") ge = sg; gsub(/-/, "", rel); print esc(nm) sep esc(ds) sep rel sep pl sep esc(ge) }
+  ' "$desktop")
+  IFS=$us read -r name desc year players genre <<EOF
+$info
+EOF
+  exec_line=$(tr -d '\r' < "$desktop" | sed -n 's/^Exec=//p' | head -n 1)
+  tool=${exec_line%% *}
+  wrapper=/bin/${tool##*/}-wr
+  [ -x "$wrapper" ] && exec_line="$wrapper ${exec_line#* }"
+  exec_line=$(printf '%s' "$exec_line" | sed 's|/var/squashfs/usr/share/games/|/usr/share/games/|g; s|/usr/share/games/|/var/squashfs/usr/share/games/|g')
+  rom=$(printf '%s' "$exec_line" | awk '{ for (i = 2; i <= NF; i++) if ($i !~ /^-/) { print $i; exit } }')
+  rom=$(printf '%s' "${rom##*/}" | tr '[:upper:]' '[:lower:]')
+  rom=${rom%.7z}; rom=${rom%.zip}; rom=${rom%.gz}
+  case $rom in *.*) ext=${rom##*.} ;; *) ext= ;; esac
+  exe=${tool##*/}
+  system=other
+  systemOf
+  mkdir -p "$out/$system"
+  [ -f "$out/$system/$code.desktop" ] && continue
+  awk -v launch="$exec_line" -v saves="/var/saves/$code" '/^Exec=/ { print "Exec=" launch; next } /^Path=/ { print "Path=" saves; next } { print }' "$desktop" > "$out/$system/$code.desktop"
+  icon=$game_dir/$code.png
+  [ -f "$icon" ] || icon=
+  small=$game_dir/${code}_small.png
+  [ -f "$small" ] || small=$icon
+  {
+    echo "  <game>"
+    echo "    <path>./$code.desktop</path>"
+    echo "    <name>$name</name>"
+    [ -n "$icon" ] && echo "    <image>$(xmlPath "$icon")</image>"
+    [ -n "$desc" ] && echo "    <desc>$desc</desc>"
+    [ ${#year} -eq 8 ] && echo "    <releasedate>${year}T000000</releasedate>"
+    [ -n "$players" ] && echo "    <players>$players</players>"
+    [ -n "$genre" ] && echo "    <genre>$genre</genre>"
+    echo "    <code>$code</code>"
+    [ -n "$small" ] && echo "    <marquee>$(xmlPath "$small")</marquee>"
+    [ -n "$small" ] && echo "    <thumbnail>$(xmlPath "$small")</thumbnail>"
+    echo "  </game>"
+  } >> "$parts/$system.xml"
 done
 
 for part in "$parts"/*.xml; do

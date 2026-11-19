@@ -844,6 +844,12 @@ SystemData* CollectionSystemManager::addNewCustomCollection(std::string name, bo
 SystemData* CollectionSystemManager::createNewCollectionEntry(std::string name, CollectionSystemDecl sysDecl, const CollectionFlags flags)
 {
 	SystemData* newSys = new SystemData(name, sysDecl.longName, mCollectionEnvData, sysDecl.themeFolder, true);
+	if(sysDecl.type == AUTO_ORIGINALS)
+	{
+		const char* year = std::getenv("ES_ORIGINALS_YEAR");
+		if(year != nullptr && *year != ' ')
+			newSys->setInfo("Nintendo", year);
+	}
 
 	CollectionSystemData newCollectionData;
 	newCollectionData.system = newSys;
@@ -1162,6 +1168,9 @@ void CollectionSystemManager::addEnabledCollectionsToDisplayedSystems(std::map<s
 					else
 						populateAutoCollection(&(it->second));
 				}
+
+				if(it->second.decl.type == AUTO_ORIGINALS && it->second.system->getRootFolder()->getChildren().empty())
+					continue;
 
 				// check if it has its own view
 				if(!it->second.decl.isCustom || themeFolderExists(it->first) || !Settings::getInstance()->getBool("UseCustomCollectionsSystem"))

@@ -20,14 +20,14 @@
 		<menuHelp>FFFFFF</menuHelp>
 		<suspendDim>0.5</suspendDim>
 		<spaceText>4D4F53</spaceText>
-		<barLogo>false</barLogo>
+		<barLogo>true</barLogo>
 		<nesBarPath>./../menubar_bottom.png</nesBarPath>
 		<nesBarLogo>false</nesBarLogo>
 		<tilePadding>0.013281 0.084722</tilePadding>
 		<thumbPos>0.5 0.765278</thumbPos>
 		<thumbSize>0.03125 0.041667</thumbSize>
 		<arrowPos>0.5 0.727778</arrowPos>
-		<barLogoColor>4D4F53</barLogoColor>
+		<barLogoColor>8E829D</barLogoColor>
 		<imageOnTop>true</imageOnTop>
 		<coverBacking>101010FF</coverBacking>
 		<coverOffset>0 0</coverOffset>
