@@ -83,6 +83,7 @@ namespace
 	{
 		std::cerr << "usage: theme_layers info <atlas.json>\n"
 		             "       theme_layers demo <characters.png> <out_dir> [--scale N]\n"
+		             "       theme_layers dots <wallpaper.png> <out.txt>\n"
 		             "       theme_layers scale <in.png> <out.png> <factor>\n"
 		             "       theme_layers layers <atlas.json> <atlas.png> <out_dir> [--icon-scale N] [--frame-scale N] [--row WxH] [--wide-width N] [--title WxH] [--selector WxH] [--logo-align left] [--background RRGGBB] [--wall PNG]\n";
 		return 2;
@@ -103,6 +104,14 @@ namespace
 		if(factor < 1)
 			return usage();
 		savePng(argv[3], scale(loadPng(argv[2]), factor));
+		return 0;
+	}
+
+	int dots(int argc, char* argv[])
+	{
+		if(argc != 4)
+			return usage();
+		writeFile(argv[3], portraitDots(loadPng(argv[2])));
 		return 0;
 	}
 
@@ -218,6 +227,8 @@ int main(int argc, char* argv[])
 			return info(argv[2]);
 		if(command == "demo")
 			return demo(argc, argv);
+		if(command == "dots")
+			return dots(argc, argv);
 		if(command == "scale")
 			return upscale(argc, argv);
 		if(command == "layers")

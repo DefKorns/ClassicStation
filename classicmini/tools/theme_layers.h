@@ -641,6 +641,28 @@ namespace theme_layers
 		return {"icon_Resume_on", "icon_Resume_off", "icon_Resume_lock", rowFrameSpec(family).sprite, selectorFrameSpec().sprite, "caption_title", "game_card", "game_card_active", "menubar_U", "menubar_L"};
 	}
 
+	inline std::string portraitDots(const Image& sheet)
+	{
+		constexpr int Tile = 16;
+		constexpr int Count = 4;
+		if(sheet.width() < Tile * Count || sheet.height() < Tile)
+			throw std::invalid_argument("the portrait sheet is too small");
+		std::string text;
+		for(int portrait = 0; portrait < Count; ++portrait)
+		{
+			text += "portrait " + std::to_string(portrait) + "\n";
+			for(int y = 0; y < Tile; ++y)
+				for(int x = 0; x < Tile; ++x)
+				{
+					const unsigned char* pixel = sheet.at(portrait * Tile + x, y);
+					if(pixel[3] == 0)
+						continue;
+					text += std::to_string(x) + " " + std::to_string(y) + " " + std::to_string(pixel[0]) + " " + std::to_string(pixel[1]) + " " + std::to_string(pixel[2]) + "\n";
+				}
+		}
+		return text;
+	}
+
 	inline std::vector<Layer> buildDemoSprites(const Image& sheet, int factor)
 	{
 		constexpr int Tile = 16;

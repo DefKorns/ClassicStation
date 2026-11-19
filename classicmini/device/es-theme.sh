@@ -52,7 +52,7 @@ if [ "$kind" = snes ] && [ -d "$demo_sprites/mario" ] && [ ! -f "$theme_dir/demo
 fi
 case "$1" in
   hvcj)
-    rm -f "$theme_dir"/demo/block_*.png "$theme_dir"/demo/mario_*.png "$theme_dir"/demo/luigi_*.png
+    rm -f "$theme_dir"/demo/block_*.png "$theme_dir"/demo/mario_*.png "$theme_dir"/demo/luigi_*.png "$theme_dir"/demo/portraits.txt
     if [ ! -f "$theme_dir/demo/.skit_done" ] && [ -f "$sprites_dir/starrysky_1280_534x2_indexcolor.png" ]; then
       mkdir -p "$theme_dir/demo"
       cp "$sprites_dir/starrysky_1280_534x2_indexcolor.png" "$theme_dir/demo/skit_sky.png"
@@ -66,12 +66,13 @@ case "$1" in
     fi
     ;;
   snes)
-    rm -f "$theme_dir"/demo/block_*.png "$theme_dir"/demo/mario_[0-4].png "$theme_dir"/demo/luigi_[0-4].png "$theme_dir"/demo/skit_*.png
+    rm -f "$theme_dir"/demo/block_*.png "$theme_dir"/demo/mario_[0-4].png "$theme_dir"/demo/luigi_[0-4].png "$theme_dir"/demo/skit_*.png "$theme_dir"/demo/portraits.txt
     ;;
   *)
     rm -f "$theme_dir"/demo/skit_*.png
     if [ "$kind" = nes ] && [ -f "$sprites_dir/characters_sbm.png" ]; then
       [ -f "$theme_dir/demo/block_2.png" ] || "$es_dir/theme_layers" demo "$sprites_dir/characters_sbm.png" "$theme_dir/demo" >/dev/null 2>&1
+      [ -f "$theme_dir/demo/portraits.txt" ] || [ ! -f "$sprites_dir/wallpaper-hvc.png" ] || "$es_dir/theme_layers" dots "$sprites_dir/wallpaper-hvc.png" "$theme_dir/demo/portraits.txt" >/dev/null 2>&1
     else
       rm -rf "$theme_dir/demo"
     fi

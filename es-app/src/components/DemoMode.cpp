@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <cstdio>
 #include <map>
 
@@ -36,6 +37,25 @@ namespace
 	constexpr double TickMs = 1000.0 / 60.0;
 	constexpr int MaxTicks = 8;
 	constexpr int FadeMs = 250;
+	constexpr float DotSpace = 16.0f;
+	constexpr float DotScale = 1.23f;
+	constexpr float PortraitIn = 0.5f;
+	constexpr float PortraitOut = 0.5f;
+	constexpr float PortraitClear = 0.5f;
+	constexpr float PortraitHoldIn = 2.0f;
+	constexpr float PortraitDelayMax = 0.5f;
+	constexpr float PortraitBreakSpeed = 0.65f;
+	constexpr float PortraitPop = 1.2f;
+	constexpr int TransitMs = 250;
+	constexpr int TransitColumns = 21;
+	constexpr int TransitRows = 9;
+	constexpr int TransitCentreColumn = 10;
+	constexpr int TransitCentreRow = 5;
+	constexpr int TransitPatterns = 14;
+	constexpr float TransitCell = 64.0f;
+	constexpr float TransitOffsetX = 0.5f;
+	constexpr float TransitOffsetY = 0.625f;
+	constexpr float TransitTop = 96.0f;
 	constexpr int StageMs = 400;
 	constexpr float StageTravel = 600.0f;
 	constexpr double BlockHeight = 192.0;
@@ -228,6 +248,11 @@ void DemoMode::cancel()
 		if(mSkitSound)
 			mSkitSound->stop();
 		mStageMs = 0;
+		if(mTransit)
+		{
+			mTransit = false;
+			mShown = mTransitColour;
+		}
 		if((mShown & 0xFF) != 0)
 			startFade(mShown & 0xFFFFFF00);
 	}
@@ -252,6 +277,8 @@ void DemoMode::runTicks(int deltaTime)
 		return;
 	}
 
+	if(!mTag)
+		advancePortrait(static_cast<float>(deltaTime) / 1000.0f);
 	mAccumulator += deltaTime;
 	for(int tick = 0; mAccumulator >= TickMs && tick < MaxTicks; ++tick)
 	{
@@ -505,6 +532,7 @@ bool DemoMode::locateBlocks(const std::string& folder)
 	if(load(mMarioFrames, "mario", 5) && load(mLuigiFrames, "luigi", 5) && load(mBlockFrames, "block", 3))
 	{
 		mLoaded = true;
+		loadPortraits(folder);
 		return true;
 	}
 	mMarioFrames.clear();
@@ -535,6 +563,222 @@ void DemoMode::startBlocks()
 	mAccumulator = 0.0;
 	mShown = 0;
 	mFading = false;
+	mTransit = false;
+	mPortraitLive = false;
+	mPortraitBreaking = false;
+	mPortraitCursor = 0;
+	mDots.clear();
+}
+
+bool DemoMode::loadPortraits(const std::string& folder)
+{
+	if(!mPortraitSources.empty())
+		return true;
+	std::ifstream file(folder + "portraits.txt");
+	if(!file)
+		return false;
+	std::string word;
+	while(file >> word)
+	{
+		if(word == "portrait")
+		{
+			int index = 0;
+			file >> index;
+			mPortraitSources.emplace_back();
+			continue;
+		}
+		if(mPortraitSources.empty())
+			return false;
+		int y = 0;
+		int red = 0;
+		int green = 0;
+		int blue = 0;
+		file >> y >> red >> green >> blue;
+		mPortraitSources.back().push_back({std::atoi(word.c_str()), y, (static_cast<unsigned int>(red) << 24) | (static_cast<unsigned int>(green) << 16) | (static_cast<unsigned int>(blue) << 8) | 0xFFu});
+	}
+	return !mPortraitSources.empty();
+}
+
+void DemoMode::startPortrait()
+{
+	if(mPortraitSources.empty())
+		return;
+
+	const std::size_t index = mPortraitCursor++ % mPortraitSources.size();
+	const float degrees = index % 2 == 0 ? 90.0f - static_cast<float>(roll(0, 180)) : 90.0f + static_cast<float>(roll(0, 180));
+	const float angle = degrees * 3.14159265f / 180.0f;
+	const float speed = static_cast<float>(roll(50, 70));
+	mPortraitVx = speed * std::cos(angle);
+	mPortraitVy = speed * std::sin(angle);
+
+	const float maxX = 300.0f + static_cast<float>(roll(-50, 50));
+	const float minX = -300.0f + static_cast<float>(roll(-50, 50));
+	const float maxY = 150.0f + static_cast<float>(roll(-50, 50));
+	const float minY = -150.0f + static_cast<float>(roll(-50, 50));
+	float exitTime = 1000000.0f;
+	if(mPortraitVx > 0.0f)
+		exitTime = std::min(exitTime, maxX / mPortraitVx);
+	else if(mPortraitVx < 0.0f)
+		exitTime = std::min(exitTime, minX / mPortraitVx);
+	if(mPortraitVy > 0.0f)
+		exitTime = std::min(exitTime, maxY / mPortraitVy);
+	else if(mPortraitVy < 0.0f)
+		exitTime = std::min(exitTime, minY / mPortraitVy);
+
+	const float lead = PortraitIn + PortraitHoldIn;
+	mPortraitX = -mPortraitVx * lead;
+	mPortraitY = -mPortraitVy * lead;
+	mPortraitHold = std::max(1.0f, lead + exitTime - PortraitIn - PortraitOut);
+	mPortraitBreaking = false;
+	mRumbleStep = 0;
+
+	mDots.clear();
+	for(const DotSource& source : mPortraitSources[index])
+	{
+		Dot dot;
+		dot.x = (static_cast<float>(source.x) - 8.0f + 0.5f) * DotSpace;
+		dot.y = (-static_cast<float>(source.y) + 8.0f - 0.5f) * DotSpace;
+		dot.colour = source.colour;
+		dot.delay = static_cast<float>(roll(0, 256)) / 256.0f * PortraitDelayMax;
+		dot.wait = dot.delay;
+		mDots.push_back(dot);
+	}
+	mPortraitLive = true;
+}
+
+void DemoMode::advancePortrait(float seconds)
+{
+	if(mPortraitSources.empty())
+		return;
+	if(!mPortraitLive)
+		startPortrait();
+	if(!mPortraitLive)
+		return;
+
+	const float step = mPortraitBreaking ? seconds * PortraitBreakSpeed : seconds;
+	mPortraitX += mPortraitVx * step;
+	mPortraitY += mPortraitVy * step;
+
+	std::size_t finished = 0;
+	for(Dot& dot : mDots)
+	{
+		switch(dot.phase)
+		{
+		case 0:
+			dot.wait -= step;
+			if(dot.wait <= 0.0f)
+				dot.phase = 1;
+			break;
+		case 1:
+			dot.volume += step / PortraitIn;
+			if(dot.volume >= 1.0f)
+			{
+				dot.volume = 1.0f;
+				dot.wait = mPortraitHold;
+				dot.phase = 2;
+			}
+			break;
+		case 2:
+			dot.wait -= step;
+			if(dot.wait <= 0.0f)
+				dot.phase = 3;
+			break;
+		case 3:
+			dot.volume -= step / PortraitOut;
+			if(dot.volume <= 0.0f)
+			{
+				dot.volume = 0.0f;
+				dot.wait = PortraitClear;
+				dot.phase = 4;
+			}
+			break;
+		default:
+			dot.wait -= step;
+			if(dot.wait <= 0.0f)
+				++finished;
+			break;
+		}
+	}
+	if(finished == mDots.size())
+		mPortraitLive = false;
+}
+
+void DemoMode::rumblePortrait()
+{
+	if(!mPortraitBreaking)
+		return;
+	if(mRumbleStep < RumbleRise.size())
+		mPortraitY += static_cast<float>(RumbleRise[mRumbleStep++]) * 0.5f;
+	else
+	{
+		mPortraitBreaking = false;
+		mRumbleStep = 0;
+	}
+}
+
+void DemoMode::startTransit(unsigned int colour)
+{
+	mTransit = true;
+	mTransitMs = 0;
+	mTransitColour = colour;
+}
+
+void DemoMode::advanceTransit(int deltaTime)
+{
+	if(!mTransit)
+		return;
+	mTransitMs += deltaTime;
+	if(mTransitMs >= TransitMs)
+	{
+		mTransit = false;
+		mShown = mTransitColour;
+		mFading = false;
+	}
+}
+
+void DemoMode::renderTransit(const Transform4x4f& parentTrans)
+{
+	if(!mTransit)
+		return;
+
+	const float scale = screenScale();
+	const float rate = std::min(1.0f, static_cast<float>(mTransitMs) / static_cast<float>(TransitMs));
+	const int pattern = std::min(TransitPatterns, static_cast<int>(rate * static_cast<float>(TransitPatterns - 1)) + 1);
+	Renderer::setMatrix(parentTrans);
+	for(int row = 0; row < TransitRows; ++row)
+		for(int column = 0; column < TransitColumns; ++column)
+		{
+			const int distance = std::abs(column - TransitCentreColumn) + std::abs(row - TransitCentreRow);
+			if(pattern < TransitPatterns && distance > pattern)
+				continue;
+			const float x = (static_cast<float>(column) - TransitOffsetX) * TransitCell * scale;
+			const float y = (TransitTop + (static_cast<float>(row) - TransitOffsetY) * TransitCell) * scale;
+			Renderer::drawRect(x, y, TransitCell * scale, TransitCell * scale, mTransitColour, mTransitColour);
+		}
+}
+
+void DemoMode::renderPortrait(const Transform4x4f& parentTrans)
+{
+	if(!mPortraitLive || (mStage != Stage::Rise && mStage != Stage::Run && mStage != Stage::Sink))
+		return;
+
+	const float scale = screenScale();
+	const float centreX = static_cast<float>(Renderer::getScreenWidth()) / 2.0f;
+	const float centreY = static_cast<float>(Renderer::getScreenHeight()) / 2.0f;
+	const float dotSize = DotSpace * DotScale;
+	Renderer::setMatrix(parentTrans);
+	for(const Dot& dot : mDots)
+	{
+		if(dot.volume <= 0.0f)
+			continue;
+		const float pop = (1.0f - std::cos(dot.volume * 3.14159265f * PortraitPop)) * 0.5f;
+		const float size = dotSize * pop * scale;
+		if(size < 0.5f)
+			continue;
+		const float x = centreX + (mPortraitX + dot.x) * scale - size / 2.0f;
+		const float y = centreY - (mPortraitY + dot.y) * scale - size / 2.0f;
+		Renderer::drawRect(x, y, size, size, dot.colour, dot.colour);
+	}
 }
 
 void DemoMode::startFade(unsigned int colour)
@@ -920,7 +1164,12 @@ void DemoMode::stepBlock()
 		colour = LuigiColour;
 	if(colour != 0)
 	{
-		startFade(colour);
+		startTransit(colour);
+		if(mPortraitLive)
+		{
+			mPortraitBreaking = true;
+			mRumbleStep = 0;
+		}
 		mBlock.rumbling = true;
 		mBlock.step = 0;
 		mBlock.cycle = 0;
@@ -935,11 +1184,16 @@ void DemoMode::stepBlocks()
 	actLuigi();
 	drive(mLuigiMover, mLuigiFigure);
 	if(!mTag)
+	{
 		stepBlock();
+		rumblePortrait();
+	}
 }
 
 void DemoMode::update(int deltaTime, bool ready, float coverTop)
 {
+	advanceTransit(deltaTime);
+
 	if(mFading)
 	{
 		mFadeMs += deltaTime;
@@ -1040,8 +1294,11 @@ void DemoMode::render(const Transform4x4f& parentTrans)
 		Renderer::setMatrix(parentTrans);
 		Renderer::drawRect(0.0f, 0.0f, static_cast<float>(Renderer::getScreenWidth()), static_cast<float>(Renderer::getScreenHeight()), mShown, mShown);
 	}
+	renderTransit(parentTrans);
 	if(mSkit && mActive)
 		renderSkit(parentTrans);
+	else if(mBlocks && !mTag && mActive)
+		renderPortrait(parentTrans);
 }
 
 void DemoMode::renderActors(const Transform4x4f& parentTrans)

@@ -14,6 +14,7 @@
 #include "components/ImageComponent.h"
 #include <array>
 #include <deque>
+#include <fstream>
 #include <memory>
 #include <random>
 #include <string>
@@ -88,6 +89,24 @@ private:
 		double base = 0.0;
 	};
 
+	struct DotSource
+	{
+		int x;
+		int y;
+		unsigned int colour;
+	};
+
+	struct Dot
+	{
+		float x = 0.0f;
+		float y = 0.0f;
+		unsigned int colour = 0;
+		float delay = 0.0f;
+		float volume = 0.0f;
+		float wait = 0.0f;
+		int phase = 0;
+	};
+
 	struct Block
 	{
 		bool visible = false;
@@ -113,6 +132,14 @@ private:
 	void drive(Mover& mover, Figure& figure);
 	void stepBlock();
 	void startFade(unsigned int colour);
+	bool loadPortraits(const std::string& folder);
+	void startPortrait();
+	void advancePortrait(float seconds);
+	void rumblePortrait();
+	void renderPortrait(const Transform4x4f& parentTrans);
+	void startTransit(unsigned int colour);
+	void advanceTransit(int deltaTime);
+	void renderTransit(const Transform4x4f& parentTrans);
 	int roll(int low, int high);
 	void startPass();
 	void advanceStage(int deltaTime);
@@ -161,6 +188,20 @@ private:
 	int mFadeMs = 0;
 	bool mFading = false;
 	unsigned int mShown = 0;
+	std::vector<std::vector<DotSource>> mPortraitSources;
+	std::vector<Dot> mDots;
+	std::size_t mPortraitCursor = 0;
+	std::size_t mRumbleStep = 0;
+	float mPortraitX = 0.0f;
+	float mPortraitY = 0.0f;
+	float mPortraitVx = 0.0f;
+	float mPortraitVy = 0.0f;
+	float mPortraitHold = 0.0f;
+	bool mPortraitLive = false;
+	bool mPortraitBreaking = false;
+	bool mTransit = false;
+	int mTransitMs = 0;
+	unsigned int mTransitColour = 0;
 	std::mt19937 mRandom;
 };
 
