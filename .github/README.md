@@ -11,6 +11,12 @@ ClassicStation replaces Clover-UI, the stock home menu of the NES Classic and SN
 grouped by system, with covers, descriptions, favorites and themes, and starts them with the console's own RetroArch.
 It ships as the `emulationstation_classicmini` hmod.
 
+> [!CAUTION]
+> **DO NOT INSTALL ON THE NAND.** ClassicStation is an alpha and has only been tested with the firmware swap method.
+
+ClassicStation is in early testing and not affiliated with Nintendo. Get the latest build from the
+[releases page](https://github.com/DefKorns/ClassicStation/releases) and read its known issues first.
+
 ClassicStation is a fork of [RetroPie/EmulationStation](https://github.com/RetroPie/EmulationStation), kept up to date
 with its `stable` branch (currently `a31c36a`, v2.12.0). The work happens on `classicstation`, and `main` is the
 release branch. See [`UPSTREAM.md`](../UPSTREAM.md) for the branches, how upstream changes are merged, and everything
@@ -30,10 +36,15 @@ that was removed.
 - **Suspend points.** Press down on a game to open its suspend point list: four slots with a screenshot and play time,
   save the last session into a slot, resume from one, lock or delete it. They use the same folders as Clover-UI,
   so slots are shared with it, and so are the save files.
-- **Launches games through RetroArch.** The game is started with the same arguments as the stock launcher (save file,
-  title code, rollback recording), then ES comes back when the game is closed.
+- **Launches games like the stock menu.** The game is started with the same arguments as the stock launcher (save file,
+  title code, rollback recording), through the console's native emulators (`kachikachi` on the NES, `canoe` on the SNES)
+  or through RetroArch, then ES comes back when the game is closed.
+- **Video options.** The Video Mode and Bezel page has the screen mode (4:3, pixel perfect, CRT filter), filters with a
+  preview for each, scanline steps and bezels. Which options appear depends on the console and its firmware.
 - **Controllers.** The console's own pads (Clovercon) and USB pads work in the menus. The pad type (SNES or NES)
   decides which buttons resume and save a suspend point.
+- **Tuning.** Appearance and Behaviour pages (themes, slideshow, power saver), a scraper whose results are kept in an
+  overlay on the SD card (hakchi's own game list is never touched), and hidden developer options such as the overclock.
 - **Stays out of your way.** Hold **Select** while the console boots to get Clover-UI. If EmulationStation crashes
   twice in a row right after starting, the next boot goes to Clover-UI by itself. The power slider shows the shutdown
   screen, and restarting from the menu shows the restart screen.
@@ -46,19 +57,20 @@ needs more than the console's 256 MB of memory.
 1. Install the **RetroArch (S)NESCE** hmod (the libretro cores and the `retroarch` launcher) and sync your games with
    hakchi. The RetroArch build from KMFDManic may work as well; it has not been tested.
 2. Put an SD card or USB stick in the console. The hmod needs one: while it installs it mounts the card itself and
-   puts its default theme, [es-theme-simple](https://github.com/RetroPie/es-theme-simple), in
-   `/media/data/emulationstation/themes/simple`, and it stops without installing anything when there is none. hakchi
+   puts its two themes, [es-theme-simple](https://github.com/RetroPie/es-theme-simple) and classicstation, in
+   `/media/data/emulationstation/themes/simple` and `.../themes/classicstation`, and it stops without installing anything when there is none. hakchi
    may still report the install as done; the reason is in its log.
 3. Install `emulationstation_classicmini.hmod` with hakchi and sync. The first boot builds the library, which takes a
    while on large collections.
 4. Optional: extra themes go in the same `themes` folder. The Cross Stitch theme is a separate repository
    (`es-theme-cross-stitch`).
 
-It is developed and tested on a SNES Classic. The NES Classic has the same hardware and the code handles both pads, but
-it has seen much less testing.
+It is built for the NES Classic, the SNES Classic and their Famicom and Super Famicom versions, and the code handles both
+pads. It has been tested only with the firmware swap method, on a NES (USA) and a SNES (EUR) console.
+Prebuilt hmods are on the [releases page](https://github.com/DefKorns/ClassicStation/releases).
 
 Uninstalling the hmod removes EmulationStation, its settings and library cache from the NAND and keeps `favorites.txt`.
-Uninstalling also mounts the card and removes the files of the default theme that you did not change; the ones you
+Uninstalling also mounts the card and removes the files of the two included themes that you did not change; the ones you
 edited or added stay. Installing or updating again keeps your edits too.
 
 ## Using it
@@ -69,17 +81,23 @@ edited or added stay. Installing or updating again keeps your edits too.
 | Games | left/right browse, A play, B back to systems, X random game, Y favorite, Select options, down suspend points, up the header menu |
 | Suspend points | left/right slot, Start resume, A save (hold to overwrite), down lock, Select delete, B back |
 
-The header icons open the menu: Display, System, Network, Library and Help. UI Settings has the theme, the games view
-style, the screensaver and the UI mode.
+The header icons open the menu, which has six tabs: Display, Sound, Library, Network, Tools and System. Appearance has the
+theme and the games view style, and Behaviour has the UI mode, the power saver and the other options
+that change how ES acts.
 
 The Select button opens the options of the game: suspend points, add or remove it from the favorites, add or remove it
 from the kid games, a random game, and the sort order. The NES pad has no X or Y, so everything it needs is in that menu.
 
-**Kid mode.** In UI Settings, set UI MODE to Kid to show only the games marked as kid games, and to hide most menu
+**Kid mode.** In Behaviour, set UI MODE to Kid to show only the games marked as kid games, and to hide most menu
 options. Mark a game with ADD TO KID GAMES in its Select menu. To leave Kid mode, enter the code shown when you switch
 to it (up, up, down, down, left, right, left, right, B, A by default).
 
 ## Themes
+
+Two themes are included: **simple** ([es-theme-simple](https://github.com/RetroPie/es-theme-simple)) and **classicstation**.
+The classicstation theme looks like the console's own home menu. It is generated automatically on the console, from the
+artwork of the firmware that is installed (NES, Famicom, SNES or Super Famicom), and it is regenerated when that changes.
+On the first boot, once the classicstation theme is generated, ES switches to it; choose between them in Appearance.
 
 A theme is an ordinary EmulationStation theme (see [`THEMES.md`](../THEMES.md)) with a few additions that this port reads:
 
@@ -99,6 +117,8 @@ A theme is an ordinary EmulationStation theme (see [`THEMES.md`](../THEMES.md)) 
 - `nandSpace`, `diskSpace` and their icons: the free space of the NAND and of the SD card.
 - A theme `ui/` folder overrides the built-in menu icons (`menu_*.svg`), the highlight (`menu_selected.png`) and the
   suspend point art.
+
+- `followHeaderLift` on an image: it moves up with the header icon bar when the bar rises.
 
 With no theme or no such elements the port keeps its built-in look.
 
@@ -143,6 +163,12 @@ Changed so it builds and runs on the console:
 
 The rest of this repository is EmulationStation itself; the port is what lives in `classicmini/` and the small hooks it
 needs in `es-app` and `es-core`.
+
+## Reporting problems
+
+Open an issue on [GitHub](https://github.com/DefKorns/ClassicStation/issues) and attach
+`/var/lib/hakchi/emulationstation/home/.emulationstation/es_log.txt` and, after a crash,
+`/var/lib/hakchi/emulationstation/crash.log`.
 
 ## Credits
 
