@@ -822,7 +822,9 @@ void GridGameListView::onFloatingChanged()
 
 void GridGameListView::renderOverHelp(const Transform4x4f& parentTrans)
 {
-	mFloatingCard.render(GuiComponent::demoLift(parentTrans * getTransform()));
+	Transform4x4f cardTrans = GuiComponent::demoLift(parentTrans * getTransform());
+	cardTrans.translate(Vector3f(0.0f, -GuiComponent::demoProgress() * 0.17f * static_cast<float>(Renderer::getScreenHeight()), 0.0f));
+	mFloatingCard.render(cardTrans);
 	mDemo.renderActors(parentTrans * getTransform());
 }
 
