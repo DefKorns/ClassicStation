@@ -70,6 +70,7 @@ public:
 	using IList<ImageGridData, T>::stopScrolling;
 
 	ImageGridComponent(Window* window);
+	~ImageGridComponent() override { if(mCursorHidden) GridTileComponent::setCursorHidden(false); }
 
 	void add(const std::string& name, const std::string& imagePath, const T& obj);
 	void setTileOverlay(std::function<std::shared_ptr<GridTileOverlay>()> factory, std::function<void(GridTileOverlay&, const T&)> updater)
@@ -133,7 +134,7 @@ private:
 	// IMAGES & ENTRIES
 	bool mEntriesDirty;
 	int mLastCursor;
-	std::weak_ptr<GridTileComponent> mHiddenTile;
+	bool mCursorHidden = false;
 	std::string mDefaultGameTexture;
 	bool mTitleOverlayHidden = false;
 	std::string mDefaultFolderTexture;
@@ -299,25 +300,10 @@ bool ImageGridComponent<T>::selectedCardRect(Vector4f& rect) const
 template<typename T>
 void ImageGridComponent<T>::setCursorHidden(bool hidden)
 {
-	if(hidden)
-	{
-		for(const std::shared_ptr<GridTileComponent>& tile : mTiles)
-		{
-			if(tile->isSelected())
-			{
-				mHiddenTile = tile;
-				tile->setSelected(false, false);
-				break;
-			}
-		}
-		return;
-	}
-	if(const std::shared_ptr<GridTileComponent> tile = mHiddenTile.lock())
-	{
-		Vector3f origin = Vector3f::Zero();
-		tile->setSelected(true, true, &origin);
-	}
-	mHiddenTile.reset();
+	mCursorHidden = hidden;
+	GridTileComponent::setCursorHidden(hidden);
+	for(const std::shared_ptr<GridTileComponent>& tile : mTiles)
+		tile->refreshHighlight();
 }
 
 template<typename T>

@@ -35,6 +35,8 @@ public:
 	static Vector2f getDefaultTileSize();
 	Vector2f getSelectedTileSize() const;
 	bool isSelected() const;
+	static void setCursorHidden(bool hidden);
+	void refreshHighlight();
 	Vector2f getBackgroundSize() const;
 	float getShiftX() const { return mShiftX; }
 	static void setUnselectedBrightness(float brightness);
@@ -80,6 +82,7 @@ private:
 	float mShiftX = 0.0f;
 	float mSelectedZoomPercent;
 	bool mSelected;
+	bool lit() const;
 	bool mVisible;
 
 	Vector3f mAnimPosition;
