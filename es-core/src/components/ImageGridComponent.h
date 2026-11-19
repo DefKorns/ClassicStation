@@ -1,11 +1,13 @@
 #pragma once
 #include <algorithm>
 #include <functional>
+#include <memory>
 #include <utility>
 #ifndef ES_CORE_COMPONENTS_IMAGE_GRID_COMPONENT_H
 #define ES_CORE_COMPONENTS_IMAGE_GRID_COMPONENT_H
 
 #include "Log.h"
+#include "math/Vector4f.h"
 #include "Settings.h"
 #include "animations/LambdaAnimation.h"
 #include "components/IList.h"
@@ -75,6 +77,8 @@ public:
 		mOverlayFactory = std::move(factory);
 		mOverlayUpdater = std::move(updater);
 	}
+	bool selectedCardRect(Vector4f& rect) const;
+	void setCursorHidden(bool hidden);
 	float getVisualCursor() const { return static_cast<float>(mCursor) + (mCameraMoving && !isVerticalConst() ? mCameraDirection * (1.0f - mCamera) : 0.0f); }
 
 	bool input(InputConfig* config, Input input) override;
@@ -129,6 +133,7 @@ private:
 	// IMAGES & ENTRIES
 	bool mEntriesDirty;
 	int mLastCursor;
+	std::weak_ptr<GridTileComponent> mHiddenTile;
 	std::string mDefaultGameTexture;
 	bool mTitleOverlayHidden = false;
 	std::string mDefaultFolderTexture;
@@ -271,6 +276,48 @@ void ImageGridComponent<T>::applyNeighborShift(float cameraOffsetX)
 		const float distance = (tile->getPosition().x() + cameraOffsetX - mSize.x() / 2.0f) / slot;
 		tile->setShiftX(shift * std::max(-1.0f, std::min(1.0f, distance)));
 	}
+}
+
+template<typename T>
+bool ImageGridComponent<T>::selectedCardRect(Vector4f& rect) const
+{
+	for(const std::shared_ptr<GridTileComponent>& tile : mTiles)
+	{
+		if(!tile->isSelected())
+			continue;
+		const float offsetX = isVerticalConst() ? 0.0f : mCamera * mCameraDirection * (mTileSize.x() + mMargin.x());
+		const float offsetY = isVerticalConst() ? mCamera * mCameraDirection * (mTileSize.y() + mMargin.y()) : 0.0f;
+		const Vector2f size = tile->getBackgroundSize();
+		const float centreX = this->mPosition.x() - this->mOrigin.x() * this->mSize.x() + tile->getPosition().x() + tile->getShiftX() + offsetX;
+		const float centreY = this->mPosition.y() - this->mOrigin.y() * this->mSize.y() + tile->getPosition().y() + offsetY;
+		rect = Vector4f(centreX - size.x() / 2.0f, centreY - size.y() / 2.0f, size.x(), size.y());
+		return true;
+	}
+	return false;
+}
+
+template<typename T>
+void ImageGridComponent<T>::setCursorHidden(bool hidden)
+{
+	if(hidden)
+	{
+		for(const std::shared_ptr<GridTileComponent>& tile : mTiles)
+		{
+			if(tile->isSelected())
+			{
+				mHiddenTile = tile;
+				tile->setSelected(false, false);
+				break;
+			}
+		}
+		return;
+	}
+	if(const std::shared_ptr<GridTileComponent> tile = mHiddenTile.lock())
+	{
+		Vector3f origin = Vector3f::Zero();
+		tile->setSelected(true, true, &origin);
+	}
+	mHiddenTile.reset();
 }
 
 template<typename T>

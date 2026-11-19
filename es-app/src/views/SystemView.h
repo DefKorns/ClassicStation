@@ -112,6 +112,10 @@ private:
 	MenuIconBar mIconBar;
 	std::shared_ptr<bool> mAlive = std::make_shared<bool>(true);
 	bool mHeaderFocus = false;
+	bool mCardHidden = false;
+	float mCardGlow = 1.0f;
+	bool mCardRestorePending = false;
+	bool activeCardRect(Vector4f& rect) const;
 	int mScrollCursor = 0;
 	std::string mScrollSound;
 

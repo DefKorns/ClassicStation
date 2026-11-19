@@ -35,6 +35,7 @@ public:
 	static void setScrollCoast(float factor);
 	void setFadeEnabled(bool enabled) { mFadeEnabled = enabled; }
 	static void setBackdropVisible(float visible);
+	static void setHeaderLift(float pixels);
 	// Resize the image to fit this size. If one axis is zero, scale that axis to maintain aspect ratio.
 	// If both are non-zero, potentially break the aspect ratio.  If both are zero, no resizing.
 	// Can be set before or after an image is loaded.
@@ -94,6 +95,7 @@ private:
 	float mScrollSpeed = 0.0f;
 	float mScrollOffset = 0.0f;
 	bool mHideOnSuspend = false;
+	bool mFollowHeaderLift = false;
 	unsigned char mBaseOpacity = 255;
 	void applyOpacity();
 	bool mFadeEnabled = true;

@@ -422,6 +422,11 @@ void GridTileComponent::calcCurrentProperties()
 	}
 }
 
+Vector2f GridTileComponent::getBackgroundSize() const
+{
+	return mCurrentProperties.mSize + mCurrentProperties.mBackgroundBleed * 2.0f;
+}
+
 Vector3f GridTileComponent::getBackgroundPosition()
 {
 	return mBackground.getPosition() + mPosition;

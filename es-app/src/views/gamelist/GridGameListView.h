@@ -110,6 +110,9 @@ private:
 	bool mLettersShown = false;
 	bool mInfoPending = false;
 	bool mHeaderFocus = false;
+	bool mGridRestorePending = false;
+	bool mCardRectValid = false;
+	Vector4f mCardRect;
 	int mScrollCursor = 0;
 	std::shared_ptr<bool> mAlive = std::make_shared<bool>(true);
 	bool mPerGameBlanks = false;

@@ -781,6 +781,11 @@ std::vector<HelpPrompt> GridGameListView::getHelpPrompts()
 
 void GridGameListView::update(int deltaTime)
 {
+	if(mGridRestorePending && !mIconBar.flying())
+	{
+		mGrid.setCursorHidden(false);
+		mGridRestorePending = false;
+	}
 	ImageComponent::kickScrolling(mScrollCursor, mGrid.getCursorIndex(), static_cast<int>(mGrid.size()));
 	if(mScrollCursor != mGrid.getCursorIndex())
 		mThumbIdleMs = 0;
@@ -847,8 +852,25 @@ void GridGameListView::onFocusLost() {
 
 void GridGameListView::setHeaderFocus(bool focus)
 {
+	const bool wasFocused = mHeaderFocus;
 	mHeaderFocus = focus && mIconBar.shown();
 	mIconBar.setFrameVisible(focus);
+	mIconBar.setLifted(focus, true);
+	if(mHeaderFocus && !wasFocused)
+	{
+		if(mGrid.selectedCardRect(mCardRect))
+			mCardRectValid = true;
+		if(mCardRectValid)
+			mIconBar.flyFromCard(mCardRect);
+		mGrid.setCursorHidden(true);
+		mGridRestorePending = false;
+	}
+	else if(!mHeaderFocus && wasFocused)
+	{
+		if(mCardRectValid)
+			mIconBar.flyToCard(mCardRect);
+		mGridRestorePending = true;
+	}
 	updateHelpPrompts();
 }
 

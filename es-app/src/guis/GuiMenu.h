@@ -29,7 +29,7 @@ public:
 	HelpStyle getHelpStyle() override;
 
 private:
-	enum Category { Display, System, Network, Library, Help, CategoryCount };
+	enum Category { Display, Sound, Library, Network, Tools, System, CategoryCount };
 
 	void showCategory(int category);
 	void addEntry(const char* name, unsigned int color, bool add_arrow, const std::function<void()>& func);

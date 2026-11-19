@@ -41,7 +41,7 @@
 
 namespace
 {
-	const char* const CategoryTitles[] = { "DISPLAY", "SYSTEM", "NETWORK", "LIBRARY", "HELP" };
+	const char* const CategoryTitles[] = { "DISPLAY", "SOUND", "LIBRARY", "NETWORK", "TOOLS", "SYSTEM" };
 }
 
 bool GuiMenu::sRebuildPending = false;
@@ -52,7 +52,7 @@ GuiMenu::GuiMenu(Window* window, int category, std::function<void(int)> onClose)
 {
 	addChild(&mMenu);
 	addVersionInfo();
-	showCategory(mFullUI ? category : System);
+	showCategory(mFullUI ? category : Sound);
 }
 
 void GuiMenu::useTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view)
@@ -104,26 +104,26 @@ void GuiMenu::showCategory(int category)
 		if (isFamicomPad())
 			addToggle("EPILEPSY PROTECTION", "epilepsy state", "epilepsy toggle");
 		break;
-	case System:
+	case Sound:
 		addEntry("SOUND SETTINGS", MenuColors::Text, true, [this] { openSoundSettings(); });
-		if (mFullUI)
-		{
-			addEntry("CONTROLLER", MenuColors::Text, true, [this] { openController(); });
-			addEntry("CLEAR CACHE", MenuColors::Text, false, [this] { showToolResult("cache"); });
-			if (ConsoleTools::isOn("usb available"))
-				addEntry("COPY RESOURCES TO USB", MenuColors::Text, false, [this] { copyResourcesToUsb(); });
-			addEntry("OTHER SETTINGS", MenuColors::Text, true, [this] { openOtherSettings(); });
-		}
-		addEntry("QUIT", MenuColors::Text, true, [this] { openQuitMenu(); });
+		if (!mFullUI)
+			addEntry("QUIT", MenuColors::Text, true, [this] { openQuitMenu(); });
+		break;
+	case Library:
+		addEntry("GAME COLLECTION SETTINGS", MenuColors::Text, true, [this] { openCollectionSystemSettings(); });
+		addEntry("SCRAPER", MenuColors::Text, true, [this] { openScraperSettings(); });
 		break;
 	case Network:
-		addEntry("SCRAPER", MenuColors::Text, true, [this] { openScraperSettings(); });
 		addEntry("DISPLAY IP ADDRESS", MenuColors::Text, false, [this] { showToolResult("ip"); });
 		addEntry("RECONNECT", MenuColors::Text, false, [this] { showToolResult("reconnect"); });
 		addEntry("CONNECT TO NETWORK", MenuColors::Text, true, [this] { openNetworkList(); });
 		break;
-	case Library:
-		addEntry("GAME COLLECTION SETTINGS", MenuColors::Text, true, [this] { openCollectionSystemSettings(); });
+	case Tools:
+		addEntry("CONTROLLER", MenuColors::Text, true, [this] { openController(); });
+		addEntry("CLEAR CACHE", MenuColors::Text, false, [this] { showToolResult("cache"); });
+		if (ConsoleTools::isOn("usb available"))
+			addEntry("COPY RESOURCES TO USB", MenuColors::Text, false, [this] { copyResourcesToUsb(); });
+		addEntry("OTHER SETTINGS", MenuColors::Text, true, [this] { openOtherSettings(); });
 		break;
 	default:
 		addEntry("SYSTEM INFORMATION", MenuColors::Text, false, [this] { openSystemInfo(); });
@@ -131,6 +131,7 @@ void GuiMenu::showCategory(int category)
 		addEntry("ABOUT", MenuColors::Text, true, [this] { openAbout(); });
 		if (DebugMode::isUnlocked() || DebugMode::isEnabled() || DebugMode::isJournalEnabled())
 			addEntry("DEVELOPER", MenuColors::Text, true, [this] { openDeveloper(); });
+		addEntry("QUIT", MenuColors::Text, true, [this] { openQuitMenu(); });
 		break;
 	}
 
@@ -144,6 +145,7 @@ void GuiMenu::render(const Transform4x4f& parentTrans)
 	if (mFullUI)
 	{
 		mBar.setFrameVisible(true);
+		mBar.setLifted(true, false);
 		mBar.render(Transform4x4f::Identity());
 	}
 }

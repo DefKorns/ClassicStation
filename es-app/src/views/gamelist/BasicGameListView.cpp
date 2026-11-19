@@ -237,6 +237,7 @@ void BasicGameListView::setHeaderFocus(bool focus)
 {
 	mHeaderFocus = focus && mIconBar.shown();
 	mIconBar.setFrameVisible(focus);
+	mIconBar.setLifted(focus, true);
 	updateHelpPrompts();
 }
 

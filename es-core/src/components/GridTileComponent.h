@@ -35,6 +35,8 @@ public:
 	static Vector2f getDefaultTileSize();
 	Vector2f getSelectedTileSize() const;
 	bool isSelected() const;
+	Vector2f getBackgroundSize() const;
+	float getShiftX() const { return mShiftX; }
 	static void setUnselectedBrightness(float brightness);
 	static void setSmoothLoading(bool smooth);
 
