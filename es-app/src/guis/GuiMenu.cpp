@@ -99,7 +99,7 @@ void GuiMenu::showCategory(int category)
 	{
 	case Display:
 		addEntry("VIDEO MODE AND BEZEL", MenuColors::Text, true, [this] { openDisplaySettings(); });
-		addEntry("UI SETTINGS", MenuColors::Text, true, [this] { openUISettings(); });
+		addEntry("APPEARANCE", MenuColors::Text, true, [this] { openAppearanceSettings(); });
 		addEntry("SCREENSAVER SETTINGS", MenuColors::Text, true, [this] { openScreensaverOptions(); });
 		if (isFamicomPad())
 			addToggle("EPILEPSY PROTECTION", "epilepsy state", "epilepsy toggle");
@@ -120,10 +120,10 @@ void GuiMenu::showCategory(int category)
 		break;
 	case Tools:
 		addEntry("CONTROLLER", MenuColors::Text, true, [this] { openController(); });
+		addEntry("BEHAVIOUR", MenuColors::Text, true, [this] { openBehaviourSettings(); });
 		addEntry("CLEAR CACHE", MenuColors::Text, false, [this] { showToolResult("cache"); });
 		if (ConsoleTools::isOn("usb available"))
 			addEntry("COPY RESOURCES TO USB", MenuColors::Text, false, [this] { copyResourcesToUsb(); });
-		addEntry("OTHER SETTINGS", MenuColors::Text, true, [this] { openOtherSettings(); });
 		break;
 	default:
 		addEntry("SYSTEM INFORMATION", MenuColors::Text, false, [this] { openSystemInfo(); });
@@ -341,6 +341,43 @@ void GuiMenu::openDeveloper()
 		});
 		s->addWithLabel("SWAP SIZE", swapSize);
 	}
+
+	// maximum vram
+	auto max_vram = std::make_shared<SliderComponent>(mWindow, 0.f, 1000.f, 10.f, "Mb");
+	max_vram->setValue((float)(Settings::getInstance()->getInt("MaxVRAM")));
+	s->addWithLabel("VRAM LIMIT", max_vram);
+	s->addSaveFunc([max_vram] { Settings::getInstance()->setInt("MaxVRAM", (int)Math::round(max_vram->getValue())); });
+
+	// power saver
+	auto power_saver = std::make_shared< OptionListComponent<std::string> >(mWindow, "POWER SAVER MODES", false);
+	std::vector<std::string> modes;
+	modes.push_back("disabled");
+	modes.push_back("default");
+	modes.push_back("enhanced");
+	modes.push_back("instant");
+	for (auto it = modes.cbegin(); it != modes.cend(); it++)
+		power_saver->add(*it, *it, Settings::getInstance()->getString("PowerSaverMode") == *it);
+	s->addWithLabel("POWER SAVER MODES", power_saver);
+	s->addSaveFunc([this, power_saver] {
+		if (Settings::getInstance()->getString("PowerSaverMode") != "instant" && power_saver->getSelected() == "instant") {
+			Settings::getInstance()->setString("TransitionStyle", "instant");
+			Settings::getInstance()->setBool("MoveCarousel", false);
+			Settings::getInstance()->setBool("EnableSounds", false);
+		}
+		Settings::getInstance()->setString("PowerSaverMode", power_saver->getSelected());
+		PowerSaver::init();
+	});
+
+	auto async_file_io = std::make_shared<SwitchComponent>(mWindow);
+	async_file_io->setState(Settings::getInstance()->getBool("AsyncFileIO"));
+	s->addWithLabel("ASYNC FILE IO", async_file_io);
+	s->addSaveFunc([async_file_io] { Settings::getInstance()->setBool("AsyncFileIO", async_file_io->getState()); });
+
+	// framerate
+	auto framerate = std::make_shared<SwitchComponent>(mWindow);
+	framerate->setState(Settings::getInstance()->getBool("DrawFramerate"));
+	s->addWithLabel("SHOW FRAMERATE", framerate);
+	s->addSaveFunc([framerate] { Settings::getInstance()->setBool("DrawFramerate", framerate->getState()); });
 
 	s->addWithLabel("MEMORY", std::make_shared<TextComponent>(mWindow, ConsoleTools::run("swap info"), Font::get(FONT_SIZE_MENU), MenuColors::Dim, ALIGN_RIGHT));
 	s->addWithLabel("TEMPERATURE", std::make_shared<TextComponent>(mWindow, ConsoleTools::run("temperature"), Font::get(FONT_SIZE_MENU), MenuColors::Dim, ALIGN_RIGHT));
@@ -797,77 +834,10 @@ void GuiMenu::openDisplaySettings()
 	mWindow->pushGui(s);
 }
 
-void GuiMenu::openUISettings()
+void GuiMenu::openAppearanceSettings()
 {
-	auto s = new GuiSettings(mWindow, "UI SETTINGS");
-
-	//UI mode
-	auto UImodeSelection = std::make_shared< OptionListComponent<std::string> >(mWindow, "UI MODE", false);
-	std::vector<std::string> UImodes = UIModeController::getInstance()->getUIModes();
-	for (auto it = UImodes.cbegin(); it != UImodes.cend(); it++)
-		UImodeSelection->add(*it, *it, Settings::getInstance()->getString("UIMode") == *it);
-	s->addWithLabel("UI MODE", UImodeSelection);
+	auto s = new GuiSettings(mWindow, "APPEARANCE");
 	Window* window = mWindow;
-	s->addSaveFunc([ UImodeSelection, window]
-	{
-		std::string selectedMode = UImodeSelection->getSelected();
-		if (selectedMode != "Full")
-		{
-			std::string msg = "You are changing the UI to a restricted mode:\n" + selectedMode + "\n";
-			msg += "This will hide most menu-options to prevent changes to the system.\n";
-			msg += "Only the games marked as kid games will be shown.\n";
-			msg += "To unlock and return to the full UI, enter this code: \n";
-			msg += "\"" + UIModeController::getInstance()->getFormattedPassKeyStr() + "\"\n\n";
-			msg += "Do you want to proceed?";
-			window->pushGui(new GuiMsgBox(window, msg,
-				"YES", [selectedMode] {
-					LOG(LogDebug) << "Setting UI mode to " << selectedMode;
-					Settings::getInstance()->setString("UIMode", selectedMode);
-					Settings::getInstance()->saveFile();
-			}, "NO",nullptr));
-		}
-	});
-
-	// quick system select (left/right in game list view)
-	auto quick_sys_select = std::make_shared<SwitchComponent>(mWindow);
-	quick_sys_select->setState(Settings::getInstance()->getBool("QuickSystemSelect"));
-	s->addWithLabel("QUICK SYSTEM SELECT", quick_sys_select);
-	s->addSaveFunc([quick_sys_select] { Settings::getInstance()->setBool("QuickSystemSelect", quick_sys_select->getState()); });
-
-	// carousel transition option
-	auto move_carousel = std::make_shared<SwitchComponent>(mWindow);
-	move_carousel->setState(Settings::getInstance()->getBool("MoveCarousel"));
-	s->addWithLabel("CAROUSEL TRANSITIONS", move_carousel);
-	s->addSaveFunc([move_carousel] {
-		if (move_carousel->getState()
-			&& !Settings::getInstance()->getBool("MoveCarousel")
-			&& PowerSaver::getMode() == PowerSaver::INSTANT)
-		{
-			Settings::getInstance()->setString("PowerSaverMode", "default");
-			PowerSaver::init();
-		}
-		Settings::getInstance()->setBool("MoveCarousel", move_carousel->getState());
-	});
-
-	// transition style
-	auto transition_style = std::make_shared< OptionListComponent<std::string> >(mWindow, "TRANSITION STYLE", false);
-	std::vector<std::string> transitions;
-	transitions.push_back("fade");
-	transitions.push_back("slide");
-	transitions.push_back("instant");
-	for(auto it = transitions.cbegin(); it != transitions.cend(); it++)
-		transition_style->add(*it, *it, Settings::getInstance()->getString("TransitionStyle") == *it);
-	s->addWithLabel("TRANSITION STYLE", transition_style);
-	s->addSaveFunc([transition_style] {
-		if (Settings::getInstance()->getString("TransitionStyle") == "instant"
-			&& transition_style->getSelected() != "instant"
-			&& PowerSaver::getMode() == PowerSaver::INSTANT)
-		{
-			Settings::getInstance()->setString("PowerSaverMode", "default");
-			PowerSaver::init();
-		}
-		Settings::getInstance()->setString("TransitionStyle", transition_style->getSelected());
-	});
 
 	// theme set
 	auto themeSets = ThemeData::getThemeSets();
@@ -883,7 +853,6 @@ void GuiMenu::openUISettings()
 			theme_set->add(it->first, it->first, it == selectedSet);
 		s->addWithLabel("THEME SET", theme_set);
 
-		Window* window = mWindow;
 		s->addSaveFunc([window, theme_set]
 		{
 			bool needReload = false;
@@ -970,6 +939,104 @@ void GuiMenu::openUISettings()
 			ViewController::get()->reloadAll();
 	});
 
+	// carousel transition option
+	auto move_carousel = std::make_shared<SwitchComponent>(mWindow);
+	move_carousel->setState(Settings::getInstance()->getBool("MoveCarousel"));
+	s->addWithLabel("CAROUSEL TRANSITIONS", move_carousel);
+	s->addSaveFunc([move_carousel] {
+		if (move_carousel->getState()
+			&& !Settings::getInstance()->getBool("MoveCarousel")
+			&& PowerSaver::getMode() == PowerSaver::INSTANT)
+		{
+			Settings::getInstance()->setString("PowerSaverMode", "default");
+			PowerSaver::init();
+		}
+		Settings::getInstance()->setBool("MoveCarousel", move_carousel->getState());
+	});
+
+	// transition style
+	auto transition_style = std::make_shared< OptionListComponent<std::string> >(mWindow, "TRANSITION STYLE", false);
+	std::vector<std::string> transitions;
+	transitions.push_back("fade");
+	transitions.push_back("slide");
+	transitions.push_back("instant");
+	for(auto it = transitions.cbegin(); it != transitions.cend(); it++)
+		transition_style->add(*it, *it, Settings::getInstance()->getString("TransitionStyle") == *it);
+	s->addWithLabel("TRANSITION STYLE", transition_style);
+	s->addSaveFunc([transition_style] {
+		if (Settings::getInstance()->getString("TransitionStyle") == "instant"
+			&& transition_style->getSelected() != "instant"
+			&& PowerSaver::getMode() == PowerSaver::INSTANT)
+		{
+			Settings::getInstance()->setString("PowerSaverMode", "default");
+			PowerSaver::init();
+		}
+		Settings::getInstance()->setString("TransitionStyle", transition_style->getSelected());
+	});
+
+	auto menu_animations = std::make_shared<SwitchComponent>(mWindow);
+	menu_animations->setState(Settings::getInstance()->getBool("MenuAnimations"));
+	s->addWithLabel("HEADER ANIMATIONS", menu_animations);
+	auto background_animation = std::make_shared<SwitchComponent>(mWindow);
+	background_animation->setState(Settings::getInstance()->getBool("BackgroundAnimation"));
+	s->addWithLabel("BACKGROUND ANIMATION", background_animation);
+	s->addSaveFunc([background_animation] { Settings::getInstance()->setBool("BackgroundAnimation", background_animation->getState()); });
+	auto suspend_animations = std::make_shared<SwitchComponent>(mWindow);
+	suspend_animations->setState(Settings::getInstance()->getBool("SuspendAnimations"));
+	s->addWithLabel("SUSPEND POINT ANIMATIONS", suspend_animations);
+	s->addSaveFunc([suspend_animations] { Settings::getInstance()->setBool("SuspendAnimations", suspend_animations->getState()); });
+	auto demo_mode = std::make_shared<SwitchComponent>(mWindow);
+	demo_mode->setState(Settings::getInstance()->getBool("DemoMode"));
+	s->addWithLabel("DEMO MODE", demo_mode);
+	s->addSaveFunc([demo_mode] { Settings::getInstance()->setBool("DemoMode", demo_mode->getState()); });
+	s->addSaveFunc([menu_animations] { Settings::getInstance()->setBool("MenuAnimations", menu_animations->getState()); });
+
+	// show help
+	auto show_help = std::make_shared<SwitchComponent>(mWindow);
+	show_help->setState(Settings::getInstance()->getBool("ShowHelpPrompts"));
+	s->addWithLabel("ON-SCREEN HELP", show_help);
+	s->addSaveFunc([show_help] { Settings::getInstance()->setBool("ShowHelpPrompts", show_help->getState()); });
+
+	mWindow->pushGui(s);
+}
+
+void GuiMenu::openBehaviourSettings()
+{
+	auto s = new GuiSettings(mWindow, "BEHAVIOUR");
+
+	//UI mode
+	auto UImodeSelection = std::make_shared< OptionListComponent<std::string> >(mWindow, "UI MODE", false);
+	std::vector<std::string> UImodes = UIModeController::getInstance()->getUIModes();
+	for (auto it = UImodes.cbegin(); it != UImodes.cend(); it++)
+		UImodeSelection->add(*it, *it, Settings::getInstance()->getString("UIMode") == *it);
+	s->addWithLabel("UI MODE", UImodeSelection);
+	Window* window = mWindow;
+	s->addSaveFunc([ UImodeSelection, window]
+	{
+		std::string selectedMode = UImodeSelection->getSelected();
+		if (selectedMode != "Full")
+		{
+			std::string msg = "You are changing the UI to a restricted mode:\n" + selectedMode + "\n";
+			msg += "This will hide most menu-options to prevent changes to the system.\n";
+			msg += "Only the games marked as kid games will be shown.\n";
+			msg += "To unlock and return to the full UI, enter this code: \n";
+			msg += "\"" + UIModeController::getInstance()->getFormattedPassKeyStr() + "\"\n\n";
+			msg += "Do you want to proceed?";
+			window->pushGui(new GuiMsgBox(window, msg,
+				"YES", [selectedMode] {
+					LOG(LogDebug) << "Setting UI mode to " << selectedMode;
+					Settings::getInstance()->setString("UIMode", selectedMode);
+					Settings::getInstance()->saveFile();
+			}, "NO",nullptr));
+		}
+	});
+
+	// quick system select (left/right in game list view)
+	auto quick_sys_select = std::make_shared<SwitchComponent>(mWindow);
+	quick_sys_select->setState(Settings::getInstance()->getBool("QuickSystemSelect"));
+	s->addWithLabel("QUICK SYSTEM SELECT", quick_sys_select);
+	s->addSaveFunc([quick_sys_select] { Settings::getInstance()->setBool("QuickSystemSelect", quick_sys_select->getState()); });
+
 	// Optionally ignore leading articles when sorting game titles
 	auto ignore_articles = std::make_shared<SwitchComponent>(mWindow);
 	ignore_articles->setState(Settings::getInstance()->getBool("IgnoreLeadingArticles"));
@@ -1019,29 +1086,6 @@ void GuiMenu::openUISettings()
 		Settings::getInstance()->setString("StartupSystem", systemfocus_list->getSelected());
 	});
 
-	// show help
-	auto show_help = std::make_shared<SwitchComponent>(mWindow);
-	show_help->setState(Settings::getInstance()->getBool("ShowHelpPrompts"));
-	s->addWithLabel("ON-SCREEN HELP", show_help);
-	s->addSaveFunc([show_help] { Settings::getInstance()->setBool("ShowHelpPrompts", show_help->getState()); });
-
-	auto menu_animations = std::make_shared<SwitchComponent>(mWindow);
-	menu_animations->setState(Settings::getInstance()->getBool("MenuAnimations"));
-	s->addWithLabel("HEADER ANIMATIONS", menu_animations);
-	auto background_animation = std::make_shared<SwitchComponent>(mWindow);
-	background_animation->setState(Settings::getInstance()->getBool("BackgroundAnimation"));
-	s->addWithLabel("BACKGROUND ANIMATION", background_animation);
-	s->addSaveFunc([background_animation] { Settings::getInstance()->setBool("BackgroundAnimation", background_animation->getState()); });
-	auto suspend_animations = std::make_shared<SwitchComponent>(mWindow);
-	suspend_animations->setState(Settings::getInstance()->getBool("SuspendAnimations"));
-	s->addWithLabel("SUSPEND POINT ANIMATIONS", suspend_animations);
-	s->addSaveFunc([suspend_animations] { Settings::getInstance()->setBool("SuspendAnimations", suspend_animations->getState()); });
-	auto demo_mode = std::make_shared<SwitchComponent>(mWindow);
-	demo_mode->setState(Settings::getInstance()->getBool("DemoMode"));
-	s->addWithLabel("DEMO MODE", demo_mode);
-	s->addSaveFunc([demo_mode] { Settings::getInstance()->setBool("DemoMode", demo_mode->getState()); });
-	s->addSaveFunc([menu_animations] { Settings::getInstance()->setBool("MenuAnimations", menu_animations->getState()); });
-
 	// enable filters (ForceDisableFilters)
 	auto enable_filter = std::make_shared<SwitchComponent>(mWindow);
 	enable_filter->setState(!Settings::getInstance()->getBool("ForceDisableFilters"));
@@ -1058,40 +1102,6 @@ void GuiMenu::openUISettings()
 	s->addWithLabel("DISABLE START MENU IN KID MODE", disable_start);
 	s->addSaveFunc([disable_start] { Settings::getInstance()->setBool("DisableKidStartMenu", disable_start->getState()); });
 
-	mWindow->pushGui(s);
-
-}
-
-void GuiMenu::openOtherSettings()
-{
-	auto s = new GuiSettings(mWindow, "OTHER SETTINGS");
-
-	// maximum vram
-	auto max_vram = std::make_shared<SliderComponent>(mWindow, 0.f, 1000.f, 10.f, "Mb");
-	max_vram->setValue((float)(Settings::getInstance()->getInt("MaxVRAM")));
-	s->addWithLabel("VRAM LIMIT", max_vram);
-	s->addSaveFunc([max_vram] { Settings::getInstance()->setInt("MaxVRAM", (int)Math::round(max_vram->getValue())); });
-
-	// power saver
-	auto power_saver = std::make_shared< OptionListComponent<std::string> >(mWindow, "POWER SAVER MODES", false);
-	std::vector<std::string> modes;
-	modes.push_back("disabled");
-	modes.push_back("default");
-	modes.push_back("enhanced");
-	modes.push_back("instant");
-	for (auto it = modes.cbegin(); it != modes.cend(); it++)
-		power_saver->add(*it, *it, Settings::getInstance()->getString("PowerSaverMode") == *it);
-	s->addWithLabel("POWER SAVER MODES", power_saver);
-	s->addSaveFunc([this, power_saver] {
-		if (Settings::getInstance()->getString("PowerSaverMode") != "instant" && power_saver->getSelected() == "instant") {
-			Settings::getInstance()->setString("TransitionStyle", "instant");
-			Settings::getInstance()->setBool("MoveCarousel", false);
-			Settings::getInstance()->setBool("EnableSounds", false);
-		}
-		Settings::getInstance()->setString("PowerSaverMode", power_saver->getSelected());
-		PowerSaver::init();
-	});
-
 	// gamelists
 	auto gamelistsSaveMode = std::make_shared< OptionListComponent<std::string> >(mWindow, "SAVE METADATA", false);
 	std::vector<std::string> saveModes;
@@ -1106,20 +1116,7 @@ void GuiMenu::openOtherSettings()
 		Settings::getInstance()->setString("SaveGamelistsMode", gamelistsSaveMode->getSelected());
 	});
 
-	auto async_file_io = std::make_shared<SwitchComponent>(mWindow);
-	async_file_io->setState(Settings::getInstance()->getBool("AsyncFileIO"));
-	s->addWithLabel("ASYNC FILE IO", async_file_io);
-	s->addSaveFunc([async_file_io] { Settings::getInstance()->setBool("AsyncFileIO", async_file_io->getState()); });
-
-
-	// framerate
-	auto framerate = std::make_shared<SwitchComponent>(mWindow);
-	framerate->setState(Settings::getInstance()->getBool("DrawFramerate"));
-	s->addWithLabel("SHOW FRAMERATE", framerate);
-	s->addSaveFunc([framerate] { Settings::getInstance()->setBool("DrawFramerate", framerate->getState()); });
-
 	mWindow->pushGui(s);
-
 }
 
 void GuiMenu::openConfigInput()

@@ -44,12 +44,12 @@ private:
 	void openSystemInfo();
 	void openCollectionSystemSettings();
 	void openConfigInput();
-	void openOtherSettings();
 	void openQuitMenu();
 	void openScraperSettings();
 	void openScreensaverOptions();
 	void openSoundSettings();
-	void openUISettings();
+	void openAppearanceSettings();
+	void openBehaviourSettings();
 	void openDisplaySettings();
 	void openThemeOptions(GuiComponent* parent);
 
