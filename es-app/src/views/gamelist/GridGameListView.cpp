@@ -850,6 +850,19 @@ void GridGameListView::onFocusLost() {
 	mDescription.restart();
 }
 
+void GridGameListView::onHide()
+{
+	ISimpleGameListView::onHide();
+	if(mHeaderFocus || mGridRestorePending)
+	{
+		mHeaderFocus = false;
+		mGridRestorePending = false;
+		mIconBar.setFrameVisible(false);
+		mIconBar.setLifted(false, false);
+		mGrid.setCursorHidden(false);
+	}
+}
+
 void GridGameListView::setHeaderFocus(bool focus)
 {
 	const bool wasFocused = mHeaderFocus;
@@ -858,8 +871,7 @@ void GridGameListView::setHeaderFocus(bool focus)
 	mIconBar.setLifted(focus, true);
 	if(mHeaderFocus && !wasFocused)
 	{
-		if(mGrid.selectedCardRect(mCardRect))
-			mCardRectValid = true;
+		mCardRectValid = mGrid.selectedCardRect(mCardRect);
 		if(mCardRectValid)
 			mIconBar.flyFromCard(mCardRect);
 		mGrid.setCursorHidden(true);

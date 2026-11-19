@@ -270,19 +270,14 @@ void GridTileComponent::setImage(const std::shared_ptr<TextureResource>& texture
 	resize();
 }
 
-namespace
-{
-	bool sCursorHidden = false;
-}
-
 void GridTileComponent::setCursorHidden(bool hidden)
 {
-	sCursorHidden = hidden;
+	mCursorHidden = hidden;
 }
 
 bool GridTileComponent::lit() const
 {
-	return mSelected && !sCursorHidden;
+	return mSelected && !mCursorHidden;
 }
 
 void GridTileComponent::refreshHighlight()
@@ -301,7 +296,7 @@ void GridTileComponent::setSelected(bool selected, bool allowAnimation, Vector3f
 
 	mSelected = selected;
 	if (mOverlay)
-		mOverlay->setSelected(selected && !sCursorHidden);
+		mOverlay->setSelected(selected && !mCursorHidden);
 
 	if (selected)
 	{

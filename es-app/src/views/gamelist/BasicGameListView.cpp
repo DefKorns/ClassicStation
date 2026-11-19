@@ -243,6 +243,19 @@ void BasicGameListView::update(int deltaTime)
 	ISimpleGameListView::update(deltaTime);
 }
 
+void BasicGameListView::onHide()
+{
+	ISimpleGameListView::onHide();
+	if(mHeaderFocus || mListRestorePending)
+	{
+		mHeaderFocus = false;
+		mListRestorePending = false;
+		mIconBar.setFrameVisible(false);
+		mIconBar.setLifted(false, false);
+		mList.setCursorHidden(false);
+	}
+}
+
 void BasicGameListView::setHeaderFocus(bool focus)
 {
 	const bool wasFocused = mHeaderFocus;
@@ -251,8 +264,7 @@ void BasicGameListView::setHeaderFocus(bool focus)
 	mIconBar.setLifted(focus, true);
 	if(mHeaderFocus && !wasFocused)
 	{
-		if(mList.selectedRowRect(mRowRect))
-			mRowRectValid = true;
+		mRowRectValid = mList.selectedRowRect(mRowRect);
 		if(mRowRectValid)
 			mIconBar.flyFromCard(mRowRect);
 		mList.setCursorHidden(true);

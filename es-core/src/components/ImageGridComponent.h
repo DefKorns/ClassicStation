@@ -70,7 +70,6 @@ public:
 	using IList<ImageGridData, T>::stopScrolling;
 
 	ImageGridComponent(Window* window);
-	~ImageGridComponent() override { if(mCursorHidden) GridTileComponent::setCursorHidden(false); }
 
 	void add(const std::string& name, const std::string& imagePath, const T& obj);
 	void setTileOverlay(std::function<std::shared_ptr<GridTileOverlay>()> factory, std::function<void(GridTileOverlay&, const T&)> updater)
@@ -301,9 +300,11 @@ template<typename T>
 void ImageGridComponent<T>::setCursorHidden(bool hidden)
 {
 	mCursorHidden = hidden;
-	GridTileComponent::setCursorHidden(hidden);
 	for(const std::shared_ptr<GridTileComponent>& tile : mTiles)
+	{
+		tile->setCursorHidden(hidden);
 		tile->refreshHighlight();
+	}
 }
 
 template<typename T>
@@ -672,6 +673,7 @@ void ImageGridComponent<T>::buildTiles()
 
 			tile->setPosition(X * tileDistance.x() + startPosition.x(), Y * tileDistance.y() + startPosition.y());
 			tile->setOrigin(0.5f, 0.5f);
+			tile->setCursorHidden(mCursorHidden);
 			tile->setImage("");
 			if (mOverlayFactory)
 				tile->setOverlay(mOverlayFactory());

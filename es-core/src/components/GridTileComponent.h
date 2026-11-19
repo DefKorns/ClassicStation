@@ -35,7 +35,7 @@ public:
 	static Vector2f getDefaultTileSize();
 	Vector2f getSelectedTileSize() const;
 	bool isSelected() const;
-	static void setCursorHidden(bool hidden);
+	void setCursorHidden(bool hidden);
 	void refreshHighlight();
 	Vector2f getBackgroundSize() const;
 	float getShiftX() const { return mShiftX; }
@@ -82,6 +82,7 @@ private:
 	float mShiftX = 0.0f;
 	float mSelectedZoomPercent;
 	bool mSelected;
+	bool mCursorHidden = false;
 	bool lit() const;
 	bool mVisible;
 

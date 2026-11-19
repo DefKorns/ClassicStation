@@ -963,4 +963,13 @@ void SystemView::onShow()
 void SystemView::onHide()
 {
 	mShowing = false;
+	if(mHeaderFocus || mCardRestorePending)
+	{
+		mHeaderFocus = false;
+		mCardRestorePending = false;
+		mCardHidden = false;
+		mCardGlow = 1.0f;
+		mIconBar.setFrameVisible(false);
+		mIconBar.setLifted(false, false);
+	}
 }

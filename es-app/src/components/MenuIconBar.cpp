@@ -98,6 +98,7 @@ MenuIconBar::MenuIconBar(Window* window)
 		mScaleMs[index] = ScaleMs;
 	}
 	sBars.push_back(this);
+	mLiftMs = LiftMs;
 	layout();
 	retarget(true);
 }
@@ -244,7 +245,7 @@ void MenuIconBar::layout()
 	const float height = static_cast<float>(Renderer::getScreenHeight());
 	const float count = static_cast<float>(mIcons.size());
 	mStep = mThemed ? mBoxSize.x() / count : height * IconStepRatio;
-	const float fit = mThemed ? std::min(1.0f, (mStep - NeighbourGap) / ((FrameHalfWidth + NeighbourHalfWidth) * mBoxSize.y() + ThemedFrameBleed)) : 1.0f;
+	const float fit = mThemed ? std::max(0.1f, std::min(1.0f, (mStep - NeighbourGap) / ((FrameHalfWidth + NeighbourHalfWidth) * mBoxSize.y() + ThemedFrameBleed))) : 1.0f;
 	mSize = mThemed ? mBoxSize.y() * fit : height * IconSizeRatio;
 	mLeft = mThemed ? mBoxPos.x() : width * FirstCenterRatio - mStep / 2;
 	mCenterY = (mThemed ? mBoxPos.y() + mBoxSize.y() / 2 : height * IconCenterRatio) - liftNow();

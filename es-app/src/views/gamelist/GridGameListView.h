@@ -26,6 +26,7 @@ public:
 	virtual ~GridGameListView();
 
 	virtual void onShow() override;
+	virtual void onHide() override;
 
 	virtual void onThemeChanged(const std::shared_ptr<ThemeData>& theme) override;
 

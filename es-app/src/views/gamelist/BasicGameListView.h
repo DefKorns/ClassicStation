@@ -24,6 +24,7 @@ public:
 
 	virtual bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
+	void onHide() override;
 	virtual std::vector<HelpPrompt> getHelpPrompts() override;
 	virtual void launch(FileData* game) override;
 
