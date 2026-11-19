@@ -226,8 +226,7 @@ SHIM
 }
 
 isRetroarchState() {
-  [ -f "$1" ] && [ "$(head -c 2 "$1" | od -An -tx1 | tr -d '
-')" = 1f8b ]
+  [ -f "$1" ] && [ "$(head -c 9 "$1")" != HANASTATE ]
 }
 
 desktop=$1
@@ -324,6 +323,7 @@ if [ -n "${resumed:-}" ]; then
     cp "$resumed" "$floating.state"
     [ -f "$resumed.png" ] && cp "$resumed.png" "$floating.state.png"
     printf '%s' "$resumed_time" > "$floating.state_time.txt"
+    restored=1
   fi
   rm -f "$resumed" "$resumed.png"
 fi
@@ -336,7 +336,7 @@ if [ -n "${resume_dir:-}" ]; then
   fi
 fi
 autofireForUi
-if [ -n "$native" ] && [ -f "$floating.state" ]; then
+if [ -n "$native" ] && [ -f "$floating.state" ] && [ -z "${restored:-}" ]; then
   played=$(($(cut -d. -f1 /proc/uptime) - launched))
   if [ -n "$resume" ]; then
     if [ -f "$saved.state" ]; then

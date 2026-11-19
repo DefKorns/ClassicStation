@@ -88,4 +88,24 @@ rm -rf "${es_dir:?}/library" "${es_dir:?}/library.stamp" "${es_dir:?}/library.st
 rm -f "${es_dir:?}/boot_failures" "${es_dir:?}/no_boot"
 [ "$(cat "$es_dir/boot_default" 2>/dev/null)" = stock ] && rm -f "${es_dir:?}/boot_default"
 rm -rf "${es_payload:?}"
+
+stockFirmwareName() {
+  local sha1
+  command -v sunxi-flash >/dev/null 2>&1 || return 0
+  sha1=$(sunxi-flash log_read 68 1 | dd status=none bs=32 skip=18 count=1 | hexdump -e '/1 "%02x"' -n20)
+  [ -n "$sha1" ] && grep -F " $sha1" /etc/firmwaredb | head -n 1 | cut -d' ' -f1
+}
+
+needsCloverconFix() {
+  grep -qF "dp-hvc" "$squashfs/etc/issue" 2>/dev/null || return 1
+  [ "$(cat "$squashfs/etc/clover/boardtype" 2>/dev/null)" = "dp-hvc" ] || return 1
+  case "$(stockFirmwareName)" in
+    dp-nes-* | dp-shvc-*) return 0 ;;
+  esac
+  return 1
+}
+
+if needsCloverconFix && [ ! -f "$rootfs/etc/init.d/S77clvcon_detect" ]; then
+  echo "Famicom firmware on NES/SNES hardware: the pads can freeze or misbehave unless famicom_clovercon_fix is installed too (https://github.com/DefKorns/famicom-clovercon-fix)."
+fi
 return 0

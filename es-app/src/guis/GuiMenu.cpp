@@ -164,11 +164,6 @@ void GuiMenu::addToggle(const char* name, const std::string& stateArguments, con
 	mMenu.addRow(row);
 }
 
-bool GuiMenu::isFamicomPad()
-{
-	return ::isFamicomPad();
-}
-
 void GuiMenu::openController()
 {
 	auto s = new GuiSettings(mWindow, "CONTROLLER");

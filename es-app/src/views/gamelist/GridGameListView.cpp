@@ -18,6 +18,7 @@
 #include "Window.h"
 #include <cstdlib>
 #include <algorithm>
+#include <set>
 #include <stack>
 #include <string>
 
@@ -257,6 +258,8 @@ const std::string GridGameListView::getImagePath(FileData* file)
 namespace
 {
 	constexpr int MaxThumbnailsPerPass = 8;
+	constexpr int ThumbnailIdleMs = 300;
+	std::set<std::string> sFailedThumbnails;
 
 	std::string blankImageFor(const std::string& themeFolder)
 	{
@@ -311,7 +314,7 @@ void GridGameListView::populateList(const std::vector<FileData*>& files)
 					thumbnail = scraped;
 					verified = true;
 				}
-				else
+				else if (sFailedThumbnails.count(image) == 0)
 				{
 					deferred = true;
 					scrapedPath = scraped;
@@ -779,6 +782,10 @@ std::vector<HelpPrompt> GridGameListView::getHelpPrompts()
 void GridGameListView::update(int deltaTime)
 {
 	ImageComponent::kickScrolling(mScrollCursor, mGrid.getCursorIndex(), static_cast<int>(mGrid.size()));
+	if(mScrollCursor != mGrid.getCursorIndex())
+		mThumbIdleMs = 0;
+	else
+		mThumbIdleMs += deltaTime;
 	mScrollCursor = mGrid.getCursorIndex();
 	mThumbnails.setPosition(mGrid.getVisualCursor());
 	const bool fast = mHasLetters && mGrid.size() > 0 && mGrid.isFastScrolling();
@@ -809,17 +816,17 @@ void GridGameListView::update(int deltaTime)
 		mInfoPending = false;
 		updateInfoPanel();
 	}
-	if(!mThumbJobs.empty() && !mGrid.isScrolling())
+	if(!mThumbJobs.empty() && !mGrid.isScrolling() && mThumbIdleMs >= ThumbnailIdleMs)
 	{
-		int done = 0;
-		while(!mThumbJobs.empty() && done < MaxThumbnailsPerPass)
-		{
-			const ThumbJob job = mThumbJobs.back();
-			mThumbJobs.pop_back();
-			++done;
-			if(saveThumbnail(job.image, job.scraped, 30, 40))
-				mThumbnails.updateEntry(job.index, job.scraped);
-		}
+		const int cursor = mGrid.getCursorIndex();
+		const auto nearest = std::min_element(mThumbJobs.begin(), mThumbJobs.end(),
+			[cursor](const ThumbJob& a, const ThumbJob& b) { return std::abs(a.index - cursor) < std::abs(b.index - cursor); });
+		const ThumbJob job = *nearest;
+		mThumbJobs.erase(nearest);
+		if(saveThumbnail(job.image, job.scraped, 30, 40))
+			mThumbnails.updateEntry(job.index, job.scraped);
+		else
+			sFailedThumbnails.insert(job.image);
 	}
 	mDemo.update(deltaTime, mGrid.size() > 0, mGrid.getPosition().y() + 0.075f * static_cast<float>(Renderer::getScreenHeight()));
 	mFloatingCard.update(deltaTime);

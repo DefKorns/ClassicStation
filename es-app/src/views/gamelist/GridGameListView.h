@@ -121,6 +121,7 @@ private:
 		std::string scraped;
 	};
 	std::vector<ThumbJob> mThumbJobs;
+	int mThumbIdleMs = 0;
 	bool mHasLetters = false;
 	std::string mLettersText;
 };

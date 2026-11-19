@@ -632,6 +632,10 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	const char* notice = std::getenv("ES_NOTICE");
+	if(errorMsg == NULL && notice != nullptr && *notice != ' ')
+		window.pushGui(new GuiMsgBox(&window, notice, "OK", nullptr));
+
 	int lastTime = SDL_GetTicks();
 	int ps_time = SDL_GetTicks();
 
