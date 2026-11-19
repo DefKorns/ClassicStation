@@ -799,8 +799,21 @@ void GuiMenu::openDisplaySettings()
 		Settings::getInstance()->setBool("DisplayCrtScanlines", level > 0);
 	});
 
-	const auto updateEffects = [mode, filter, scanlines, sharp, square, famicom]
+	auto restoreSharp = std::make_shared<bool>(false);
+	const auto updateEffects = [mode, filter, scanlines, sharp, square, famicom, restoreSharp]
 	{
+		const bool pixelPerfect = mode->getSelected() == "pixel-perfect";
+		if (pixelPerfect && filter->getSelected() == "sharp")
+		{
+			filter->select("nearest");
+			*restoreSharp = true;
+			return;
+		}
+		if (!pixelPerfect && *restoreSharp)
+		{
+			filter->select("sharp");
+			return;
+		}
 		const bool crt = mode->getSelected() == "crt-filter";
 		const std::string chosen = filter->getSelected();
 		const bool scanlinesFixed = crt || chosen == "composite" || chosen == "phosphor";
@@ -818,8 +831,9 @@ void GuiMenu::openDisplaySettings()
 	};
 	mode->setSelectedChangedCallback(updateEffects);
 	auto previousFilter = std::make_shared<std::string>(currentFilter);
-	filter->setSelectedChangedCallback([filter, mode, previousFilter, updateEffects]
+	filter->setSelectedChangedCallback([filter, mode, previousFilter, updateEffects, restoreSharp]
 	{
+		*restoreSharp = false;
 		std::string chosen = filter->getSelected();
 		if (chosen == "sharp" && mode->getSelected() == "pixel-perfect")
 		{
