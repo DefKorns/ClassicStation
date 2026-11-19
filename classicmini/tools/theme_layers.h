@@ -1000,6 +1000,17 @@ namespace theme_layers
 		blendOver(result, topRight, result.width() - piece, 0);
 		blendOver(result, bottomLeft, 0, result.height() - piece);
 		blendOver(result, bottomRight, result.width() - piece, result.height() - piece);
+		for(int y = 0; y < result.height(); ++y)
+		{
+			for(int x = 0; x < result.width(); ++x)
+			{
+				unsigned char* pixel = result.at(x, y);
+				if(pixel[3] == 0 || pixel[3] == 255)
+					continue;
+				for(int channel = 0; channel < 3; ++channel)
+					pixel[channel] = static_cast<unsigned char>(std::min(255, pixel[channel] * 255 / pixel[3]));
+			}
+		}
 		return result;
 	}
 
