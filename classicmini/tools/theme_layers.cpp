@@ -83,6 +83,7 @@ namespace
 	{
 		std::cerr << "usage: theme_layers info <atlas.json>\n"
 		             "       theme_layers demo <characters.png> <out_dir> [--scale N]\n"
+		             "       theme_layers scale <in.png> <out.png> <factor>\n"
 		             "       theme_layers layers <atlas.json> <atlas.png> <out_dir> [--icon-scale N] [--frame-scale N] [--row WxH] [--wide-width N] [--title WxH] [--selector WxH] [--background RRGGBB] [--wall PNG]\n";
 		return 2;
 	}
@@ -92,6 +93,17 @@ namespace
 		const Atlas atlas = parseAtlas(readFile(jsonPath));
 		std::cout << familyName(detectFamily(atlas)) << " " << atlas.size() << "\n";
 		return detectFamily(atlas) == Family::Unknown ? 1 : 0;
+	}
+
+	int upscale(int argc, char* argv[])
+	{
+		if(argc != 5)
+			return usage();
+		const int factor = std::atoi(argv[4]);
+		if(factor < 1)
+			return usage();
+		savePng(argv[3], scale(loadPng(argv[2]), factor));
+		return 0;
 	}
 
 	int demo(int argc, char* argv[])
@@ -203,6 +215,8 @@ int main(int argc, char* argv[])
 			return info(argv[2]);
 		if(command == "demo")
 			return demo(argc, argv);
+		if(command == "scale")
+			return upscale(argc, argv);
 		if(command == "layers")
 			return layers(argc, argv);
 		return usage();

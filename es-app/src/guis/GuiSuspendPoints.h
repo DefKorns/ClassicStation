@@ -106,6 +106,7 @@ private:
 	float mShiftProgress = 0.0f;
 	bool mStarted = false;
 	bool mClosing = false;
+	bool mHelpShown = false;
 
 	Rect mPanelTheme;
 	Rect mCellTheme;

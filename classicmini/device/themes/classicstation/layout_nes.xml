@@ -21,6 +21,8 @@
 		<suspendDim>0.5</suspendDim>
 		<spaceText>FFFFFF</spaceText>
 		<barLogo>true</barLogo>
+		<nesBarPath>./../menubar_bottom.png</nesBarPath>
+		<nesBarLogo>true</nesBarLogo>
 		<barLogoPath>./../assets/systems/logos/nes1.svg</barLogoPath>
 		<barLogoTint>FFFFFF</barLogoTint>
 		<tilePadding>0.010937 0.084722</tilePadding>
@@ -52,6 +54,9 @@
 		<overclockColor>DB2B00</overclockColor>
 		<detailText>FFFFFF</detailText>
 		<dividerColor>FFFFFF</dividerColor>
+		<labelVisible>false</labelVisible>
+		<labelPath>./divider.png</labelPath>
+		<labelPos>0.808594 0.108333</labelPos>
 		<cardSize>0.192188 0.375</cardSize>
 		<makerText>6E6E6E</makerText>
 		<savePos>0 0</savePos>

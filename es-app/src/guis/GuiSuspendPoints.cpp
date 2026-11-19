@@ -615,6 +615,12 @@ void GuiSuspendPoints::update(int deltaTime)
 	const float shift = animated() ? std::min(1.0f, static_cast<float>(mSlideMs) / static_cast<float>(SlideMs)) : 1.0f;
 	mShiftProgress = mClosing ? 1.0f - shift : shift;
 	GuiComponent::setSuspendProgress(mShiftProgress);
+	const bool helpReady = !mClosing && (!animated() || mSlideMs >= SlideMs);
+	if(helpReady != mHelpShown)
+	{
+		mHelpShown = helpReady;
+		updateHelpPrompts();
+	}
 	if(animated())
 	{
 		const float progress = std::min(1.0f, static_cast<float>(mSlideMs) / static_cast<float>(duration));
@@ -876,6 +882,8 @@ HelpStyle GuiSuspendPoints::getHelpStyle()
 std::vector<HelpPrompt> GuiSuspendPoints::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts;
+	if(!mHelpShown)
+		return prompts;
 	if(mMoving)
 	{
 		prompts.push_back(HelpPrompt("left/right", "select"));

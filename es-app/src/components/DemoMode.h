@@ -14,9 +14,12 @@
 #include "components/ImageComponent.h"
 #include <array>
 #include <deque>
+#include <memory>
 #include <random>
 #include <string>
 #include <vector>
+
+class Sound;
 
 class DemoMode : public GuiComponent
 {
@@ -98,6 +101,10 @@ private:
 	};
 
 	bool locateBlocks(const std::string& folder);
+	bool locateSkit(const std::string& folder);
+	void startSkit();
+	void advanceSkit(int deltaTime);
+	void renderSkit(const Transform4x4f& parentTrans);
 	void startBlocks();
 	void stepBlocks();
 	void actMario();
@@ -114,9 +121,22 @@ private:
 
 	Runner mMario;
 	Runner mLuigi;
+	ImageComponent mSky;
+	ImageComponent mLogo;
 	bool mActive = false;
 	bool mBlocks = false;
 	bool mTag = false;
+	bool mSkit = false;
+	bool mSkitLoaded = false;
+	bool mNaturalEnd = false;
+	int mSkitMs = 0;
+	int mSampleIndex = -1;
+	float mSampleX = 0.0f;
+	float mSampleY = 0.0f;
+	double mSkyScroll = 0.0;
+	std::deque<ImageComponent> mSampleLarge;
+	std::deque<ImageComponent> mSampleRing;
+	std::shared_ptr<Sound> mSkitSound;
 	bool mLoaded = false;
 	Stage mStage = Stage::Idle;
 	int mStageMs = 0;

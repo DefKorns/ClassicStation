@@ -11,11 +11,13 @@
 #include "renderers/Renderer.h"
 #include "resources/ResourceManager.h"
 #include "Settings.h"
+#include "Sound.h"
 #include "ThemeData.h"
 #include "Window.h"
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <map>
 
 namespace
@@ -50,6 +52,30 @@ namespace
 	constexpr float SpriteSize = 64.0f;
 	constexpr unsigned int MarioColour = 0xAF4A46FF;
 	constexpr unsigned int LuigiColour = 0x527E20FF;
+	constexpr int SkitDelayMs = 500;
+	constexpr int SkitSampleMs = 1067;
+	constexpr int SkitFadeStartMs = 553;
+	constexpr int SkitSamples = 16;
+	constexpr int SkitRingMs = 19748;
+	constexpr int SkitEndMs = 32500;
+	constexpr double SkyHeight = 1068.0;
+	constexpr double SkyPixelsPerMs = 0.0375 * 1068.0 / 1000.0;
+	constexpr float LogoWidth = 480.0f;
+	constexpr float LogoHeight = 280.0f;
+	constexpr float SampleSize = 144.0f;
+	constexpr float RingSize = 96.0f;
+	constexpr float DesignWidth = 1280.0f;
+	constexpr int SkitCooldownMs = 60000;
+	const char* const SkitSoundPath = "/usr/share/ui/hvc/resources/sounds/hvc/skit_sound_v65_20171205.wav";
+
+	struct RingSpot
+	{
+		float x;
+		float y;
+	};
+
+	const RingSpot RingSpots[SkitSamples] = {{-71, 204}, {71, 204}, {213, 201}, {354, 180}, {446, 71}, {446, -71}, {354, -180}, {213, -201},
+		{71, -204}, {-71, -204}, {-213, -201}, {-354, -180}, {-446, -71}, {-446, 71}, {-354, 180}, {-213, 201}};
 
 	const std::vector<int> WalkTable = {1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2};
 	const std::vector<int> RunTable = {1, 1, 1, 2, 2, 2, 3, 3, 3, 2, 2, 2};
@@ -155,14 +181,17 @@ void DemoMode::Runner::draw(const Transform4x4f& parentTrans, float direction, f
 }
 
 DemoMode::DemoMode(Window* window)
-	: GuiComponent(window), mMario(window, "mario_run", MarioFrameMs, 0), mLuigi(window, "luigi_run", LuigiFrameMs, LuigiDelayMs), mRandom(std::random_device{}())
+	: GuiComponent(window), mMario(window, "mario_run", MarioFrameMs, 0), mLuigi(window, "luigi_run", LuigiFrameMs, LuigiDelayMs), mSky(window), mLogo(window), mRandom(std::random_device{}())
 {
 }
 
 DemoMode::~DemoMode()
 {
+	if(mSkitSound)
+		mSkitSound->stop();
 	setDemoProgress(0.0f);
 	setDemoHelpHidden(false);
+	ImageComponent::setBackdropVisible(1.0f);
 }
 
 void DemoMode::cancel()
@@ -197,6 +226,8 @@ void DemoMode::cancel()
 	else if(mStage == Stage::Rise || mStage == Stage::Run)
 	{
 		mStage = Stage::Sink;
+		if(mSkitSound)
+			mSkitSound->stop();
 		mStageMs = 0;
 		if((mShown & 0xFF) != 0)
 			startFade(mShown & 0xFFFFFF00);
@@ -215,6 +246,13 @@ float DemoMode::drop() const
 
 void DemoMode::runTicks(int deltaTime)
 {
+	if(mSkit)
+	{
+		if(mStage == Stage::Run)
+			advanceSkit(deltaTime);
+		return;
+	}
+
 	mAccumulator += deltaTime;
 	for(int tick = 0; mAccumulator >= TickMs && tick < MaxTicks; ++tick)
 	{
@@ -237,13 +275,18 @@ void DemoMode::advanceStage(int deltaTime)
 		setDemoHelpHidden(amount >= 0.5f);
 		if(done)
 		{
-			startBlocks();
+			if(mSkit)
+				startSkit();
+			else
+				startBlocks();
 			mStage = Stage::Rise;
 			mStageMs = 0;
 		}
 		break;
 	case Stage::Rise:
 		setDemoProgress(mTag ? 0.0f : 1.0f);
+		if(mSkit)
+			ImageComponent::setBackdropVisible(0.0f);
 		runTicks(deltaTime);
 		if(done)
 		{
@@ -266,13 +309,16 @@ void DemoMode::advanceStage(int deltaTime)
 		}
 		break;
 	case Stage::Show:
+		if(mSkit)
+			ImageComponent::setBackdropVisible(1.0f);
 		setDemoProgress(1.0f - eased(amount));
 		setDemoHelpHidden(1.0f - eased(amount) >= 0.5f);
 		if(done)
 		{
 			mStage = Stage::Idle;
 			mActive = false;
-			mCooldownMs = 0;
+			mCooldownMs = mNaturalEnd ? SkitCooldownMs : 0;
+			mNaturalEnd = false;
 			setDemoProgress(0.0f);
 			setDemoHelpHidden(false);
 		}
@@ -294,6 +340,131 @@ void DemoMode::startPass()
 int DemoMode::roll(int low, int high)
 {
 	return std::uniform_int_distribution<int>(low, high)(mRandom);
+}
+
+bool DemoMode::locateSkit(const std::string& folder)
+{
+	if(folder.empty())
+		return false;
+	if(mSkitLoaded)
+		return true;
+
+	const auto add = [&](ImageComponent& image, const std::string& name)
+	{
+		const std::string path = folder + name;
+		if(!ResourceManager::getInstance()->fileExists(path))
+			return false;
+		image.setImage(path);
+		return true;
+	};
+	const auto load = [&](std::deque<ImageComponent>& frames, const std::string& prefix)
+	{
+		for(int index = 1; index <= SkitSamples; ++index)
+		{
+			frames.emplace_back(mWindow);
+			frames.back().setOrigin(0.5f, 0.5f);
+			char name[32];
+			std::snprintf(name, sizeof name, "%s%02d.png", prefix.c_str(), index);
+			if(!add(frames.back(), name))
+				return false;
+		}
+		return true;
+	};
+
+	if(!add(mSky, "skit_sky.png") || !add(mLogo, "skit_logo.png"))
+		return false;
+	mSky.setOrigin(0.0f, 0.0f);
+	mLogo.setOrigin(0.5f, 0.5f);
+	if(load(mSampleLarge, "skit_a_") && load(mSampleRing, "skit_b_"))
+	{
+		mSkitLoaded = true;
+		return true;
+	}
+	mSampleLarge.clear();
+	mSampleRing.clear();
+	return false;
+}
+
+void DemoMode::startSkit()
+{
+	mSkitMs = 0;
+	mSampleIndex = -1;
+	mSkyScroll = 0.0;
+	mNaturalEnd = false;
+	mShown = 0;
+	mFading = false;
+	startFade(0x000000FF);
+	if(!mSkitSound && ResourceManager::getInstance()->fileExists(SkitSoundPath))
+		mSkitSound = Sound::get(SkitSoundPath);
+	if(mSkitSound)
+		mSkitSound->play();
+}
+
+void DemoMode::advanceSkit(int deltaTime)
+{
+	mSkitMs += deltaTime;
+	mSkyScroll = std::fmod(mSkyScroll + deltaTime * SkyPixelsPerMs, SkyHeight);
+
+	const int inSamples = mSkitMs - SkitDelayMs;
+	if(inSamples >= 0 && inSamples < SkitSamples * SkitSampleMs)
+	{
+		const int index = inSamples / SkitSampleMs;
+		if(index != mSampleIndex)
+		{
+			mSampleIndex = index;
+			mSampleX = index == 0 ? 0.0f : static_cast<float>(roll(-350, 350));
+			mSampleY = index == 0 ? 0.0f : static_cast<float>(roll(-160, 160));
+		}
+	}
+	else
+		mSampleIndex = -1;
+
+	if(mSkitMs >= SkitEndMs)
+	{
+		mNaturalEnd = true;
+		cancel();
+	}
+}
+
+void DemoMode::renderSkit(const Transform4x4f& parentTrans)
+{
+	if(mStage != Stage::Rise && mStage != Stage::Run && mStage != Stage::Sink)
+		return;
+
+	const float scale = screenScale();
+	const float opacity = static_cast<float>(mShown & 0xFF) / 255.0f;
+	const float centreX = static_cast<float>(Renderer::getScreenWidth()) / 2.0f;
+	const float centreY = static_cast<float>(Renderer::getScreenHeight()) / 2.0f;
+
+	const float skyTop = (-0.5f * (static_cast<float>(SkyHeight) - DesignHeight) + static_cast<float>(mSkyScroll)) * scale;
+	mSky.setResize(DesignWidth * scale, static_cast<float>(SkyHeight) * scale);
+	mSky.setOpacity(static_cast<unsigned char>(opacity * 255.0f));
+	mSky.setPosition(0.0f, skyTop);
+	mSky.render(parentTrans);
+	mSky.setPosition(0.0f, skyTop - static_cast<float>(SkyHeight) * scale);
+	mSky.render(parentTrans);
+
+	const auto drawCentred = [&](ImageComponent& image, float x, float up, float width, float height, float alpha)
+	{
+		image.setResize(width * scale, height * scale);
+		image.setOpacity(static_cast<unsigned char>(std::max(0.0f, std::min(1.0f, alpha * opacity)) * 255.0f));
+		image.setPosition(centreX + x * scale, centreY - up * scale);
+		image.render(parentTrans);
+	};
+
+	if(mSampleIndex >= 0)
+	{
+		const int inWindow = (mSkitMs - SkitDelayMs) % SkitSampleMs;
+		const float alpha = inWindow > SkitFadeStartMs ? 1.0f - static_cast<float>(inWindow) / static_cast<float>(SkitSampleMs) : 1.0f;
+		drawCentred(mSampleLarge[static_cast<std::size_t>(mSampleIndex)], mSampleX, mSampleY, SampleSize, SampleSize, alpha);
+	}
+
+	if(mSkitMs >= SkitRingMs)
+	{
+		drawCentred(mLogo, 0.0f, 0.0f, LogoWidth, LogoHeight, 1.0f);
+		for(int index = 0; index < SkitSamples; ++index)
+			drawCentred(mSampleRing[static_cast<std::size_t>(index)], RingSpots[index].x, RingSpots[index].y, RingSize, RingSize, 1.0f);
+	}
 }
 
 bool DemoMode::locateBlocks(const std::string& folder)
@@ -798,6 +969,17 @@ void DemoMode::update(int deltaTime, bool ready, float coverTop)
 		if(mCooldownMs > 0)
 			return;
 		const std::string folder = spriteFolder();
+		if(locateSkit(folder))
+		{
+			mSkit = true;
+			mBlocks = true;
+			mTag = false;
+			mActive = true;
+			mStage = Stage::Hide;
+			mStageMs = 0;
+			return;
+		}
+		mSkit = false;
 		if(locateBlocks(folder))
 		{
 			mBlocks = true;
@@ -851,16 +1033,18 @@ void DemoMode::update(int deltaTime, bool ready, float coverTop)
 
 void DemoMode::render(const Transform4x4f& parentTrans)
 {
-	if((mShown & 0xFF) == 0)
-		return;
-
-	Renderer::setMatrix(parentTrans);
-	Renderer::drawRect(0.0f, 0.0f, static_cast<float>(Renderer::getScreenWidth()), static_cast<float>(Renderer::getScreenHeight()), mShown, mShown);
+	if((mShown & 0xFF) != 0)
+	{
+		Renderer::setMatrix(parentTrans);
+		Renderer::drawRect(0.0f, 0.0f, static_cast<float>(Renderer::getScreenWidth()), static_cast<float>(Renderer::getScreenHeight()), mShown, mShown);
+	}
+	if(mSkit && mActive)
+		renderSkit(parentTrans);
 }
 
 void DemoMode::renderActors(const Transform4x4f& parentTrans)
 {
-	if(!mActive)
+	if(!mActive || mSkit)
 		return;
 
 	const float scale = screenScale();

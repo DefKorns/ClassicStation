@@ -21,6 +21,8 @@
 		<suspendDim>0.5</suspendDim>
 		<spaceText>4E5750</spaceText>
 		<barLogo>true</barLogo>
+		<nesBarPath>./../menubar_bottom.png</nesBarPath>
+		<nesBarLogo>true</nesBarLogo>
 		<tilePadding>0.013281 0.084722</tilePadding>
 		<thumbPos>0.5 0.765278</thumbPos>
 		<thumbSize>0.03125 0.041667</thumbSize>
@@ -55,6 +57,9 @@
 		<barLogoPath>./../assets/systems/logos/nes1.svg</barLogoPath>
 		<barLogoTint>FFFFFF</barLogoTint>
 		<dividerColor>FFFFFF</dividerColor>
+		<labelVisible>false</labelVisible>
+		<labelPath>./divider.png</labelPath>
+		<labelPos>0.808594 0.108333</labelPos>
 		<cardSize>0.196875 0.383333</cardSize>
 		<makerText>757575</makerText>
 		<makerPos>0.015625 0.315972</makerPos>

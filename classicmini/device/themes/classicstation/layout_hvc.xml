@@ -19,8 +19,10 @@
 		<suspendHelp>000000</suspendHelp>
 		<menuHelp>FFFFFF</menuHelp>
 		<suspendDim>0.5</suspendDim>
-		<spaceText>FFFFFF</spaceText>
+		<spaceText>F3BF3F</spaceText>
 		<barLogo>true</barLogo>
+		<nesBarPath>./../menubar_bottom.png</nesBarPath>
+		<nesBarLogo>true</nesBarLogo>
 		<barLogoPath>./../assets/systems/logos/famicom.svg</barLogoPath>
 		<barLogoTint>F3BF3F</barLogoTint>
 		<wallBack>EBE2D5</wallBack>
@@ -53,6 +55,9 @@
 		<overclockColor>DB2B00</overclockColor>
 		<detailText>1C1C1C</detailText>
 		<dividerColor>A90000</dividerColor>
+		<labelVisible>false</labelVisible>
+		<labelPath>./divider.png</labelPath>
+		<labelPos>0.808594 0.108333</labelPos>
 		<cardSize>0.192188 0.375</cardSize>
 		<makerText>6E6E6E</makerText>
 		<savePos>0 0</savePos>

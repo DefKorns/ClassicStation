@@ -5,8 +5,14 @@
 	<include>./../theme.xml</include>
 
 	<view name="basic, detailed, grid">
+		<image name="menubar_bottom" extra="true">
+			<path>${nesBarPath}</path>
+			<pos>0 0.875</pos>
+			<size>1 0.166667</size>
+			<zIndex>5</zIndex>
+		</image>
 		<image name="bar_logo" extra="true">
-			<visible>${barLogo}</visible>
+			<visible>${nesBarLogo}</visible>
 			<path>${barLogoPath}</path>
 			<color>${barLogoTint}</color>
 			<pos>${barLogoPos}</pos>
@@ -16,8 +22,14 @@
 	</view>
 
 	<view name="system">
+		<image name="menubar_bottom" extra="true">
+			<path>${nesBarPath}</path>
+			<pos>0 0.875</pos>
+			<size>1 0.166667</size>
+			<zIndex>5</zIndex>
+		</image>
 		<image name="bar_logo" extra="true">
-			<visible>${barLogo}</visible>
+			<visible>${nesBarLogo}</visible>
 			<path>${barLogoPath}</path>
 			<color>${barLogoTint}</color>
 			<pos>${barLogoPos}</pos>

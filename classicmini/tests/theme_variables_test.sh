@@ -26,8 +26,7 @@ for layout in "$theme"/layout*.xml; do
   defined=$( { grep -o '<[A-Za-z][A-Za-z0-9_]*>' "$theme/console.xml" | sed 's/[<>]//g'; grep -o '<[A-Za-z][A-Za-z0-9_]*>' "$layout" | sed 's/[<>]//g'; for name in $generated; do echo "$name"; done; } | sort -u)
   missing=$(printf '%s\n' "$used" | grep -v -x -F "$defined")
   if [ -n "$missing" ]; then
-    echo "$(basename "$layout"): undefined variables: $(echo "$missing" | tr '
-' ' ')"
+    echo "$(basename "$layout"): undefined variables: $(echo "$missing" | tr '\n' ' ')"
     failed=1
   fi
 done

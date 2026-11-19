@@ -28,10 +28,12 @@ case "$kind" in
   nes) atlas=nes; title=1004x53; sprites_dir=/usr/share/clover-ui/resources/sprites; [ -f "$sprites_dir/hvc.json" ] && atlas=hvc ;;
   snes) atlas=packed; title=1022x53; sprites_dir=; for dir in /usr/share/ui/snes-*/resources/sprites; do [ -d "$dir" ] && { sprites_dir=$dir; break; }; done ;;
 esac
+[ "$1" = hvcj ] && { sprites_dir=/usr/share/ui/hvc/resources/sprites; atlas=packed; }
 [ -x "$es_dir/theme_layers" ] && [ -f "$theme_dir/console.xml" ] || exit 0
 [ -f "$sprites_dir/$atlas.json" ] && [ -f "$sprites_dir/$atlas.png" ] || exit 0
 layout=$kind
 [ "$atlas" = hvc ] && layout=hvc
+[ "$1" = hvcj ] && layout=hvcj
 wall=
 if [ "$kind" = snes ]; then
   region=${sprites_dir#/usr/share/ui/snes-}
@@ -48,11 +50,41 @@ demo_sprites=${sprites_dir%/sprites}/layout/asset/sprite
 if [ "$kind" = snes ] && [ -d "$demo_sprites/mario" ] && [ ! -f "$theme_dir/demo/luigi_run01.png" ]; then
   mkdir -p "$theme_dir/demo" && cp "$demo_sprites"/mario/mario_run0[1-3].png "$demo_sprites"/luigi/luigi_run0[1-3].png "$theme_dir/demo/"
 fi
-[ "$kind" = snes ] && rm -f "$theme_dir"/demo/block_*.png "$theme_dir"/demo/mario_[0-4].png "$theme_dir"/demo/luigi_[0-4].png
-if [ "$kind" = nes ] && [ -f "$sprites_dir/characters_sbm.png" ]; then
-  [ -f "$theme_dir/demo/block_2.png" ] || "$es_dir/theme_layers" demo "$sprites_dir/characters_sbm.png" "$theme_dir/demo" >/dev/null 2>&1
+case "$1" in
+  hvcj)
+    rm -f "$theme_dir"/demo/block_*.png "$theme_dir"/demo/mario_*.png "$theme_dir"/demo/luigi_*.png
+    if [ ! -f "$theme_dir/demo/skit_b_16.png" ] && [ -f "$sprites_dir/starrysky_1280_534x2_indexcolor.png" ]; then
+      mkdir -p "$theme_dir/demo"
+      cp "$sprites_dir/starrysky_1280_534x2_indexcolor.png" "$theme_dir/demo/skit_sky.png"
+      cp "$sprites_dir/j50_colorlogo_480_280_171129.png" "$theme_dir/demo/skit_logo.png"
+      for sample in "$sprites_dir"/sampleasset/[0-9][0-9]_*.png; do
+        number=$(basename "$sample" | cut -c1-2)
+        "$es_dir/theme_layers" scale "$sample" "$theme_dir/demo/skit_a_$number.png" 3
+        "$es_dir/theme_layers" scale "$sample" "$theme_dir/demo/skit_b_$number.png" 2
+      done
+    fi
+    ;;
+  snes)
+    rm -f "$theme_dir"/demo/block_*.png "$theme_dir"/demo/mario_[0-4].png "$theme_dir"/demo/luigi_[0-4].png "$theme_dir"/demo/skit_*.png
+    ;;
+  *)
+    rm -f "$theme_dir"/demo/skit_*.png
+    if [ "$kind" = nes ] && [ -f "$sprites_dir/characters_sbm.png" ]; then
+      [ -f "$theme_dir/demo/block_2.png" ] || "$es_dir/theme_layers" demo "$sprites_dir/characters_sbm.png" "$theme_dir/demo" >/dev/null 2>&1
+    else
+      rm -rf "$theme_dir/demo"
+    fi
+    ;;
+esac
+if [ "$1" = hvcj ] && [ -f "$sprites_dir/bg_image_1280x534_v6.png" ]; then
+  cp "$sprites_dir/bg_image_1280x534_v6.png" "$theme_dir/wall_bg.png"
 else
-  [ "$kind" = snes ] || rm -rf "$theme_dir/demo"
+  rm -f "$theme_dir/wall_bg.png"
+fi
+if [ "$1" = hvcj ] && [ -f "$sprites_dir/new_clover_j_logo.png" ]; then
+  cp "$sprites_dir/new_clover_j_logo.png" "$theme_dir/top_label.png"
+else
+  rm -f "$theme_dir/top_label.png"
 fi
 [ "$(head -n 1 "$theme_stamp" 2>/dev/null)" = "$atlas $layout" ] && exit 0
 
@@ -62,6 +94,7 @@ wall_back=$(sed -n 's|.*<wallBack>\(.*\)</wallBack>.*|\1|p' "$theme_dir/layout.x
 rm -rf "$work"
 if "$es_dir/theme_layers" layers "$sprites_dir/$atlas.json" "$sprites_dir/$atlas.png" "$work" --wide-width 772 --title "$title" ${background:+--background "$background"} ${wall:+--wall "$wall"} >/dev/null 2>&1; then
   cp -a "$work/." "$theme_dir/"
+  [ "$1" = hvcj ] && [ -f "$sprites_dir/bottom_side_1280_120.png" ] && cp "$sprites_dir/bottom_side_1280_120.png" "$theme_dir/menubar_bottom_j.png"
   { echo "$atlas $layout"; (cd "$work" && find . -type f -exec md5sum {} +); } > "$theme_stamp"
   sed -i 's|<string name="ThemeSet" value="simple" />|<string name="ThemeSet" value="classicstation" />|' "$settings"
 fi

@@ -78,6 +78,15 @@
 			<visible>false</visible>
 		</text>
 
+		<image name="top_label" extra="true">
+			<path>${labelPath}</path>
+			<pos>${labelPos}</pos>
+			<size>0.241406 0.030556</size>
+			<origin>0.5 0.5</origin>
+			<visible>${labelVisible}</visible>
+			<zIndex>70</zIndex>
+		</image>
+
 		<image name="menu_strip" extra="true">
 			<path>./ui/menu_strip.png</path>
 			<pos>0.3125 -0.033333</pos>
