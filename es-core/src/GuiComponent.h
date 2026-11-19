@@ -138,6 +138,8 @@ public:
 	static void setSuspendProgress(float progress);
 	static void setDemoProgress(float progress);
 	static float demoProgress();
+	bool fadesWithInfo() const { return mFadeWithInfo; }
+	bool showsOnScroll() const { return mShowOnScroll; }
 	static void setDemoHelpHidden(bool hidden);
 	static bool demoHelpHidden();
 	static Transform4x4f demoLift(const Transform4x4f& trans);
@@ -159,6 +161,8 @@ protected:
 	Vector3f mPosition;
 	float mSuspendShift = 0.0f;
 	float mDemoShift = 0.0f;
+	bool mFadeWithInfo = false;
+	bool mShowOnScroll = false;
 	Vector2f mOrigin;
 	Vector2f mRotationOrigin;
 	Vector2f mSize;

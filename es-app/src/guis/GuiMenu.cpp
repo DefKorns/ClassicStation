@@ -901,6 +901,11 @@ void GuiMenu::openUISettings()
 				Scripting::fireEvent("theme-changed", theme_set->getSelected(), oldTheme);
 				CollectionSystemManager::get()->updateSystemsList();
 				ViewController::get()->reloadAll(true); // TODO - replace this with some sort of signal-based implementation
+				if(Settings::getInstance()->getString("GamelistViewStyle") == "grid" && !ViewController::themeHasGridView())
+				{
+					Settings::getInstance()->setString("GamelistViewStyle", "automatic");
+					ViewController::get()->reloadAll(true);
+				}
 			}
 		});
 	}

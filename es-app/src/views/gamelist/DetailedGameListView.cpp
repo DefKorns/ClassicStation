@@ -2,6 +2,7 @@
 
 #include "animations/LambdaAnimation.h"
 #include "views/ViewController.h"
+#include "Settings.h"
 #include <sstream>
 
 DetailedGameListView::DetailedGameListView(Window* window, FileData* root) :
@@ -120,6 +121,9 @@ DetailedGameListView::DetailedGameListView(Window* window, FileData* root) :
 void DetailedGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& theme)
 {
 	BasicGameListView::onThemeChanged(theme);
+	for(GuiComponent* extra : mThemeExtras)
+		if(extra->showsOnScroll())
+			extra->setOpacity(0);
 
 	using namespace ThemeFlags;
 	mThumbnail.applyTheme(theme, getName(), "md_thumbnail", POSITION | ThemeFlags::SIZE | Z_INDEX | ROTATION | VISIBLE);
@@ -268,8 +272,9 @@ void DetailedGameListView::updateInfoPanel()
 		mThumbnail.setImageAsync(file->getThumbnailPath());
 		mImage.setImageAsync(file->getImagePath());
 		const std::string marquee = file->getMarqueePath();
-		const bool hasLogo = marquee.find("-marquee.") != std::string::npos;
-		mMarquee.setImageAsync(hasLogo ? marquee : std::string());
+		const bool logoOnly = Settings::getInstance()->getString("ThemeSet") == "classicstation";
+		const bool hasLogo = logoOnly && marquee.find("-marquee.") != std::string::npos;
+		mMarquee.setImageAsync(logoOnly && !hasLogo ? std::string() : marquee);
 		mDescription.setText(file->metadata.get("desc"));
 
 		mRating.setValue(file->metadata.get("rating"));
@@ -303,6 +308,13 @@ void DetailedGameListView::updateInfoPanel()
 	comps.push_back(&mInfo);
 	comps.push_back(&mSlots);
 	comps.push_back(&mPlayersIcon);
+	for(GuiComponent* extra : mThemeExtras)
+		if(extra->fadesWithInfo())
+			comps.push_back(extra);
+	std::vector<GuiComponent*> scrollComps;
+	for(GuiComponent* extra : mThemeExtras)
+		if(extra->showsOnScroll())
+			scrollComps.push_back(extra);
 	std::vector<TextComponent*> labels = getMDLabels();
 	comps.insert(comps.cend(), labels.cbegin(), labels.cend());
 
@@ -321,6 +333,20 @@ void DetailedGameListView::updateInfoPanel()
 				comp->setOpacity((unsigned char)(Math::lerp(0.0f, 1.0f, t)*255));
 			};
 			comp->setAnimation(new LambdaAnimation(func, 150), 0, nullptr, fadingOut);
+		}
+	}
+
+	const bool hideScrollComps = !fadingOut;
+	for(GuiComponent* comp : scrollComps)
+	{
+		if((comp->isAnimationPlaying(0) && comp->isAnimationReversed(0) != hideScrollComps) ||
+			(!comp->isAnimationPlaying(0) && comp->getOpacity() != (hideScrollComps ? 0 : 255)))
+		{
+			auto func = [comp](float t)
+			{
+				comp->setOpacity((unsigned char)(Math::lerp(0.0f, 1.0f, t)*255));
+			};
+			comp->setAnimation(new LambdaAnimation(func, 150), 0, nullptr, hideScrollComps);
 		}
 	}
 }

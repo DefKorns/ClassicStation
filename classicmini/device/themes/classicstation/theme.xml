@@ -67,6 +67,7 @@
 		<image name="bar_logo" extra="true">
 			<visible>${barLogo}</visible>
 			<path>./assets/systems/logos/${system.theme}.svg</path>
+			<default>:/logos/${system.theme}.svg</default>
 			<color>${barLogoColor}</color>
 			<pos>${barLogoPos}</pos>
 			<maxSize>${barLogoMax}</maxSize>
@@ -361,6 +362,24 @@
 		</text>
 	</view>
 
+	<view name="basic, detailed">
+		<image name="menubar_top" extra="true">
+			<zIndex>21</zIndex>
+		</image>
+
+		<image name="menubar_bottom" extra="true">
+			<zIndex>21</zIndex>
+		</image>
+
+		<image name="menu_strip" extra="true">
+			<zIndex>22</zIndex>
+		</image>
+
+		<image name="bar_logo" extra="true">
+			<zIndex>23</zIndex>
+		</image>
+	</view>
+
 	<view name="detailed">
 		<image name="row_1" extra="true">
 			<path>./list_row.png</path>
@@ -427,6 +446,7 @@
 		</textlist>
 
 		<image name="cover_card" extra="true">
+			<fadeWithInfo>true</fadeWithInfo>
 			<path>./cover_card.png</path>
 			<pos>0.0344 0.157</pos>
 			<size>0.2039 0.5389</size>
@@ -434,8 +454,8 @@
 		</image>
 
 		<image name="md_image">
-			<pos>0.1363 0.3958</pos>
-			<maxSize>0.182 0.4389</maxSize>
+			<pos>0.1363 0.383</pos>
+			<maxSize>0.182 0.414</maxSize>
 			<origin>0.5 0.5</origin>
 			<zIndex>30</zIndex>
 		</image>
@@ -483,7 +503,18 @@
 			<zIndex>40</zIndex>
 		</image>
 
+		<image name="scroll_logo" extra="true">
+			<showOnScroll>true</showOnScroll>
+			<path>./scroll_logo.png</path>
+			<pos>0.25 0.496</pos>
+			<maxSize>0.386 0.457</maxSize>
+			<origin>0.5 0.5</origin>
+			<color>FFFFFF40</color>
+			<zIndex>26</zIndex>
+		</image>
+
 		<image name="divider_1" extra="true">
+			<fadeWithInfo>true</fadeWithInfo>
 			<path>./divider.png</path>
 			<pos>0.2641 0.2583</pos>
 			<size>0.2383 0.0028</size>
@@ -505,6 +536,7 @@
 		</text>
 
 		<image name="divider_2" extra="true">
+			<fadeWithInfo>true</fadeWithInfo>
 			<path>./divider.png</path>
 			<pos>0.2641 0.3639</pos>
 			<size>0.2383 0.0028</size>
@@ -650,6 +682,7 @@
 		<image name="bar_logo" extra="true">
 			<visible>${barLogo}</visible>
 			<path>./assets/systems/logos/${system.theme}.svg</path>
+			<default>:/logos/${system.theme}.svg</default>
 			<color>${barLogoColor}</color>
 			<pos>${barLogoPos}</pos>
 			<maxSize>${barLogoMax}</maxSize>

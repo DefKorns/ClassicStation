@@ -110,7 +110,7 @@ if "$es_dir/theme_layers" layers "$sprites_dir/$atlas.json" "$sprites_dir/$atlas
     snes_*) original_card=$layout ;;
     *) original_card= ;;
   esac
-  [ -f "$theme_dir/assets/systems/cards/originals_$original_card.png" ] && cp "$theme_dir/assets/systems/cards/originals_$original_card.png" "$theme_dir/assets/systems/cards/originals.png"
+  [ -f "$theme_dir/assets/systems/cards/originals_$original_card.png" ] && cp "$theme_dir/assets/systems/cards/originals_$original_card.png" "$theme_dir/assets/systems/cards/auto-originals.png"
   [ "$1" = hvcj ] && [ -f "$sprites_dir/bottom_side_1280_120.png" ] && cp "$sprites_dir/bottom_side_1280_120.png" "$theme_dir/menubar_bottom_j.png"
   if [ ! -f "$theme_dir/.es-themeset" ] && grep -q '<string name="ThemeSet" value="simple" />' "$settings" 2>/dev/null; then
     sed -i 's|<string name="ThemeSet" value="simple" />|<string name="ThemeSet" value="classicstation" />|' "$settings"
@@ -119,7 +119,7 @@ if "$es_dir/theme_layers" layers "$sprites_dir/$atlas.json" "$sprites_dir/$atlas
   {
     echo "$stamp"
     (cd "$work" && find . -type f -exec md5sum {} +)
-    (cd "$theme_dir" && find layout.xml wall_bg.png top_label.png menubar_bottom_j.png assets/systems/cards/originals.png demo -type f -exec md5sum {} + 2>/dev/null)
+    (cd "$theme_dir" && find layout.xml wall_bg.png top_label.png menubar_bottom_j.png assets/systems/cards/auto-originals.png demo -type f -exec md5sum {} + 2>/dev/null)
   } > "$theme_stamp"
 fi
 rm -rf "$work"

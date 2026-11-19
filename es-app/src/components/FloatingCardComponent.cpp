@@ -84,6 +84,12 @@ void FloatingCardComponent::renderHighlighted(const Transform4x4f& trans, bool w
 	draw(part(wingB ? HiWingLeftB : HiWingLeftA), 72.0f, 96.0f, -129.0f, -72.0f);
 	draw(part(wingB ? HiWingRightB : HiWingRightA), 72.0f, 96.0f, 129.0f, -72.0f);
 
+	const int phase = mElapsedMs % 1000;
+	ImageComponent& dpad = part(phase >= 17 && phase < 517 ? DownB : DownA);
+	dpad.setOrigin(0.5f, 0.5f);
+	dpad.setPosition(centre.x(), centre.y() + 90.0f);
+	dpad.render(trans);
+
 	mTime.setSize(90.0f, 30.0f);
 	mTime.setPosition(centre.x() - 6.0f, centre.y() + 52.0f);
 	mTime.render(trans);

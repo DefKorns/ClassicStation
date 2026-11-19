@@ -12,6 +12,7 @@
 #include "SuspendSlotState.h"
 #include <stack>
 #include <string>
+#include <unordered_map>
 
 class ISimpleGameListView : public IGameListView
 {
@@ -73,6 +74,15 @@ protected:
 	void applyPendingResume();
 
 	SuspendPoints mSuspendPoints;
+
+	struct TileState
+	{
+		SlotStates states;
+		bool saveData = false;
+	};
+	const TileState& tileState(const FileData* game) const;
+	mutable std::unordered_map<std::string, TileState> mTileStates;
+	mutable int mTileGeneration = 0;
 	SuspendPoint mFloating;
 	int mPendingResume = 0;
 };

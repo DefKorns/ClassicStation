@@ -623,7 +623,10 @@ void ImageComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const s
 	if(properties & PATH && elem->has("path"))
 	{
 		bool tile = (elem->has("tile") && elem->get<bool>("tile"));
-		setImage(elem->get<std::string>("path"), tile);
+		std::string imagePath = elem->get<std::string>("path");
+		if(!mDefaultPath.empty() && !ResourceManager::getInstance()->fileExists(imagePath))
+			imagePath = mDefaultPath;
+		setImage(imagePath, tile);
 	}
 
 	if(elem->has("scrollSpeed"))

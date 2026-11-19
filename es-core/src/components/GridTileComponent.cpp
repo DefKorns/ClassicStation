@@ -1,5 +1,7 @@
 #include "GridTileComponent.h"
 
+#include <algorithm>
+
 #include "animations/LambdaAnimation.h"
 #include "resources/TextureResource.h"
 #include "ThemeData.h"
@@ -7,14 +9,22 @@
 namespace
 {
 	float sUnselectedBrightness = 1.0f;
+	bool sSmoothLoading = false;
 
 	unsigned int scaled(unsigned int color, float factor)
 	{
+		factor = std::max(0.0f, factor);
 		const auto channel = [&](int shift) {
-			return static_cast<unsigned int>(static_cast<float>((color >> shift) & 0xFF) * factor + 0.5f) << shift;
+			const float value = static_cast<float>((color >> shift) & 0xFF) * factor + 0.5f;
+			return static_cast<unsigned int>(std::min(255.0f, value)) << shift;
 		};
 		return channel(24) | channel(16) | channel(8) | (color & 0xFF);
 	}
+}
+
+void GridTileComponent::setSmoothLoading(bool smooth)
+{
+	sSmoothLoading = smooth;
 }
 
 void GridTileComponent::setUnselectedBrightness(float brightness)
@@ -43,7 +53,6 @@ GridTileComponent::GridTileComponent(Window* window) : GuiComponent(window), mBa
 	mSelectedProperties.mBackgroundBleed = Vector2f::Zero();
 
 	mImage = std::make_shared<ImageComponent>(mWindow);
-	mImage->setFadeEnabled(false);
 	mImage->setOrigin(0.5f, 0.5f);
 
 	mBackground.setOrigin(0.5f, 0.5f);
@@ -69,7 +78,8 @@ void GridTileComponent::render(const Transform4x4f& parentTrans)
 		const Vector2f size = mCurrentProperties.mSize - mCurrentProperties.mPadding * 2;
 
 		Renderer::setMatrix(trans);
-		if(!mImage->isAsyncPending() && (backing & 0xFF) != 0)
+		mImage->setFadeEnabled(!sSmoothLoading);
+		if((!sSmoothLoading || !mImage->isAsyncPending()) && (backing & 0xFF) != 0)
 			Renderer::drawRect(-size.x() / 2.0f, -size.y() / 2.0f, size.x(), size.y(), backing, backing);
 		const float brightness = mSelected ? 1.0f : sUnselectedBrightness;
 		const unsigned int imageColor = scaled(mCurrentProperties.mImageColor, brightness);

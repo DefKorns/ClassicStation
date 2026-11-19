@@ -458,6 +458,12 @@ void GuiComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const std
 	if(properties & POSITION && elem->has("demoShift"))
 		mDemoShift = elem->get<float>("demoShift");
 
+	if(elem->has("fadeWithInfo"))
+		mFadeWithInfo = elem->get<bool>("fadeWithInfo");
+
+	if(elem->has("showOnScroll"))
+		mShowOnScroll = elem->get<bool>("showOnScroll");
+
 	if(properties & POSITION && elem->has("pos"))
 	{
 		Vector2f denormalized = elem->get<Vector2f>("pos") * scale;

@@ -225,6 +225,11 @@ SHIM
   chmod +x "$shim/canoe-shvc"
 }
 
+isRetroarchState() {
+  [ -f "$1" ] && [ "$(head -c 2 "$1" | od -An -tx1 | tr -d '
+')" = 1f8b ]
+}
+
 desktop=$1
 cmd=$(tr -d '\r' < "$desktop" | sed -n 's/^Exec=//p' | head -n 1)
 path=$(tr -d '\r' < "$desktop" | sed -n 's/^Path=//p' | head -n 1)
@@ -281,6 +286,9 @@ if [ -n "$code" ]; then
       else
         cmd="$cmd --load-state-file $suspend_dir/state"
       fi
+    fi
+    if { [ -n "$resumed" ] && isRetroarchState "$resumed"; } || { [ -n "$resume" ] && isRetroarchState "$saved.state"; }; then
+      cmd="$cmd --retroarch"
     fi
   else
     mkdir -p "$out/rollback"

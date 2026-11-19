@@ -16,7 +16,12 @@
 #
 es_dir=/var/lib/hakchi/emulationstation
 
-if [ -f "$es_dir/es-run.sh" ] && [ ! -f /run/es-stock ] && [ ! -f "$es_dir/no_boot" ] && [ "$(cat "$es_dir/boot_default" 2>/dev/null)" != stock ]; then
+if [ "$(cat "$es_dir/boot_default" 2>/dev/null)" = stock ]; then
+  touch /run/es-stock
+  rm -f "$es_dir/boot_default" "$es_dir/boot_failures"
+fi
+
+if [ -f "$es_dir/es-run.sh" ] && [ ! -f /run/es-stock ] && [ ! -f "$es_dir/no_boot" ]; then
   stockUistart() {
     touch /run/es-stock
     rm -f /var/lib/clover/autotest

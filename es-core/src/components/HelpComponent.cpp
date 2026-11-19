@@ -119,6 +119,11 @@ void HelpComponent::updateGrid()
 
 std::shared_ptr<TextureResource> HelpComponent::getIconTexture(const char* name)
 {
+	if(mIconThemeDir != ResourceManager::getInstance()->getThemeDirectory())
+	{
+		mIconCache.clear();
+		mIconThemeDir = ResourceManager::getInstance()->getThemeDirectory();
+	}
 	auto it = mIconCache.find(name);
 	if(it != mIconCache.cend())
 		return it->second;

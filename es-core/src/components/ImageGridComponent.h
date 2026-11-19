@@ -106,6 +106,8 @@ public:
 	inline void setCursorChangedCallback(const std::function<void(CursorState state)>& func) { mCursorChangedCallback = func; }
 
 	ImageSource	getImageSource() { return mImageSource; };
+	void setSmoothScroll(bool on) { this->setTierList(on ? GRID_SCROLL_STYLE : LIST_SCROLL_STYLE_QUICK); }
+	void setTitleOverlayHidden(bool hidden) { mTitleOverlayHidden = hidden; }
 
 protected:
 	virtual void onScroll(int /*amt*/) override { if(!mScrollSound.empty()) Sound::get(mScrollSound)->play(); }
@@ -128,6 +130,7 @@ private:
 	bool mEntriesDirty;
 	int mLastCursor;
 	std::string mDefaultGameTexture;
+	bool mTitleOverlayHidden = false;
 	std::string mDefaultFolderTexture;
 	std::shared_ptr<TextureResource> mKeepGameTexture;
 	std::shared_ptr<TextureResource> mKeepFolderTexture;
@@ -166,7 +169,7 @@ private:
 };
 
 template<typename T>
-ImageGridComponent<T>::ImageGridComponent(Window* window) : IList<ImageGridData, T>(window, GRID_SCROLL_STYLE, LIST_PAUSE_AT_END)
+ImageGridComponent<T>::ImageGridComponent(Window* window) : IList<ImageGridData, T>(window, LIST_SCROLL_STYLE_QUICK, LIST_PAUSE_AT_END)
 {
 	Vector2f screen = Vector2f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 
@@ -316,7 +319,8 @@ void ImageGridComponent<T>::render(const Transform4x4f& parentTrans)
 	if (selectedTile != NULL)
 		selectedTile->render(tileTrans);
 
-
+	if (!mTitleOverlayHidden)
+		listRenderTitleOverlay(trans);
 	GuiComponent::renderChildren(trans);
 }
 

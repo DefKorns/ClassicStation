@@ -17,6 +17,11 @@
 
 namespace
 {
+	int sTileGeneration = 0;
+}
+
+namespace
+{
 	std::string gameCode(const FileData* game)
 	{
 		return Utils::FileSystem::getStem(game->getPath());
@@ -222,6 +227,7 @@ bool ISimpleGameListView::isFloating(const FileData* file) const
 
 void ISimpleGameListView::refreshFloating()
 {
+	++sTileGeneration;
 	mFloating = mSuspendPoints.floating();
 	onFloatingChanged();
 	updateHelpPrompts();
@@ -266,16 +272,35 @@ bool ISimpleGameListView::jumpToFloating()
 	return true;
 }
 
+const ISimpleGameListView::TileState& ISimpleGameListView::tileState(const FileData* game) const
+{
+	if(mTileGeneration != sTileGeneration)
+	{
+		mTileStates.clear();
+		mTileGeneration = sTileGeneration;
+	}
+	const std::string code = gameCode(game);
+	auto found = mTileStates.find(code);
+	if(found == mTileStates.end())
+	{
+		TileState state;
+		state.states = slotStates(mSuspendPoints.slots(code));
+		state.saveData = mSuspendPoints.hasSaveData(code);
+		found = mTileStates.emplace(code, std::move(state)).first;
+	}
+	return found->second;
+}
+
 SlotStates ISimpleGameListView::suspendStates(const FileData* game) const
 {
 	if(game == nullptr || game->getType() != GAME)
 		return SlotStates{};
-	return slotStates(mSuspendPoints.slots(gameCode(game)));
+	return tileState(game).states;
 }
 
 bool ISimpleGameListView::hasSaveData(const FileData* game) const
 {
-	return game != nullptr && game->getType() == GAME && mSuspendPoints.hasSaveData(gameCode(game));
+	return game != nullptr && game->getType() == GAME && tileState(game).saveData;
 }
 
 bool ISimpleGameListView::openSuspendPoints()
@@ -297,6 +322,7 @@ bool ISimpleGameListView::openSuspendPoints()
 
 void ISimpleGameListView::eraseFloating()
 {
+	++sTileGeneration;
 	if(!mFloating.valid)
 		return;
 	UiSound::play("se_sys_delete.wav");

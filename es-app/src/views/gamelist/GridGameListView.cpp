@@ -284,6 +284,11 @@ void GridGameListView::populateList(const std::vector<FileData*>& files)
 			if(image.empty() && mPerGameBlanks && mRoot->getSystem()->isCollection())
 				image = blankImageFor((*it)->getSourceFileData()->getSystem()->getThemeFolder());
 			mGrid.add((*it)->getName(), image, *it);
+			if(!mThumbnails.enabled())
+			{
+				mThumbsSkipped = true;
+				continue;
+			}
 
 			std::string thumbnail = (*it)->metadata.get("thumbnail");
 			bool verified = false;
@@ -317,7 +322,8 @@ void GridGameListView::populateList(const std::vector<FileData*>& files)
 				thumbnail = ":/cartridge.svg";
 			thumbnails.push_back(thumbnail);
 		}
-		mThumbnails.setEntries(std::move(thumbnails));
+		if(mThumbnails.enabled())
+			mThumbnails.setEntries(std::move(thumbnails));
 	}
 	else
 	{
@@ -340,8 +346,18 @@ void GridGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& theme)
 	mIconBar.applyTheme(theme, getName());
 	mFloatingCard.applyTheme(theme, getName());
 	mThumbnails.applyTheme(theme, getName());
+	if(mThumbnails.enabled() && mThumbsSkipped)
+	{
+		mThumbsSkipped = false;
+		onFileChanged(mRoot, FILE_METADATA_CHANGED);
+	}
 	mLetters.applyTheme(theme, getName(), "md_letters", ThemeFlags::ALL ^ ThemeFlags::TEXT);
 	mLetters.setZIndex(45);
+	const bool smooth = Settings::getInstance()->getString("ThemeSet") == "classicstation";
+	mGrid.setSmoothScroll(smooth);
+	GridTileComponent::setSmoothLoading(smooth);
+	mHasLetters = theme->getElement(getName(), "md_letters", "text") != nullptr;
+	mGrid.setTitleOverlayHidden(mHasLetters);
 
 	using namespace ThemeFlags;
 
@@ -752,12 +768,17 @@ void GridGameListView::update(int deltaTime)
 	ImageComponent::kickScrolling(mScrollCursor, mGrid.getCursorIndex(), static_cast<int>(mGrid.size()));
 	mScrollCursor = mGrid.getCursorIndex();
 	mThumbnails.setPosition(mGrid.getVisualCursor());
-	const bool fast = mGrid.size() > 0 && mGrid.isFastScrolling();
+	const bool fast = mHasLetters && mGrid.size() > 0 && mGrid.isFastScrolling();
 	mLetters.setVisible(fast);
 	if(fast)
 	{
 		const std::string selectedName = mGrid.getSelectedName();
-		mLetters.setText(Utils::String::toUpper(selectedName.substr(0, Utils::String::moveCursor(selectedName, 0, 2))));
+		const std::string letters = Utils::String::toUpper(selectedName.substr(0, Utils::String::moveCursor(selectedName, 0, 2)));
+		if(letters != mLettersText)
+		{
+			mLettersText = letters;
+			mLetters.setText(letters);
+		}
 		mName.setVisible(false);
 		mCode.setVisible(false);
 		mFavorite.setVisible(false);

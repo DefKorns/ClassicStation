@@ -28,6 +28,8 @@ public:
 	void setEntries(std::vector<std::string> paths);
 	void setPosition(float index);
 
+	bool enabled() const { return mEnabled; }
+
 	void update(int deltaTime) override;
 	void render(const Transform4x4f& parentTrans) override;
 
@@ -43,6 +45,9 @@ private:
 	std::vector<float> mWidths;
 	std::vector<std::unique_ptr<ImageComponent>> mArrow;
 
+	std::vector<float> mCentres;
+	float mTotalWidth = 0.0f;
+	bool mTotalDirty = true;
 	bool mEnabled = false;
 	float mPosition = 0.0f;
 	Vector2f mCentre;

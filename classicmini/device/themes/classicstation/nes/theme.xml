@@ -21,6 +21,12 @@
 		</image>
 	</view>
 
+	<view name="basic, detailed">
+		<image name="menubar_bottom" extra="true">
+			<zIndex>21</zIndex>
+		</image>
+	</view>
+
 	<view name="grid">
 		<imagegrid name="gamegrid">
 			<gameImage>${blankNes}</gameImage>

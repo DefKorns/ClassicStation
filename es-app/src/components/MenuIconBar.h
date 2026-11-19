@@ -61,6 +61,8 @@ private:
 	float mCenterY = 0.0f;
 	float mSize = 0.0f;
 	int mSelected = 0;
+	int mCaptionIndex = -1;
+	int mCaptionPx = 0;
 	bool mFrameVisible = false;
 	bool mThemed = false;
 	Vector2f mBoxPos;

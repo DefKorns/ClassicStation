@@ -25,6 +25,7 @@ public:
 private:
 	std::shared_ptr<TextureResource> getIconTexture(const char* name);
 	std::map< std::string, std::shared_ptr<TextureResource> > mIconCache;
+	std::string mIconThemeDir;
 
 	std::shared_ptr<ComponentGrid> mGrid;
 	void updateGrid();

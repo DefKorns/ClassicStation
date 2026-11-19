@@ -204,7 +204,7 @@ void MenuIconBar::update(int deltaTime)
 	if(!mThemed)
 		return;
 
-	bool busy = mFrameVisible;
+	bool busy = false;
 	for(int index = 0; index < Count; ++index)
 	{
 		if(mScaleMs[index] < ScaleMs)
@@ -214,7 +214,10 @@ void MenuIconBar::update(int deltaTime)
 		}
 	}
 	if(mFrameMs < SlideMs)
+	{
 		mFrameMs += deltaTime;
+		busy = true;
+	}
 	if(mFrameVisible)
 	{
 		mCaptionMs += deltaTime;
@@ -243,8 +246,14 @@ void MenuIconBar::render(const Transform4x4f& parentTrans)
 
 	const float height = static_cast<float>(Renderer::getScreenHeight());
 	const std::string name = Names[mSelected];
-	mCaptionLabel.setFont(Font::get(static_cast<int>(0.03f * height)));
-	mCaptionLabel.setText(name);
+	const int captionPx = static_cast<int>(0.03f * height);
+	if(mCaptionIndex != mSelected || mCaptionPx != captionPx)
+	{
+		mCaptionIndex = mSelected;
+		mCaptionPx = captionPx;
+		mCaptionLabel.setFont(Font::get(captionPx));
+		mCaptionLabel.setText(name);
+	}
 	const float labelWidth = mCaptionLabel.getFont()->sizeText(name).x();
 	const float total = std::max(CaptionMinWidth, labelWidth) + CaptionEdges;
 	const float centreX = frameCentre();

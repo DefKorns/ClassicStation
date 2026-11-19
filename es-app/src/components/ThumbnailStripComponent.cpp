@@ -45,6 +45,7 @@ void ThumbnailStripComponent::applyTheme(const std::shared_ptr<ThemeData>& theme
 	const Vector2f screen(static_cast<float>(Renderer::getScreenWidth()), static_cast<float>(Renderer::getScreenHeight()));
 	mCentre = strip->get<Vector2f>("pos") * screen;
 	mThumbSize = strip->get<Vector2f>("size") * screen;
+	mTotalDirty = true;
 	if(strip->has("visibleCount"))
 		mFullCount = std::max(1, static_cast<int>(strip->get<float>("visibleCount")));
 
@@ -60,6 +61,7 @@ void ThumbnailStripComponent::setEntries(std::vector<std::string> paths)
 	for(auto& assigned : mAssigned)
 		assigned = -1;
 	mWidths.assign(mPaths.size(), 0.0f);
+	mTotalDirty = true;
 	mPosition = 0.0f;
 }
 
@@ -102,7 +104,8 @@ void ThumbnailStripComponent::render(const Transform4x4f& parentTrans)
 		return width > 0.0f ? width : mThumbSize.x();
 	};
 
-	std::vector<float> centre(static_cast<std::size_t>(2 * reach + 1), 0.0f);
+	std::vector<float>& centre = mCentres;
+	centre.assign(static_cast<std::size_t>(2 * reach + 1), 0.0f);
 	for(int offset = 1; offset <= reach; ++offset)
 	{
 		centre[static_cast<std::size_t>(reach + offset)] = centre[static_cast<std::size_t>(reach + offset - 1)] + (widthOf(offset - 1) + widthOf(offset)) / 2.0f;
@@ -113,9 +116,14 @@ void ThumbnailStripComponent::render(const Transform4x4f& parentTrans)
 	if(reach >= 1)
 		origin = shift >= 0.0f ? shift * centre[static_cast<std::size_t>(reach + 1)] : -shift * centre[static_cast<std::size_t>(reach - 1)];
 
-	float total = 0.0f;
-	for(int index = 0; index < count; ++index)
-		total += mWidths[static_cast<std::size_t>(index)] > 0.0f ? mWidths[static_cast<std::size_t>(index)] : mThumbSize.x();
+	if(mTotalDirty)
+	{
+		mTotalWidth = 0.0f;
+		for(int index = 0; index < count; ++index)
+			mTotalWidth += mWidths[static_cast<std::size_t>(index)] > 0.0f ? mWidths[static_cast<std::size_t>(index)] : mThumbSize.x();
+		mTotalDirty = false;
+	}
+	const float total = mTotalWidth;
 	const bool fits = reach >= half && total <= 2.0f * limit;
 
 	for(int offset = -reach; offset <= reach; ++offset)
@@ -136,8 +144,11 @@ void ThumbnailStripComponent::render(const Transform4x4f& parentTrans)
 			image.setImageAsync(mPaths[wrapped], false, true);
 			mAssigned[slot] = wrapped;
 		}
-		if(image.getSize().x() > 0.0f)
+		if(image.getSize().x() > 0.0f && mWidths[static_cast<std::size_t>(wrapped)] != image.getSize().x())
+		{
 			mWidths[static_cast<std::size_t>(wrapped)] = image.getSize().x();
+			mTotalDirty = true;
+		}
 
 		const float fade = fits ? 1.0f : std::max(0.0f, std::min(1.0f, (limit - inner) / fadeSpan));
 		image.setOpacity(static_cast<unsigned char>(255.0f * fade));

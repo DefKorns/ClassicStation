@@ -335,6 +335,7 @@ void GuiSuspendPoints::refresh()
 	{
 		mFloat[FloatFrame]->setColorShift(0xFFFFFF20);
 		mFloatTime.setText(clock(mFloating.playtime));
+		mFloatThumbnail.setImage(std::string());
 		mFloatThumbnail.setImage(mFloating.thumbnail);
 	}
 
@@ -342,7 +343,10 @@ void GuiSuspendPoints::refresh()
 	{
 		const SuspendPoint& point = mSlots[index];
 		if(point.valid)
+		{
+			mShots[index]->setImage(std::string());
 			mShots[index]->setImage(point.thumbnail);
+		}
 		mLabels[index]->setText(point.valid ? clock(point.playtime) : std::string());
 	}
 	if(!mFloating.valid)
@@ -431,6 +435,8 @@ void GuiSuspendPoints::confirmDelete(int slot)
 		mSelected = slot;
 		leaveMove();
 		refresh();
+		if(mOnChanged)
+			mOnChanged();
 	}, "NO", nullptr));
 }
 
@@ -487,6 +493,8 @@ bool GuiSuspendPoints::moveInput(InputConfig* config, const Input& input)
 			mSelected = mTarget;
 			leaveMove();
 			refresh();
+			if(mOnChanged)
+				mOnChanged();
 		}
 	}
 	else if(config->isMappedTo("select", input) || config->isMappedTo("b", input) || config->isMappedLike("up", input))
@@ -581,6 +589,8 @@ bool GuiSuspendPoints::input(InputConfig* config, Input input)
 			UiSound::play(point.locked ? "se_sys_unlock.wav" : "se_sys_lock.wav");
 			static_cast<void>(point.locked ? mPoints.unlock(mCode, mSelected) : mPoints.lock(mCode, mSelected));
 			refresh();
+			if(mOnChanged)
+				mOnChanged();
 		}
 	}
 	else if(config->isMappedTo("select", input))

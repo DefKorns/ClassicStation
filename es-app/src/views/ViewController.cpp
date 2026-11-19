@@ -356,7 +356,7 @@ ViewController::GameListViewType ViewController::getGameListViewType()
 		selectedViewType = GRID;
 
 	if (selectedViewType == GRID && !themeHasGridView())
-		selectedViewType = DETAILED;
+		selectedViewType = AUTOMATIC;
 
 	return selectedViewType;
 }

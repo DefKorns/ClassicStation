@@ -25,6 +25,19 @@
  * a CollectionSystemManager Instance */
 namespace
 {
+	std::set<std::string> loadOriginalCodes()
+	{
+		std::set<std::string> codes;
+		const char* path = std::getenv("ES_ORIGINALS_FILE");
+		if(path == nullptr)
+			return codes;
+		std::ifstream in(path);
+		for(std::string code; std::getline(in, code);)
+			if(!code.empty())
+				codes.insert(code);
+		return codes;
+	}
+
 	void saveFavoritesFile()
 	{
 		const char* path = std::getenv("ES_FAVORITES_FILE");
@@ -71,6 +84,7 @@ CollectionSystemManager::CollectionSystemManager(Window* window) : mWindow(windo
 		{ AUTO_ALL_GAMES,       "all",           "all games",         "name, ascending",          "auto-allgames",        false },
 		{ AUTO_LAST_PLAYED,     "recent",        "last played",       "last played, descending",  "auto-lastplayed",      false },
 		{ AUTO_FAVORITES,       "favorites",     "favorites",         "name, ascending",          "auto-favorites",       false },
+		{ AUTO_ORIGINALS,       "originals",     "original games",    "name, ascending",          "auto-originals",       false },
 		{ AUTO_RANDOM,          RANDOM_COLL_ID,  "random",            "name, ascending",          "auto-random",          false },
 		{ CUSTOM_COLLECTION,    CUSTOM_COLL_ID,  "collections",       "name, ascending",          "custom-collections",   true  }
 	};
@@ -984,7 +998,7 @@ void CollectionSystemManager::populateAutoCollection(CollectionSystemData* sysDa
 		std::map<std::string, int> randomCustColl = Settings::getInstance()->getMap("RandomCollectionSystemsCustom");
 		mapsForRandomColl["RandomCollectionSystemsCustom"] = randomCustColl;
 	}
-	std::set<std::string> favoriteCodes;
+	const std::set<std::string> originalCodes = sysDecl.type == AUTO_ORIGINALS ? loadOriginalCodes() : std::set<std::string>();
 	// Only iterate through game systems, not collections yet
 	for(auto sysIt = SystemData::sSystemVector.cbegin(); sysIt != SystemData::sSystemVector.cend(); sysIt++)
 	{
@@ -1008,8 +1022,10 @@ void CollectionSystemManager::populateAutoCollection(CollectionSystemData* sysDa
 							break;
 						case AUTO_FAVORITES:
 							// we may still want to add files we don't want in auto collections in "favorites"
-							include = (*gameIt)->metadata.get("favorite") == "true"
-								&& favoriteCodes.insert(Utils::FileSystem::getStem((*gameIt)->getPath())).second;
+							include = (*gameIt)->metadata.get("favorite") == "true";
+							break;
+						case AUTO_ORIGINALS:
+							include = originalCodes.count(Utils::FileSystem::getStem((*gameIt)->getPath())) != 0;
 							break;
 						case AUTO_ALL_GAMES:
 							break;

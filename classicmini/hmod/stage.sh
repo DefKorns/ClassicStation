@@ -60,6 +60,7 @@ brandCollection() {
 }
 brandCollection auto-favorites favorites Favorites
 brandCollection other other Other
+brandCollection auto-originals originals "Original games"
 awk '/<fullname>/ { gsub(/.*<fullname>|<\/fullname>.*/, ""); name = $0 } /<theme>/ { gsub(/.*<theme>|<\/theme>.*/, ""); print $0 "|" name }' "$classicmini_dir/device/es_systems.cfg" | sort -u | while IFS='|' read -r folder title; do
   [ -d "$es_payload/defaults/themes/simple/$folder" ] && continue
   mkdir -p "$es_payload/defaults/themes/simple/$folder"
