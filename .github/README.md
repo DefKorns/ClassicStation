@@ -22,10 +22,11 @@ This is an alpha and it is not affiliated with Nintendo. Download the latest bui
 
 - A systems carousel, and for each system a grid of covers with the title, game code, genre and description.
 - Favorites, last played and all games collections, sorting, and a kid mode that only shows the games you pick.
+- An Original games list, made automatically, with the games the console shipped with.
 - Suspend points with a screenshot and play time: four slots per game that you can save, resume, lock or delete. They
   are shared with Clover-UI, and so are the save files.
 - Two themes: `simple`, and `classicstation`, which looks like the console's own menu.
-- Video options for the picture: 4:3, pixel perfect or CRT filter, filters, scanlines and bezels.
+- Video options for the picture: 4:3, pixel perfect or CRT filter, filters (including composite and phosphor looks), scanlines and bezels.
 - A scraper for covers and descriptions. It keeps what it finds on the SD card and never touches hakchi's game list.
 - The Clovercon pads and USB pads work in the menus.
 
@@ -86,7 +87,20 @@ generated on the console from the artwork of the firmware that is installed, and
 The first time it exists, ES switches to it; you can go back to `simple` in Appearance. The Cross Stitch theme is a
 separate repository, `es-theme-cross-stitch`. To write your own, see [THEMES.md](../THEMES.md).
 
+## Still to do
+
+- Put the mod in my hakchi mod repository, so it can be installed from hakchi without downloading it.
+- Test it on the other regions and on the Famicom and Super Famicom firmware.
+- Translations, so the menus can change language.
+- Choose the emulator for each system from the menu.
+- Make the DualShock 4 work inside games, not only in the menus.
+
 ## If something goes wrong
+
+If you end up in the stock menu (after a crash, or after booting with Select), the **Return to ClassicStation** tile
+starts ClassicStation again without a reboot. It is a hakchi game package: add `CLV-Z-ESRET.clvg` from the
+[`classicmini/hakchi-app`](../classicmini/hakchi-app) folder with "Add more games" in hakchi and sync. ClassicStation
+does not list it as a game.
 
 Open an issue on [GitHub](https://github.com/DefKorns/ClassicStation/issues) and attach
 `/var/lib/hakchi/emulationstation/home/.emulationstation/es_log.txt`. After a crash, attach
