@@ -14,8 +14,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-source /etc/preinit
-script_init
+case "$1" in
+  overclock | swap | temperature | developer) ;;
+  *)
+    source /etc/preinit
+    script_init
+    ;;
+esac
 
 es_dir=/var/lib/hakchi/emulationstation
 usb_resources=/media/data/emulationstation/resources
@@ -331,6 +336,26 @@ case "$1" in
         free -m | awk '/buffers\/cache/ { free = $4 } /^Swap/ { used = $3; total = $2 } END { printf "%s MB free, swap %s / %s MB\n", free, used, total }'
         ;;
     esac
+    ;;
+  developer)
+    printf 'overclock_available=%s
+' "$(printState overclockAvailable)"
+    printf 'overclock_state=%s
+' "$(printState overclockActive)"
+    printf 'overclock_auto=%s
+' "$(printState test -f "$es_dir/overclock_auto")"
+    printf 'swap_available=%s
+' "$(printState swapAvailable)"
+    printf 'swap_state=%s
+' "$(printState swapActive)"
+    printf 'swap_size=%s
+' "$(swapSize)"
+    printf 'swap_info=%s
+' "$(sh "$0" swap info)"
+    printf 'temperature=%s
+' "$(sh "$0" temperature)"
+    printf 'cutoff=%s
+' "$(sh "$0" overclock cutoff)"
     ;;
   temperature)
     degrees=$(cat /sys/class/thermal/thermal_zone0/temp)

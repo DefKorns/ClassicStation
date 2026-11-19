@@ -37,6 +37,8 @@
 #include "guis/GuiSystemInfo.h"
 #include "guis/GuiToolRunner.h"
 #include <cstdlib>
+#include <map>
+#include <sstream>
 #include "utils/FileSystemUtil.h"
 
 namespace
@@ -235,6 +237,28 @@ void GuiMenu::openSystemInfo()
 
 void GuiMenu::openDeveloper()
 {
+	Window* window = mWindow;
+	window->pushGui(new GuiToolRunner(window, [] { return ConsoleTools::run("developer"); }, [this](const std::string& output) {
+		std::map<std::string, std::string> info;
+		std::istringstream lines(output);
+		for (std::string line; std::getline(lines, line);)
+		{
+			const std::size_t split = line.find('=');
+			if (split != std::string::npos)
+				info[line.substr(0, split)] = line.substr(split + 1);
+		}
+		openDeveloperPage(info);
+	}));
+}
+
+void GuiMenu::openDeveloperPage(const std::map<std::string, std::string>& info)
+{
+	const auto value = [&info](const char* key) {
+		const auto found = info.find(key);
+		return found == info.end() ? std::string() : found->second;
+	};
+	const auto on = [&value](const char* key) { return value(key) == "on"; };
+
 	auto s = new GuiSettings(mWindow, "DEVELOPER");
 
 	auto debugToggle = std::make_shared<SwitchComponent>(mWindow, DebugMode::isEnabled());
@@ -249,9 +273,9 @@ void GuiMenu::openDeveloper()
 	journalToggle->setChangedCallback([](bool enabled) { DebugMode::setJournalEnabled(enabled); });
 	s->addWithLabel("VIDEO DEBUG LOG", journalToggle);
 
-	if (ConsoleTools::isOn("overclock available"))
+	if (on("overclock_available"))
 	{
-		auto overclockToggle = std::make_shared<SwitchComponent>(mWindow, ConsoleTools::isOn("overclock state"));
+		auto overclockToggle = std::make_shared<SwitchComponent>(mWindow, on("overclock_state"));
 		Window* window = mWindow;
 		SwitchComponent* overclockSwitch = overclockToggle.get();
 		overclockToggle->setChangedCallback([window, overclockSwitch](bool enabled) {
@@ -273,7 +297,7 @@ void GuiMenu::openDeveloper()
 		});
 		s->addWithLabel("OVERCLOCK", overclockToggle);
 
-		auto autoToggle = std::make_shared<SwitchComponent>(mWindow, ConsoleTools::isOn("overclock auto state"));
+		auto autoToggle = std::make_shared<SwitchComponent>(mWindow, on("overclock_auto"));
 		SwitchComponent* autoSwitch = autoToggle.get();
 		autoToggle->setChangedCallback([window, autoSwitch](bool enabled) {
 			if (!enabled)
@@ -296,10 +320,10 @@ void GuiMenu::openDeveloper()
 		s->addWithLabel("OVERCLOCK IN HEAVY GAMES", autoToggle);
 	}
 
-	if (ConsoleTools::isOn("swap available"))
+	if (on("swap_available"))
 	{
 		Window* window = mWindow;
-		auto swapToggle = std::make_shared<SwitchComponent>(mWindow, ConsoleTools::isOn("swap state"));
+		auto swapToggle = std::make_shared<SwitchComponent>(mWindow, on("swap_state"));
 		SwitchComponent* swapSwitch = swapToggle.get();
 		const auto runSwap = [window, swapSwitch](const std::string& action) {
 			window->pushGui(new GuiToolRunner(window, [action] { return ConsoleTools::run("swap " + action); },
@@ -328,7 +352,7 @@ void GuiMenu::openDeveloper()
 		s->addWithLabel("SWAP FILE", swapToggle);
 
 		auto swapSize = std::make_shared< OptionListComponent<std::string> >(mWindow, "SWAP SIZE", false);
-		const std::string currentSize = ConsoleTools::run("swap size");
+		const std::string currentSize = value("swap_size");
 		for (const char* size : { "256", "512" })
 			swapSize->add(std::string(size) + " MB", size, currentSize == size);
 		OptionListComponent<std::string>* swapSizeList = swapSize.get();
@@ -348,26 +372,6 @@ void GuiMenu::openDeveloper()
 	s->addWithLabel("VRAM LIMIT", max_vram);
 	s->addSaveFunc([max_vram] { Settings::getInstance()->setInt("MaxVRAM", (int)Math::round(max_vram->getValue())); });
 
-	// power saver
-	auto power_saver = std::make_shared< OptionListComponent<std::string> >(mWindow, "POWER SAVER MODES", false);
-	std::vector<std::string> modes;
-	modes.push_back("disabled");
-	modes.push_back("default");
-	modes.push_back("enhanced");
-	modes.push_back("instant");
-	for (auto it = modes.cbegin(); it != modes.cend(); it++)
-		power_saver->add(*it, *it, Settings::getInstance()->getString("PowerSaverMode") == *it);
-	s->addWithLabel("POWER SAVER MODES", power_saver);
-	s->addSaveFunc([this, power_saver] {
-		if (Settings::getInstance()->getString("PowerSaverMode") != "instant" && power_saver->getSelected() == "instant") {
-			Settings::getInstance()->setString("TransitionStyle", "instant");
-			Settings::getInstance()->setBool("MoveCarousel", false);
-			Settings::getInstance()->setBool("EnableSounds", false);
-		}
-		Settings::getInstance()->setString("PowerSaverMode", power_saver->getSelected());
-		PowerSaver::init();
-	});
-
 	auto async_file_io = std::make_shared<SwitchComponent>(mWindow);
 	async_file_io->setState(Settings::getInstance()->getBool("AsyncFileIO"));
 	s->addWithLabel("ASYNC FILE IO", async_file_io);
@@ -379,12 +383,12 @@ void GuiMenu::openDeveloper()
 	s->addWithLabel("SHOW FRAMERATE", framerate);
 	s->addSaveFunc([framerate] { Settings::getInstance()->setBool("DrawFramerate", framerate->getState()); });
 
-	s->addWithLabel("MEMORY", std::make_shared<TextComponent>(mWindow, ConsoleTools::run("swap info"), Font::get(FONT_SIZE_MENU), MenuColors::Dim, ALIGN_RIGHT));
-	s->addWithLabel("TEMPERATURE", std::make_shared<TextComponent>(mWindow, ConsoleTools::run("temperature"), Font::get(FONT_SIZE_MENU), MenuColors::Dim, ALIGN_RIGHT));
+	s->addWithLabel("MEMORY", std::make_shared<TextComponent>(mWindow, value("swap_info"), Font::get(FONT_SIZE_MENU), MenuColors::Dim, ALIGN_RIGHT));
+	s->addWithLabel("TEMPERATURE", std::make_shared<TextComponent>(mWindow, value("temperature"), Font::get(FONT_SIZE_MENU), MenuColors::Dim, ALIGN_RIGHT));
 
 	mWindow->pushGui(s);
 
-	const std::string cutoffTemperature = ConsoleTools::run("overclock cutoff");
+	const std::string cutoffTemperature = value("cutoff");
 	if (!cutoffTemperature.empty())
 		mWindow->pushGui(new GuiMsgBox(mWindow,
 			"OVERCLOCK WAS TURNED OFF BY ITSELF BECAUSE THE CPU REACHED " + cutoffTemperature + " C.\n\n"
@@ -1128,6 +1132,26 @@ void GuiMenu::openBehaviourSettings()
 	s->addWithLabel("SAVE METADATA", gamelistsSaveMode);
 	s->addSaveFunc([gamelistsSaveMode] {
 		Settings::getInstance()->setString("SaveGamelistsMode", gamelistsSaveMode->getSelected());
+	});
+
+	// power saver
+	auto power_saver = std::make_shared< OptionListComponent<std::string> >(mWindow, "POWER SAVER MODES", false);
+	std::vector<std::string> modes;
+	modes.push_back("disabled");
+	modes.push_back("default");
+	modes.push_back("enhanced");
+	modes.push_back("instant");
+	for (auto it = modes.cbegin(); it != modes.cend(); it++)
+		power_saver->add(*it, *it, Settings::getInstance()->getString("PowerSaverMode") == *it);
+	s->addWithLabel("POWER SAVER MODES", power_saver);
+	s->addSaveFunc([this, power_saver] {
+		if (Settings::getInstance()->getString("PowerSaverMode") != "instant" && power_saver->getSelected() == "instant") {
+			Settings::getInstance()->setString("TransitionStyle", "instant");
+			Settings::getInstance()->setBool("MoveCarousel", false);
+			Settings::getInstance()->setBool("EnableSounds", false);
+		}
+		Settings::getInstance()->setString("PowerSaverMode", power_saver->getSelected());
+		PowerSaver::init();
 	});
 
 	mWindow->pushGui(s);

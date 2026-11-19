@@ -8,6 +8,7 @@
 #include "components/OptionListComponent.h"
 #include "FileData.h"
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -41,6 +42,7 @@ private:
 	void copyResourcesToUsb();
 	void openAbout();
 	void openDeveloper();
+	void openDeveloperPage(const std::map<std::string, std::string>& info);
 	void openSystemInfo();
 	void openCollectionSystemSettings();
 	void openConfigInput();
