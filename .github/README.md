@@ -25,8 +25,11 @@ This is an alpha and it is not affiliated with Nintendo. Download the latest bui
 - An Original games list, made automatically, with the games the console shipped with.
 - Suspend points with a screenshot and play time: four slots per game that you can save, resume, lock or delete. They
   are shared with Clover-UI, and so are the save files.
+- Background music: put your own `.wav` or `.mp3` files in `/media/hakchi/music_menu`, or keep the console's own menu music.
 - Two themes: `simple`, and `classicstation`, which looks like the console's own menu.
-- Video options for the picture: 4:3, pixel perfect or CRT filter, filters (including composite and phosphor looks), scanlines and bezels.
+- Video modes: 4:3, pixel perfect or CRT filter, and bezels.
+- Filters, each with a preview: Nearest, Linear, Horizontal linear, Sharp, Composite (a chroma blur) and Phosphor (an RGB
+  mask on top of it), plus five scanline steps. On the NES the CRT filter has its own options.
 - A scraper for covers and descriptions. It keeps what it finds on the SD card and never touches hakchi's game list.
 - The Clovercon pads and USB pads work in the menus.
 
@@ -77,6 +80,10 @@ The header icons open the menu, which has six tabs: Display, Sound, Library, Net
 **Covers.** Put yours in `/media/data/emulationstation/covers`. They are matched to the games by game code, alias or
 name. If a copy with the same file name exists in `covers_small`, it is used instead, which keeps the grid smooth on the
 console.
+
+**Music.** The background music plays the `.wav` and `.mp3` files in `/media/hakchi/music_menu` on the SD card or USB
+stick, the same folder the theme selector uses. With no files there, it plays the console's own menu music. Turn it on or
+off, and set the volume, in the Sound tab.
 
 **Kid mode.** In Behaviour, set UI MODE to Kid. Only the games you marked with ADD TO KID GAMES (in their Select menu)
 show up, and most menu options are hidden. To leave it, enter the code shown when you switched (up, up, down, down,
