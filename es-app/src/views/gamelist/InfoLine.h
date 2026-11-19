@@ -10,6 +10,7 @@
 
 #include "FileData.h"
 #include "ThemeData.h"
+#include <cstddef>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -32,11 +33,13 @@ public:
 			mPlayersOne = element.get<std::string>("playersOne");
 		if(element.has("playersMany"))
 			mPlayersMany = element.get<std::string>("playersMany");
+		mBreakAfter = element.has("breakAfter") ? static_cast<std::size_t>(element.get<float>("breakAfter")) : 0;
 	}
 
 	std::string build(const FileData& file) const
 	{
 		std::string out;
+		std::size_t count = 0;
 		for(const std::string& field : mFields)
 		{
 			std::string value = file.metadata.get(field);
@@ -48,7 +51,8 @@ public:
 				value.clear();
 			if(value.empty())
 				continue;
-			out += (out.empty() ? "" : mSeparator) + value;
+			out += (out.empty() ? "" : (count == mBreakAfter ? "\n" : mSeparator)) + value;
+			++count;
 		}
 		return out;
 	}
@@ -58,4 +62,5 @@ private:
 	std::string mSeparator = " ";
 	std::string mPlayersOne = "player";
 	std::string mPlayersMany = "players";
+	std::size_t mBreakAfter = 0;
 };

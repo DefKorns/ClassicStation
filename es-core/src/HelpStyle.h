@@ -16,9 +16,12 @@ struct HelpStyle
 	unsigned int iconColor;
 	unsigned int textColor;
 	std::shared_ptr<Font> font;
+	float iconHeight = 0.0f;
+	float iconTextSpacing = 8.0f;
+	float entrySpacing = 16.0f;
 
 	HelpStyle(); // default values
-	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view);
+	void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element = "help");
 };
 
 #endif // ES_CORE_HELP_STYLE_H

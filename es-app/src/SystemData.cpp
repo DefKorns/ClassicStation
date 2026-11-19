@@ -248,6 +248,7 @@ SystemData* SystemData::loadSystem(pugi::xml_node system)
 	envData->mPlatformIds = platformIds;
 
 	SystemData* newSys = new SystemData(name, fullname, envData, themeFolder);
+	newSys->setInfo(system.child("manufacturer").text().get(), system.child("year").text().get());
 	if (newSys->getRootFolder()->getChildren().size() == 0)
 	{
 		LOG(LogWarning) << "System \"" << name << "\" has no games! Ignoring it.";

@@ -47,6 +47,7 @@ public:
 	bool unlock(const std::string& code, int slot) const;
 	bool swap(const std::string& code, int first, int second) const;
 	bool discardFloating() const;
+	bool hasSaveData(const std::string& code) const;
 
 private:
 	std::string slotDir(const std::string& code, int slot) const;

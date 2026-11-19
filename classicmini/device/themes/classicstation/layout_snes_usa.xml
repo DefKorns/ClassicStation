@@ -1,0 +1,80 @@
+<theme>
+	<formatVersion>3</formatVersion>
+
+	<variables>
+		<titleX>0.092188</titleX>
+		<titleW>0.815625</titleW>
+		<helpY>0.845833</helpY>
+		<helpIcon>0.05</helpIcon>
+		<gridX>-0.011719</gridX>
+		<tileBleed>-0.003906</tileBleed>
+		<slotsX>0.017969</slotsX>
+		<playersY>0.373611</playersY>
+		<playersSize>0.051562 0.058333</playersSize>
+		<helpText>FFFFFF</helpText>
+		<titleText>000000</titleText>
+		<suspendTitle>BE001A</suspendTitle>
+		<suspendEmpty>33323E</suspendEmpty>
+		<suspendTime>000000</suspendTime>
+		<suspendHelp>FFFFFF</suspendHelp>
+		<menuHelp>FFFFFF</menuHelp>
+		<suspendDim>0.5</suspendDim>
+		<spaceText>8E829D</spaceText>
+		<captionText>FFFFFFFF</captionText>
+		<barLogo>true</barLogo>
+		<nesBarPath>./../menubar_bottom.png</nesBarPath>
+		<nesBarLogo>false</nesBarLogo>
+		<tilePadding>0.013281 0.084722</tilePadding>
+		<thumbPos>0.5 0.765278</thumbPos>
+		<thumbSize>0.03125 0.041667</thumbSize>
+		<arrowPos>0.5 0.727778</arrowPos>
+		<barLogoColor>8E829D</barLogoColor>
+		<imageOnTop>true</imageOnTop>
+		<coverBacking>101010FF</coverBacking>
+		<coverOffset>0 0</coverOffset>
+		<titleY>0.201389</titleY>
+		<titleH>0.091667</titleH>
+		<gridW>1.023438</gridW>
+		<gridY>0.238889</gridY>
+		<slotsY>0.394444</slotsY>
+		<playersX>0.139844</playersX>
+		<savePos>0.1 0.373611</savePos>
+		<saveSize>0.042188 0.058333</saveSize>
+		<wallBack>000000</wallBack>
+		<thumbCount>21</thumbCount>
+		<nandIconPos>0.108 0.083333</nandIconPos>
+		<nandTextPos>0.1197 0.0639</nandTextPos>
+		<diskIconPos>0.1757 0.083333</diskIconPos>
+		<diskTextPos>0.1877 0.0639</diskTextPos>
+		<swapIconPos>0.2437 0.083333</swapIconPos>
+		<swapTextPos>0.2557 0.0639</swapTextPos>
+		<overclockPath>./led_overclock.png</overclockPath>
+		<overclockPos>0 0.875</overclockPos>
+		<overclockSize>1 0.166667</overclockSize>
+		<overclockOrigin>0 0</overclockOrigin>
+		<overclockZ>6</overclockZ>
+		<overclockColor>FFFFFF</overclockColor>
+		<detailText>FFFFFF</detailText>
+		<barLogoPath>./../assets/systems/logos/nes1.svg</barLogoPath>
+		<barLogoTint>FFFFFF</barLogoTint>
+		<barLogoOrigin>0.5 0.5</barLogoOrigin>
+		<blankNes>:/blank_nes.png</blankNes>
+		<blankSnes>:/blank_snes-us.png</blankSnes>
+		<dividerColor>FFFFFF</dividerColor>
+		<labelVisible>false</labelVisible>
+		<labelPath>./divider.png</labelPath>
+		<labelPos>0.808594 0.108333</labelPos>
+		<cardSize>0.196875 0.383333</cardSize>
+		<makerText>757575</makerText>
+		<makerPos>0.015625 0.315972</makerPos>
+		<yearPos>0.110937 0.319444</yearPos>
+		<makerActiveText>3FBFFF</makerActiveText>
+		<yearSize>0.071875 0.040278</yearSize>
+		<yearActiveText>0073EF</yearActiveText>
+		<wallPos>0 0.120833</wallPos>
+		<wallSize>1 0.766667</wallSize>
+		<wallScroll>0.020508</wallScroll>
+		<wallVisible>true</wallVisible>
+		<wallPath>./wall.png</wallPath>
+	</variables>
+</theme>

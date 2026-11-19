@@ -17,6 +17,7 @@ public:
 		const std::string& name2 = "", const std::function<void()>& func2 = nullptr,
 		const std::string& name3 = "", const std::function<void()>& func3 = nullptr);
 
+	void selectButton(size_t index);
 	bool input(InputConfig* config, Input input) override;
 	void onSizeChanged() override;
 	std::vector<HelpPrompt> getHelpPrompts() override;

@@ -184,6 +184,35 @@ namespace
 			[&prefix](const char* suffix) { return ::unlink((prefix + suffix).c_str()) == 0 || errno == ENOENT; });
 	}
 
+	bool moveFiles(const std::string& from, const std::string& to)
+	{
+		constexpr std::array<const char*, 3> suffixes = { ".state_time.txt", ".state.png", ".state" };
+		const std::string old = ".old";
+		for(const char* suffix : suffixes)
+			if(isFile(to + suffix) && ::rename((to + suffix).c_str(), (to + suffix + old).c_str()) != 0)
+				return false;
+
+		bool moved = true;
+		for(const char* suffix : suffixes)
+			if(isFile(from + suffix) && !moveTree(from + suffix, to + suffix))
+			{
+				moved = false;
+				break;
+			}
+
+		for(const char* suffix : suffixes)
+		{
+			if(!moved)
+			{
+				static_cast<void>(::unlink((to + suffix).c_str()));
+				static_cast<void>(::rename((to + suffix + old).c_str(), (to + suffix).c_str()));
+			}
+			else
+				static_cast<void>(::unlink((to + suffix + old).c_str()));
+		}
+		return moved;
+	}
+
 	bool replaceDirectory(const std::string& from, const std::string& target)
 	{
 		const std::string previous = target + PreviousSuffix;
@@ -349,10 +378,7 @@ SuspendPoints::SaveResult SuspendPoints::save(const std::string& code, int slot,
 		const std::string from = filePrefix(pending.dir, 0);
 		const std::string to = filePrefix(codeDir(code, slot), slot);
 		static_cast<void>(::unlink((to + FileLockedSuffix).c_str()));
-		const bool moved = (!isFile(from + ".state_time.txt") || moveTree(from + ".state_time.txt", to + ".state_time.txt"))
-			&& moveTree(from + ".state.png", to + ".state.png")
-			&& moveTree(from + ".state", to + ".state");
-		if(!moved)
+		if(!moveFiles(from, to))
 			return SaveResult::Failed;
 		static_cast<void>(removeTree(target));
 		return SaveResult::Saved;
@@ -430,6 +456,17 @@ bool SuspendPoints::swap(const std::string& code, int first, int second) const
 		return false;
 	}
 	return !hasFirst || move(spare, b);
+}
+
+bool SuspendPoints::hasSaveData(const std::string& code) const
+{
+	for(const char* name : {"/save.sram", "/cartridge.sram"})
+	{
+		std::ifstream file(mProfileDir + "/" + code + name, std::ios::binary | std::ios::ate);
+		if(file && file.tellg() > 0)
+			return true;
+	}
+	return false;
 }
 
 bool SuspendPoints::discardFloating() const

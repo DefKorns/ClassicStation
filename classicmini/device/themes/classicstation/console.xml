@@ -1,0 +1,10 @@
+<theme>
+	<formatVersion>3</formatVersion>
+
+	<variables>
+		<backgroundColor>00153D</backgroundColor>
+		<logoColor>DB2B00</logoColor>
+		<es_menuHeight>0.66</es_menuHeight>
+		<es_menuFontScale>0.85</es_menuFontScale>
+	</variables>
+</theme>

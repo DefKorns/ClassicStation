@@ -15,7 +15,6 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 es_payload=$transferpath/usr/share/emulationstation
-theme_tar=$es_payload/defaults/theme_simple.tar
 es_dir=$installpath/emulationstation
 media_mnt=/tmp/es_media
 media_root=
@@ -43,31 +42,37 @@ if [ -z "$media_root" ]; then
   return 1
 fi
 
-theme_dst=${media_root:?}/data/emulationstation/themes/simple
-theme_manifest=$theme_dst/.es-port.md5
-theme_src=/tmp/es_theme_simple
-rm -rf "${theme_src:?}"
-mkdir -p "$theme_src" "${theme_dst%/*}"
-tar -xf "$theme_tar" -C "$theme_src"
-if [ -d "$theme_dst" ]; then
-  if [ -f "$theme_manifest" ]; then
-    (cd "$theme_dst" && md5sum -c "$theme_manifest" 2>/dev/null | sed -n 's/: OK$//p') | while read -r file; do
-      rm -f "${theme_dst:?}/${file:?}"
+installEsTheme(){
+  local name="$1" theme_dst theme_src manifest
+  theme_dst=${media_root:?}/data/emulationstation/themes/$name
+  theme_src=/tmp/es_theme_$name
+  rm -rf "${theme_src:?}"
+  mkdir -p "$theme_src" "${theme_dst%/*}"
+  tar -xf "$es_payload/defaults/theme_$name.tar" -C "$theme_src"
+  if [ -d "$theme_dst" ]; then
+    for manifest in .es-port.md5 .es-generated.md5; do
+      [ -f "$theme_dst/$manifest" ] || continue
+      (cd "$theme_dst" && md5sum -c "$manifest" 2>/dev/null | sed -n 's/: OK$//p') | while read -r file; do
+        rm -f "${theme_dst:?}/${file:?}"
+      done
+      rm -f "${theme_dst:?}/$manifest"
     done
-    rm -f "$theme_manifest"
     find "$theme_dst" -depth -mindepth 1 -type d -exec rmdir {} + 2>/dev/null
+    (cd "$theme_src" && find . -type f) | while read -r file; do
+      [ -e "$theme_dst/$file" ] && continue
+      mkdir -p "${theme_dst}/${file%/*}"
+      cp "$theme_src/$file" "$theme_dst/$file"
+    done
+  else
+    cp -a "$theme_src" "$theme_dst"
   fi
-  (cd "$theme_src" && find . -type f) | while read -r file; do
-    [ -e "$theme_dst/$file" ] && continue
-    mkdir -p "${theme_dst}/${file%/*}"
-    cp "$theme_src/$file" "$theme_dst/$file"
-  done
-else
-  cp -a "$theme_src" "$theme_dst"
-fi
-(cd "$theme_src" && find . -type f -exec md5sum {} +) > "$theme_manifest"
-rm -rf "${theme_src:?}"
-rm -f "${theme_tar:?}"
+  (cd "$theme_src" && find . -type f -exec md5sum {} +) > "$theme_dst/.es-port.md5"
+  rm -rf "${theme_src:?}"
+  rm -f "${es_payload:?}/defaults/theme_$name.tar"
+}
+
+installEsTheme simple
+installEsTheme classicstation
 sync
 if [ -n "$media_mounted" ]; then
   umount "$media_mnt" 2>/dev/null
@@ -78,9 +83,29 @@ mkdir -p "$es_dir"
 for item in "$es_payload"/*; do
   cp -a "$item" "$es_dir/" && rm -rf "${item:?}"
 done
-chmod 755 "$es_dir/emulationstation" "$es_dir/padstate" "$es_dir/libcrtfx.so" "$es_dir"/*.sh
+chmod 755 "$es_dir/emulationstation" "$es_dir/padstate" "$es_dir/theme_layers" "$es_dir/libcrtfx.so" "$es_dir"/*.sh
 rm -rf "${es_dir:?}/library" "${es_dir:?}/library.stamp" "${es_dir:?}/library.stamp.count"
 rm -f "${es_dir:?}/boot_failures" "${es_dir:?}/no_boot"
 [ "$(cat "$es_dir/boot_default" 2>/dev/null)" = stock ] && rm -f "${es_dir:?}/boot_default"
 rm -rf "${es_payload:?}"
+
+stockFirmwareName() {
+  local sha1
+  command -v sunxi-flash >/dev/null 2>&1 || return 0
+  sha1=$(sunxi-flash log_read 68 1 | dd status=none bs=32 skip=18 count=1 | hexdump -e '/1 "%02x"' -n20)
+  [ -n "$sha1" ] && grep -F " $sha1" /etc/firmwaredb | head -n 1 | cut -d' ' -f1
+}
+
+needsCloverconFix() {
+  grep -qF "dp-hvc" "$squashfs/etc/issue" 2>/dev/null || return 1
+  [ "$(cat "$squashfs/etc/clover/boardtype" 2>/dev/null)" = "dp-hvc" ] || return 1
+  case "$(stockFirmwareName)" in
+    dp-nes-* | dp-shvc-*) return 0 ;;
+  esac
+  return 1
+}
+
+if needsCloverconFix && [ ! -f "$rootfs/etc/init.d/S77clvcon_detect" ]; then
+  echo "Famicom firmware on NES/SNES hardware: the pads can freeze or misbehave unless famicom_clovercon_fix is installed too (https://github.com/DefKorns/famicom-clovercon-fix)."
+fi
 return 0

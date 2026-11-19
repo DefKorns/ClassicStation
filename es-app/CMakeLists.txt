@@ -8,6 +8,7 @@ set(ES_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PlatformId.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ScraperCmdLine.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/SuspendPoints.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/SuspendSlotState.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ConsoleTools.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/SystemData.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/VolumeControl.h
@@ -19,8 +20,14 @@ set(ES_HEADERS
     # GuiComponents
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/AsyncReqComponent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/RatingComponent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/components/PlayersIconComponent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/components/ClassicTileOverlay.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/components/FloatingCardComponent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/components/ThumbnailStripComponent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/components/SuspendSlotsComponent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/MenuIconBar.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/DiskSpaceIndicator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/components/DemoMode.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/HeaderStatus.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/ScraperSearchComponent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/TextListComponent.h
@@ -91,8 +98,14 @@ set(ES_SOURCES
     # GuiComponents
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/AsyncReqComponent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/RatingComponent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/components/PlayersIconComponent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/components/ClassicTileOverlay.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/components/FloatingCardComponent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/components/ThumbnailStripComponent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/components/SuspendSlotsComponent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/MenuIconBar.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/DiskSpaceIndicator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/components/DemoMode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/HeaderStatus.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/components/ScraperSearchComponent.cpp
 

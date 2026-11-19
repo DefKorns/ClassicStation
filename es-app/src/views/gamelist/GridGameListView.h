@@ -3,6 +3,9 @@
 #define ES_APP_VIEWS_GAME_LIST_GRID_GAME_LIST_VIEW_H
 
 #include "components/DateTimeComponent.h"
+#include "components/DemoMode.h"
+#include "components/FloatingCardComponent.h"
+#include "components/ThumbnailStripComponent.h"
 #include "components/MenuIconBar.h"
 #include "components/RatingComponent.h"
 #include "components/PagedTextComponent.h"
@@ -58,6 +61,9 @@ private:
 	void initMDValues();
 
 	void onFloatingChanged() override;
+	void onFloatingErased() override { mFloatingCard.erase(); }
+	void renderOverHelp(const Transform4x4f& parentTrans) override;
+	void syncFloatingCard();
 	void setHeaderFocus(bool focus);
 	void openHeaderMenu();
 
@@ -97,8 +103,27 @@ private:
 	void updateArrows();
 
 	MenuIconBar mIconBar;
+	FloatingCardComponent mFloatingCard;
+	DemoMode mDemo;
+	ThumbnailStripComponent mThumbnails;
+	TextComponent mLetters;
+	bool mLettersShown = false;
+	bool mInfoPending = false;
 	bool mHeaderFocus = false;
+	int mScrollCursor = 0;
 	std::shared_ptr<bool> mAlive = std::make_shared<bool>(true);
+	bool mPerGameBlanks = false;
+	bool mThumbsSkipped = false;
+	struct ThumbJob
+	{
+		int index;
+		std::string image;
+		std::string scraped;
+	};
+	std::vector<ThumbJob> mThumbJobs;
+	int mThumbIdleMs = 0;
+	bool mHasLetters = false;
+	std::string mLettersText;
 };
 
 #endif // ES_APP_VIEWS_GAME_LIST_GRID_GAME_LIST_VIEW_H

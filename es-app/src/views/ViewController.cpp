@@ -356,7 +356,7 @@ ViewController::GameListViewType ViewController::getGameListViewType()
 		selectedViewType = GRID;
 
 	if (selectedViewType == GRID && !themeHasGridView())
-		selectedViewType = DETAILED;
+		selectedViewType = AUTOMATIC;
 
 	return selectedViewType;
 }
@@ -502,6 +502,8 @@ void ViewController::render(const Transform4x4f& parentTrans)
 	getSystemListView()->render(trans);
 
 	// draw gamelists
+	bool drewView = false;
+	std::vector<IGameListView*> drawn;
 	for(auto it = mGameListViews.cbegin(); it != mGameListViews.cend(); it++)
 	{
 		// clipping
@@ -510,11 +512,23 @@ void ViewController::render(const Transform4x4f& parentTrans)
 
 		if(guiEnd.x() >= viewStart.x() && guiEnd.y() >= viewStart.y() &&
 			guiStart.x() <= viewEnd.x() && guiStart.y() <= viewEnd.y())
+		{
 			it->second->render(trans);
+			drewView = true;
+			drawn.push_back(it->second.get());
+		}
 	}
 
 	if(mWindow->peekGui() == this)
-		mWindow->renderHelpPromptsEarly();
+	{
+		if(drewView || mState.viewing == SYSTEM_SELECT)
+			mWindow->renderHelpPromptsEarly();
+		else
+			mWindow->skipHelpPrompts();
+	}
+
+	for(IGameListView* view : drawn)
+		view->renderOverHelp(trans);
 
 	// fade out
 	if(mFadeOpacity)

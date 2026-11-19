@@ -217,12 +217,13 @@ void Window::render()
 		bottom->render(transform);
 		if(bottom != top)
 		{
-			mBackgroundOverlay->render(transform);
+			if(top->dimsBackground())
+				mBackgroundOverlay->render(transform);
 			top->render(transform);
 		}
 	}
 
-	if(!mRenderedHelpPrompts)
+	if(!mRenderedHelpPrompts && !GuiComponent::demoHelpHidden())
 		mHelp->render(transform);
 
 	if(Settings::getInstance()->getBool("DrawFramerate") && !mFrameDataText.empty())
@@ -340,7 +341,8 @@ void Window::renderFullScreenImage(const std::string& path)
 
 void Window::renderHelpPromptsEarly()
 {
-	mHelp->render(Transform4x4f::Identity());
+	if(!GuiComponent::demoHelpHidden())
+		mHelp->render(Transform4x4f::Identity());
 	mRenderedHelpPrompts = true;
 }
 

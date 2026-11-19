@@ -74,11 +74,16 @@ void Settings::setDefaults()
 	mBoolMap["MusicEnabled"] = true;
 	mIntMap["MusicVolume"] = 50;
 	mBoolMap["ShowHelpPrompts"] = true;
+	mBoolMap["MenuAnimations"] = true;
+	mBoolMap["BackgroundAnimation"] = true;
+	mBoolMap["SuspendAnimations"] = true;
+	mBoolMap["DemoMode"] = true;
 	mBoolMap["DoublePressRemovesFromFavs"] = false;
 	mBoolMap["ScrapeRatings"] = false;
 	mBoolMap["ScrapeName"] = false;
 	mBoolMap["ScrapeDescription"] = true;
 	mBoolMap["ScrapeImage"] = false;
+	mBoolMap["ScrapeMarquee"] = true;
 	mBoolMap["ScrapeDetails"] = true;
 	mBoolMap["ScrapeOverwrite"] = false;
 	mBoolMap["IgnoreGamelist"] = false;

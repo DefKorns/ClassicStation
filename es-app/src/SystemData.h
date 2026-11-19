@@ -33,6 +33,9 @@ public:
 	inline FileData* getRootFolder() const { return mRootFolder; };
 	inline const std::string& getName() const { return mName; }
 	inline const std::string& getFullName() const { return mFullName; }
+	inline const std::string& getManufacturer() const { return mManufacturer; }
+	inline const std::string& getYear() const { return mYear; }
+	void setInfo(const std::string& manufacturer, const std::string& year) { mManufacturer = manufacturer; mYear = year; }
 	inline const std::string& getStartPath() const { return mEnvData->mStartPath; }
 	inline const std::vector<std::string>& getExtensions() const { return mEnvData->mSearchExtensions; }
 	inline const std::string& getThemeFolder() const { return mThemeFolder; }
@@ -86,6 +89,8 @@ private:
 	bool mIsGameSystem;
 	std::string mName;
 	std::string mFullName;
+	std::string mManufacturer;
+	std::string mYear;
 	SystemEnvironmentData* mEnvData;
 	std::string mThemeFolder;
 	std::shared_ptr<ThemeData> mTheme;

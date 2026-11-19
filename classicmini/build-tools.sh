@@ -30,7 +30,11 @@ docker run --rm $user_opts -v "$repo:/src" -v "$repo/classicmini/out:/out" "$ima
   set -e
   arm-linux-gnueabihf-g++ -std=c++14 -O2 -Wall -Wextra -Werror -static -o /out/padstate /src/classicmini/tools/padstate.cpp
   arm-linux-gnueabihf-strip /out/padstate
+  arm-linux-gnueabihf-g++ -std=c++14 -w -O2 -c /src/vendor/lodepng/lodepng.cpp -o /tmp/lodepng.o
+  arm-linux-gnueabihf-g++ -std=c++14 -O2 -Wall -Wextra -Werror -I/src/classicmini/tools -I/src/vendor/lodepng -c /src/classicmini/tools/theme_layers.cpp -o /tmp/theme_layers.o
+  arm-linux-gnueabihf-g++ -static -o /out/theme_layers /tmp/theme_layers.o /tmp/lodepng.o
+  arm-linux-gnueabihf-strip /out/theme_layers
   rm -f /out/libcrtfx.so
   arm-linux-gnueabihf-g++ -std=c++14 -O3 -Wall -Wextra -Werror -shared -fPIC -fno-builtin-floorf -fvisibility=hidden -static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL -o /out/libcrtfx.so /src/classicmini/tools/crtfx.cpp -pthread -ldl
   arm-linux-gnueabihf-strip /out/libcrtfx.so
-  ls -l /out/padstate /out/libcrtfx.so'
+  ls -l /out/padstate /out/theme_layers /out/libcrtfx.so'

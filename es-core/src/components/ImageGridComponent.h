@@ -6,6 +6,7 @@
 #define ES_CORE_COMPONENTS_IMAGE_GRID_COMPONENT_H
 
 #include "Log.h"
+#include "Settings.h"
 #include "animations/LambdaAnimation.h"
 #include "components/IList.h"
 #include "resources/TextureResource.h"
@@ -31,6 +32,13 @@ struct ImageGridData
 {
 	std::string texturePath;
 };
+
+const ScrollTier GRID_SCROLL_TIERS[] = {
+	{500, 500},
+	{1500, 160},
+	{0, 80}
+};
+const ScrollTierList GRID_SCROLL_STYLE = { 3, GRID_SCROLL_TIERS };
 
 template<typename T>
 class ImageGridComponent : public IList<ImageGridData, T>
@@ -62,18 +70,44 @@ public:
 	ImageGridComponent(Window* window);
 
 	void add(const std::string& name, const std::string& imagePath, const T& obj);
-	void setMarkFunction(std::function<bool(const T&)> markFunction) { mMarkFunction = std::move(markFunction); }
-	void refreshMarks() { updateTiles(false, false); }
+	void setTileOverlay(std::function<std::shared_ptr<GridTileOverlay>()> factory, std::function<void(GridTileOverlay&, const T&)> updater)
+	{
+		mOverlayFactory = std::move(factory);
+		mOverlayUpdater = std::move(updater);
+	}
+	float getVisualCursor() const { return static_cast<float>(mCursor) + (mCameraMoving && !isVerticalConst() ? mCameraDirection * (1.0f - mCamera) : 0.0f); }
 
 	bool input(InputConfig* config, Input input) override;
 	void update(int deltaTime) override;
 	void render(const Transform4x4f& parentTrans) override;
 	virtual void applyTheme(const std::shared_ptr<ThemeData>& theme, const std::string& view, const std::string& element, unsigned int properties) override;
 
+	void setDefaultGameImage(const std::string& path)
+	{
+		if (!ResourceManager::getInstance()->fileExists(path))
+		{
+			LOG(LogWarning) << "Could not replace default game image, check path: " << path;
+			return;
+		}
+
+		const std::string oldDefaultGameTexture = mDefaultGameTexture;
+		mDefaultGameTexture = path;
+		mKeepGameTexture = TextureResource::get(mDefaultGameTexture, false, true);
+
+		for (auto it = mEntries.begin(); it != mEntries.end(); it++)
+		{
+			if ((*it).data.texturePath == oldDefaultGameTexture)
+				(*it).data.texturePath = mDefaultGameTexture;
+		}
+	}
+
+
 	void onSizeChanged() override;
 	inline void setCursorChangedCallback(const std::function<void(CursorState state)>& func) { mCursorChangedCallback = func; }
 
 	ImageSource	getImageSource() { return mImageSource; };
+	void setSmoothScroll(bool on) { this->setTierList(on ? GRID_SCROLL_STYLE : LIST_SCROLL_STYLE_QUICK); }
+	void setTitleOverlayHidden(bool hidden) { mTitleOverlayHidden = hidden; }
 
 protected:
 	virtual void onScroll(int /*amt*/) override { if(!mScrollSound.empty()) Sound::get(mScrollSound)->play(); }
@@ -89,13 +123,17 @@ private:
 	bool isScrollLoop();
 
 	bool isVertical() { return mScrollDirection == SCROLL_VERTICALLY; };
+	bool isVerticalConst() const { return mScrollDirection == SCROLL_VERTICALLY; }
 
 
 	// IMAGES & ENTRIES
 	bool mEntriesDirty;
 	int mLastCursor;
 	std::string mDefaultGameTexture;
+	bool mTitleOverlayHidden = false;
 	std::string mDefaultFolderTexture;
+	std::shared_ptr<TextureResource> mKeepGameTexture;
+	std::shared_ptr<TextureResource> mKeepFolderTexture;
 
 	// TILES
 	bool mLastRowPartial;
@@ -110,7 +148,8 @@ private:
 	std::vector< std::shared_ptr<GridTileComponent> > mTiles;
 
 	int mStartPosition;
-	std::function<bool(const T&)> mMarkFunction;
+	std::function<std::shared_ptr<GridTileOverlay>()> mOverlayFactory;
+	std::function<void(GridTileOverlay&, const T&)> mOverlayUpdater;
 
 	float mCamera;
 	float mCameraDirection;
@@ -120,6 +159,7 @@ private:
 
 	// MISCELLANEOUS
 	bool mAnimate;
+	bool animates() const { return mAnimate && Settings::getInstance()->getBool("MoveCarousel") && Settings::getInstance()->getString("TransitionStyle") != "instant"; }
 	bool mCenterSelection;
 	bool mScrollLoop;
 	ScrollDirection mScrollDirection;
@@ -129,7 +169,7 @@ private:
 };
 
 template<typename T>
-ImageGridComponent<T>::ImageGridComponent(Window* window) : IList<ImageGridData, T>(window)
+ImageGridComponent<T>::ImageGridComponent(Window* window) : IList<ImageGridData, T>(window, LIST_SCROLL_STYLE_QUICK, LIST_PAUSE_AT_END)
 {
 	Vector2f screen = Vector2f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 
@@ -143,8 +183,10 @@ ImageGridComponent<T>::ImageGridComponent(Window* window) : IList<ImageGridData,
 
 	mEntriesDirty = true;
 	mLastCursor = 0;
-	mDefaultGameTexture = ":/cartridge.svg";
-	mDefaultFolderTexture = ":/folder.svg";
+	mDefaultGameTexture = ResourceManager::getInstance()->preferPng(":/cartridge.svg");
+	mDefaultFolderTexture = ResourceManager::getInstance()->preferPng(":/folder.svg");
+	mKeepGameTexture = TextureResource::get(mDefaultGameTexture, false, true);
+	mKeepFolderTexture = TextureResource::get(mDefaultFolderTexture, false, true);
 
 	mSize = screen * 0.80f;
 	mMargin = screen * 0.07f;
@@ -277,8 +319,8 @@ void ImageGridComponent<T>::render(const Transform4x4f& parentTrans)
 	if (selectedTile != NULL)
 		selectedTile->render(tileTrans);
 
-	listRenderTitleOverlay(trans);
-
+	if (!mTitleOverlayHidden)
+		listRenderTitleOverlay(trans);
 	GuiComponent::renderChildren(trans);
 }
 
@@ -332,6 +374,8 @@ void ImageGridComponent<T>::applyTheme(const std::shared_ptr<ThemeData>& theme, 
 				mScrollLoop = (elem->get<bool>("scrollLoop"));
 		}
 
+		this->mLoopType = mScrollLoop ? LIST_ALWAYS_LOOP : LIST_PAUSE_AT_END;
+
 		if (elem->has("adjacentGap"))
 			mAdjacentGap = elem->get<float>("adjacentGap") * static_cast<float>(Renderer::getScreenWidth());
 
@@ -344,27 +388,7 @@ void ImageGridComponent<T>::applyTheme(const std::shared_ptr<ThemeData>& theme, 
 			mAnimate = true;
 
 		if (elem->has("gameImage"))
-		{
-			std::string path = elem->get<std::string>("gameImage");
-
-			if (!ResourceManager::getInstance()->fileExists(path))
-			{
-				LOG(LogWarning) << "Could not replace default game image, check path: " << path;
-			}
-			else
-			{
-				std::string oldDefaultGameTexture = mDefaultGameTexture;
-				mDefaultGameTexture = path;
-
-				// mEntries are already loaded at this point,
-				// so we need to update them with new game image texture
-				for (auto it = mEntries.begin(); it != mEntries.end(); it++)
-				{
-					if ((*it).data.texturePath == oldDefaultGameTexture)
-						(*it).data.texturePath = mDefaultGameTexture;
-				}
-			}
-		}
+			setDefaultGameImage(elem->get<std::string>("gameImage"));
 
 		if (elem->has("folderImage"))
 		{
@@ -378,6 +402,7 @@ void ImageGridComponent<T>::applyTheme(const std::shared_ptr<ThemeData>& theme, 
 			{
 				std::string oldDefaultFolderTexture = mDefaultFolderTexture;
 				mDefaultFolderTexture = path;
+				mKeepFolderTexture = TextureResource::get(mDefaultFolderTexture, false, true);
 
 				// mEntries are already loaded at this point,
 				// so we need to update them with new folder image texture
@@ -461,7 +486,7 @@ void ImageGridComponent<T>::onCursorChanged(const CursorState& state)
 		updateTiles(false, false);
 	}
 
-	if (mAnimate) {
+	if (animates()) {
 
 		std::shared_ptr<GridTileComponent> oldTile = nullptr;
 		std::shared_ptr<GridTileComponent> newTile = nullptr;
@@ -527,9 +552,9 @@ void ImageGridComponent<T>::onCursorChanged(const CursorState& state)
 	startPos = residual * mCameraDirection;
 	mCamera = startPos;
 
-	if (lastCursor < 0 || !mAnimate)
+	if (lastCursor < 0 || !animates())
 	{
-		updateTiles(mAnimate && (lastCursor >= 0 || isScrollLoop()));
+		updateTiles(animates() && (lastCursor >= 0 || isScrollLoop()));
 
 		if (mCursorChangedCallback)
 			mCursorChangedCallback(state);
@@ -615,6 +640,8 @@ void ImageGridComponent<T>::buildTiles()
 			tile->setPosition(X * tileDistance.x() + startPosition.x(), Y * tileDistance.y() + startPosition.y());
 			tile->setOrigin(0.5f, 0.5f);
 			tile->setImage("");
+			if (mOverlayFactory)
+				tile->setOverlay(mOverlayFactory());
 
 			if (mTheme)
 				tile->applyTheme(mTheme, "grid", "gridtile", ThemeFlags::ALL);
@@ -691,7 +718,6 @@ void ImageGridComponent<T>::updateTileAtPos(int tilePos, int imgPos, bool allowA
 	else
 	{
 		tile->setVisible(true);
-		tile->setMarked(mMarkFunction && mMarkFunction(mEntries.at(imgPos).object));
 
 		std::string imagePath = mEntries.at(imgPos).data.texturePath;
 
@@ -701,6 +727,9 @@ void ImageGridComponent<T>::updateTileAtPos(int tilePos, int imgPos, bool allowA
 			tile->setImage(mDefaultFolderTexture);
 		else
 			tile->setImage(mDefaultGameTexture);
+
+		if (mOverlayUpdater && tile->getOverlay())
+			mOverlayUpdater(*tile->getOverlay(), mEntries.at(imgPos).object);
 
 		if (updateSelectedState)
 		{

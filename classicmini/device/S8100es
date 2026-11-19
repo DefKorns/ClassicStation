@@ -20,7 +20,12 @@ case "$1" in
   start)
     rm -f "$autotest"
     [ -f "$es_dir/no_boot" ] && exit 0
-    [ "$(cat "$es_dir/boot_default" 2>/dev/null)" = stock ] && exit 0
+    if [ "$(cat "$es_dir/boot_default" 2>/dev/null)" = stock ]; then
+      rm -f "$es_dir/boot_default" "$es_dir/boot_failures"
+      touch /run/es-stock
+      exit 0
+    fi
+    [ -f /run/es-stock ] && exit 0
     for _ in $(seq 1 5); do
       pad_status=0
       "$es_dir/padstate" select || pad_status=$?

@@ -1,0 +1,38 @@
+<theme>
+	<formatVersion>3</formatVersion>
+	<defaultView>grid</defaultView>
+
+	<include>./../theme.xml</include>
+
+	<view name="basic, detailed, grid">
+		<image name="bar_logo" extra="true">
+			<visible>${barLogo}</visible>
+			<path>./../assets/systems/logos/snes.svg</path>
+			<pos>${barLogoPos}</pos>
+			<maxSize>${barLogoMax}</maxSize>
+			<origin>${barLogoOrigin}</origin>
+		</image>
+	</view>
+
+	<view name="grid">
+		<imagegrid name="gamegrid">
+			<gameImage>${blankSnes}</gameImage>
+		</imagegrid>
+		<image name="tile_save">
+			<path>./../save_icon.png</path>
+			<pos>${savePos}</pos>
+			<size>${saveSize}</size>
+			<origin>0 0</origin>
+		</image>
+	</view>
+
+	<view name="system">
+		<image name="bar_logo" extra="true">
+			<visible>${barLogo}</visible>
+			<path>./../assets/systems/logos/snes.svg</path>
+			<pos>${barLogoPos}</pos>
+			<maxSize>${barLogoMax}</maxSize>
+			<origin>${barLogoOrigin}</origin>
+		</image>
+	</view>
+</theme>

@@ -3,6 +3,7 @@
 #include "animations/LambdaAnimation.h"
 #include "guis/GuiMenu.h"
 #include "guis/GuiMsgBox.h"
+#include "views/ExtraButtons.h"
 #include "views/UIModeController.h"
 #include "views/ViewController.h"
 #include "Log.h"
@@ -19,6 +20,11 @@ const int logoBuffersRight[] = { 1, 2, 5 };
 SystemView::SystemView(Window* window) : IList<SystemViewData, SystemData*>(window, LIST_SCROLL_STYLE_SLOW, LIST_ALWAYS_LOOP),
 										 mViewNeedsReload(true),
 										 mSystemInfo(window, "SYSTEM INFO", Font::get(FONT_SIZE_SMALL), 0x33333300, ALIGN_CENTER),
+										 mSystemCount(window, "", Font::get(FONT_SIZE_SMALL), 0x33333300, ALIGN_CENTER),
+										 mCard(window),
+										 mCardActive(window),
+										 mChip(window),
+										 mChipActive(window),
 										 mHeaderStatus(window),
 										 mIconBar(window)
 {
@@ -104,6 +110,26 @@ void SystemView::populate()
 
 			Vector2f denormalized = mCarousel.logoSize * e.data.logo->getOrigin();
 			e.data.logo->setPosition(denormalized.x(), denormalized.y(), 0.0);
+
+			if (!(*it)->getManufacturer().empty() && !(*it)->getYear().empty() && theme->getElement("system", "systemCardMaker", "text") && theme->getElement("system", "systemCardYear", "text"))
+			{
+				e.data.maker = std::make_shared<TextComponent>(mWindow);
+				e.data.maker->applyTheme(theme, "system", "systemCardMaker", ThemeFlags::ALL ^ ThemeFlags::TEXT);
+				e.data.maker->setText((*it)->getManufacturer());
+				const ThemeData::ThemeElement* makerElem = theme->getElement("system", "systemCardMaker", "text");
+				e.data.makerColor = makerElem->has("color") ? makerElem->get<unsigned int>("color") : 0xFFFFFFFFu;
+				e.data.makerActiveColor = makerElem->has("activeColor") ? makerElem->get<unsigned int>("activeColor") : e.data.makerColor;
+				e.data.makerShownColor = e.data.makerColor;
+				const ThemeData::ThemeElement* yearElem = theme->getElement("system", "systemCardYear", "text");
+				e.data.yearColor = yearElem->has("color") ? yearElem->get<unsigned int>("color") : 0xFFFFFFFFu;
+				e.data.yearActiveColor = yearElem->has("activeColor") ? yearElem->get<unsigned int>("activeColor") : e.data.yearColor;
+				e.data.yearShownColor = e.data.yearColor;
+				e.data.year = std::make_shared<TextComponent>(mWindow);
+				e.data.year->applyTheme(theme, "system", "systemCardYear", ThemeFlags::ALL ^ ThemeFlags::TEXT);
+				e.data.year->setText((*it)->getYear());
+				e.data.yearSize = e.data.year->getSize();
+			}
+
 			// delete any existing extras
 			for (auto extra : e.data.backgroundExtras)
 				delete extra;
@@ -254,7 +280,7 @@ bool SystemView::input(InputConfig* config, Input input)
 			ViewController::get()->goToGameList(getSelected());
 			return true;
 		}
-		if (config->isMappedTo("x", input))
+		if (hasExtraButtons() && config->isMappedTo("x", input))
 		{
 			// get random system
 			// go to system
@@ -284,12 +310,16 @@ void SystemView::update(int deltaTime)
 	listUpdate(deltaTime);
 	GuiComponent::update(deltaTime);
 	mHeaderStatus.update(deltaTime);
+	mIconBar.update(deltaTime);
 }
 
 void SystemView::onCursorChanged(const CursorState& /*state*/)
 {
 	// update help style
 	updateHelpPrompts();
+
+	ImageComponent::kickScrolling(mScrollCursor, mCursor, static_cast<int>(mEntries.size()));
+	mScrollCursor = mCursor;
 
 	float startPos = mCamOffset;
 
@@ -313,19 +343,20 @@ void SystemView::onCursorChanged(const CursorState& /*state*/)
 	cancelAnimation(1);
 	cancelAnimation(2);
 
-	const std::string transition_style = "slide";
-	bool goFast = transition_style == "instant";
+	const std::string transition_style = mCarousel.transitionStyle.empty() ? Settings::getInstance()->getString("TransitionStyle") : mCarousel.transitionStyle;
+	const bool goFast = mCarousel.fastInfo || transition_style == "instant";
 	const float infoStartOpacity = mSystemInfo.getOpacity() / 255.f;
 
 	Animation* infoFadeOut = new LambdaAnimation(
 		[infoStartOpacity, this] (float t)
 	{
 		mSystemInfo.setOpacity((unsigned char)(Math::lerp(infoStartOpacity, 0.f, t) * 255));
+		mSystemCount.setOpacity((unsigned char)(Math::lerp(infoStartOpacity, 0.f, t) * 255));
 	}, (int)(infoStartOpacity * (goFast ? 10 : 150)));
 
 	unsigned int gameCount = getSelected()->getDisplayedGameCount();
 	unsigned int favoriteCount = 0;
-	const bool showFavorites = getSelected()->isGameSystem() && !getSelected()->isCollection();
+	const bool showFavorites = getSelected()->isGameSystem() && (!getSelected()->isCollection() || mHasSystemCount);
 	if(showFavorites)
 		for(const FileData* game : getSelected()->getRootFolder()->getFilesRecursive(GAME))
 			if(game->metadata.get("favorite") == "true")
@@ -344,13 +375,23 @@ void SystemView::onCursorChanged(const CursorState& /*state*/)
 				ss << " (" << favoriteCount << " FAVORITE" << (favoriteCount == 1 ? "" : "S") << ")";
 		}
 
-		mSystemInfo.setText(ss.str());
+		if(mHasSystemCount && getSelected()->isGameSystem())
+		{
+			mSystemInfo.setText(Utils::String::toUpper(getSelected()->getFullName()));
+			mSystemCount.setText(ss.str());
+		}
+		else
+		{
+			mSystemInfo.setText(ss.str());
+			mSystemCount.setText("");
+		}
 	}, false, 1);
 
 	Animation* infoFadeIn = new LambdaAnimation(
 		[this](float t)
 	{
 		mSystemInfo.setOpacity((unsigned char)(Math::lerp(0.f, 1.f, t) * 255));
+		mSystemCount.setOpacity((unsigned char)(Math::lerp(0.f, 1.f, t) * 255));
 	}, goFast ? 10 : 300);
 
 	// wait 600ms to fade in
@@ -472,7 +513,8 @@ std::vector<HelpPrompt> SystemView::getHelpPrompts()
 	else
 		prompts.push_back(HelpPrompt("left/right", "choose"));
 	prompts.push_back(HelpPrompt("a", "select"));
-	prompts.push_back(HelpPrompt("x", "random"));
+	if (hasExtraButtons())
+		prompts.push_back(HelpPrompt("x", "random"));
 
 	if (!UIModeController::getInstance()->isUIModeKid() && Settings::getInstance()->getBool("ScreenSaverControls"))
 		prompts.push_back(HelpPrompt("select", "launch screensaver"));
@@ -514,6 +556,15 @@ void  SystemView::getViewElements(const std::shared_ptr<ThemeData>& theme)
 	const ThemeData::ThemeElement* sysInfoElem = theme->getElement("system", "systemInfo", "text");
 	if (sysInfoElem)
 		mSystemInfo.applyTheme(theme, "system", "systemInfo", ThemeFlags::ALL);
+
+	mHasSystemCount = theme->getElement("system", "systemCount", "text") != nullptr;
+	if(mHasSystemCount && sysInfoElem)
+	{
+		mSystemCount.applyTheme(theme, "system", "systemCount", ThemeFlags::ALL ^ (ThemeFlags::POSITION | ThemeFlags::SIZE));
+		mSystemCount.setPosition(mSystemInfo.getPosition());
+		const Vector2f infoSize = mSystemInfo.getSize();
+		mSystemCount.setSize(infoSize.x() - 0.02f * static_cast<float>(Renderer::getScreenWidth()), infoSize.y());
+	}
 
 	mHeaderStatus.applyTheme(theme, "system", false);
 	mIconBar.applyTheme(theme, "system");
@@ -617,6 +668,21 @@ void SystemView::renderCarousel(const Transform4x4f& trans)
 
 		int opacity = (int)Math::round(0x80 + ((0xFF - 0x80) * (1.0f - fabs(distance))));
 		opacity = Math::max((int) 0x80, opacity);
+		if (mCarousel.hasCards)
+			opacity = 0xFF;
+
+		const float active = Math::max(0.0f, 1.0f - fabs(distance));
+		Transform4x4f cardTrans = logoTrans;
+		if (mCarousel.hasCards)
+		{
+			cardTrans.translate(Vector3f(mCarousel.logoSize.x() / 2.0f + mCarousel.cardOffset.x(), mCarousel.logoSize.y() / 2.0f + mCarousel.cardOffset.y(), 0));
+			mCard.render(cardTrans);
+			if (active > 0.0f)
+			{
+				mCardActive.setOpacity((unsigned char)Math::round(active * 255.0f));
+				mCardActive.render(cardTrans);
+			}
+		}
 
 		const std::shared_ptr<GuiComponent> &comp = mEntries.at(index).data.logo;
 		if (mCarousel.type == VERTICAL_WHEEL || mCarousel.type == HORIZONTAL_WHEEL) {
@@ -626,6 +692,44 @@ void SystemView::renderCarousel(const Transform4x4f& trans)
 		comp->setScale(scale);
 		comp->setOpacity((unsigned char)opacity);
 		comp->render(logoTrans);
+
+		SystemViewData& data = mEntries.at(index).data;
+		if (mCarousel.hasCards && data.maker && data.year)
+		{
+			Transform4x4f footerTrans = cardTrans;
+			footerTrans.translate(Vector3f(-mCarousel.cardSize.x() / 2.0f, -mCarousel.cardSize.y() / 2.0f, 0));
+			const auto mix = [active](unsigned int from, unsigned int to, int shift)
+			{
+				const float a = static_cast<float>((from >> shift) & 0xFF);
+				const float b = static_cast<float>((to >> shift) & 0xFF);
+				return static_cast<unsigned int>(a + (b - a) * active + 0.5f) << shift;
+			};
+			const auto blend = [&mix](unsigned int from, unsigned int to) { return mix(from, to, 24) | mix(from, to, 16) | mix(from, to, 8) | (from & 0xFF); };
+			const unsigned int makerShown = blend(data.makerColor, data.makerActiveColor);
+			if(makerShown != data.makerShownColor)
+			{
+				data.maker->setColor(makerShown);
+				data.makerShownColor = makerShown;
+			}
+			const unsigned int yearShown = blend(data.yearColor, data.yearActiveColor);
+			if(yearShown != data.yearShownColor)
+			{
+				data.year->setColor(yearShown);
+				data.yearShownColor = yearShown;
+			}
+			data.maker->render(footerTrans);
+			Transform4x4f chipTrans = footerTrans;
+			chipTrans.translate(Vector3f(data.year->getPosition().x(), data.year->getPosition().y(), 0));
+			mChip.setResize(data.yearSize);
+			mChip.render(chipTrans);
+			if (active > 0.0f)
+			{
+				mChipActive.setResize(data.yearSize);
+				mChipActive.setOpacity((unsigned char)Math::round(active * 255.0f));
+				mChipActive.render(chipTrans);
+			}
+			data.year->render(footerTrans);
+		}
 	}
 	Renderer::popClipRect();
 }
@@ -634,6 +738,8 @@ void SystemView::renderInfoBar(const Transform4x4f& trans)
 {
 	Renderer::setMatrix(trans);
 	mSystemInfo.render(trans);
+	if(mHasSystemCount)
+		mSystemCount.render(trans);
 }
 
 // Draw background extras
@@ -694,6 +800,8 @@ void  SystemView::getDefaultElements(void)
 {
 	// Carousel
 	mCarousel.type = HORIZONTAL;
+	mCarousel.transitionStyle.clear();
+	mCarousel.fastInfo = false;
 	mCarousel.logoAlignment = ALIGN_CENTER;
 	mCarousel.size.x() = mSize.x();
 	mCarousel.size.y() = 0.2325f * mSize.y();
@@ -713,6 +821,9 @@ void  SystemView::getDefaultElements(void)
 	mCarousel.maxLogoCount = 3;
 	mCarousel.scrollDuration = 500;
 	mCarousel.zIndex = 40;
+	mCarousel.hasCards = false;
+	mCarousel.cardSize = Vector2f::Zero();
+	mCarousel.cardOffset = Vector2f::Zero();
 
 	// System Info Bar
 	mSystemInfo.setSize(mSize.x(), mSystemInfo.getFont()->getLetterHeight()*2.2f);
@@ -781,8 +892,30 @@ void SystemView::getCarouselFromTheme(const ThemeData::ThemeElement* elem)
 		else
 			mCarousel.logoAlignment = ALIGN_CENTER;
 	}
+	if (elem->has("cardPath") && elem->has("cardActivePath") && elem->has("cardSize"))
+	{
+		mCard.setImage(elem->get<std::string>("cardPath"));
+		mCardActive.setImage(elem->get<std::string>("cardActivePath"));
+		mCarousel.cardSize = elem->get<Vector2f>("cardSize") * mSize;
+		mCard.setOrigin(0.5f, 0.5f);
+		mCardActive.setOrigin(0.5f, 0.5f);
+		mCard.setResize(mCarousel.cardSize);
+		mCardActive.setResize(mCarousel.cardSize);
+		mCarousel.hasCards = true;
+	}
+	if (elem->has("cardOffset"))
+		mCarousel.cardOffset = elem->get<Vector2f>("cardOffset") * mSize;
+	if (elem->has("chipPath") && elem->has("chipActivePath"))
+	{
+		mChip.setImage(elem->get<std::string>("chipPath"));
+		mChipActive.setImage(elem->get<std::string>("chipActivePath"));
+	}
 	if (elem->has("scrollSound"))
 		mScrollSound = elem->get<std::string>("scrollSound");
+	if (elem->has("transitionStyle"))
+		mCarousel.transitionStyle = elem->get<std::string>("transitionStyle");
+	if (elem->has("fastInfo"))
+		mCarousel.fastInfo = elem->get<bool>("fastInfo");
 }
 
 void SystemView::onShow()

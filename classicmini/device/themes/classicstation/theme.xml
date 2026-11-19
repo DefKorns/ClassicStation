@@ -1,0 +1,1157 @@
+<theme>
+	<formatVersion>3</formatVersion>
+	<defaultView>grid</defaultView>
+
+	<include>./console.xml</include>
+	<include>./layout.xml</include>
+	<include>./logo.xml</include>
+
+	<view name="basic, detailed, system, grid">
+		<image name="background" extra="true">
+			<path>./background.png</path>
+			<pos>0 0</pos>
+			<size>1 1</size>
+			<zIndex>0</zIndex>
+		</image>
+
+		<image name="wall" extra="true">
+			<path>${wallPath}</path>
+			<pos>${wallPos}</pos>
+			<size>${wallSize}</size>
+			<tile>true</tile>
+			<scrollSpeed>${wallScroll}</scrollSpeed>
+			<hideOnSuspend>true</hideOnSuspend>
+			<visible>${wallVisible}</visible>
+			<zIndex>1</zIndex>
+		</image>
+
+		<text name="logoText">
+			<pos>0 0.03</pos>
+			<size>1 0.08</size>
+			<fontSize>0.045</fontSize>
+			<color>FFFFFF</color>
+			<alignment>center</alignment>
+			<backgroundColor>00000000</backgroundColor>
+			<zIndex>50</zIndex>
+		</text>
+
+		<helpsystem name="help">
+			<pos>0.5 ${helpY}</pos>
+			<origin>0.5 0.5</origin>
+			<iconTextSpacing>4</iconTextSpacing>
+			<entrySpacing>30</entrySpacing>
+			<textColor>${helpText}</textColor>
+			<iconColor>FFFFFF</iconColor>
+			<fontSize>0.0311</fontSize>
+			<iconHeight>${helpIcon}</iconHeight>
+		</helpsystem>
+
+		<helpsystem name="menu_help">
+			<textColor>${menuHelp}</textColor>
+		</helpsystem>
+	</view>
+
+	<view name="basic, detailed, grid">
+		<image name="menubar_top" extra="true">
+			<path>./menubar_top.png</path>
+			<pos>0 -0.033333</pos>
+			<size>1 0.166667</size>
+			<zIndex>5</zIndex>
+		</image>
+		<image name="menubar_bottom" extra="true">
+			<path>./menubar_bottom.png</path>
+			<pos>0 0.875</pos>
+			<size>1 0.166667</size>
+			<zIndex>5</zIndex>
+		</image>
+		<image name="bar_logo" extra="true">
+			<visible>${barLogo}</visible>
+			<path>./assets/systems/logos/${system.theme}.svg</path>
+			<default>:/logos/${system.theme}.svg</default>
+			<color>${barLogoColor}</color>
+			<pos>${barLogoPos}</pos>
+			<maxSize>${barLogoMax}</maxSize>
+			<origin>${barLogoOrigin}</origin>
+			<zIndex>20</zIndex>
+		</image>
+
+		<text name="logoText">
+			<visible>false</visible>
+		</text>
+
+		<image name="top_label" extra="true">
+			<path>${labelPath}</path>
+			<pos>${labelPos}</pos>
+			<size>0.241406 0.030556</size>
+			<origin>0.5 0.5</origin>
+			<visible>${labelVisible}</visible>
+			<zIndex>70</zIndex>
+		</image>
+
+		<image name="menu_strip" extra="true">
+			<path>./ui/menu_strip.png</path>
+			<pos>0.3125 -0.033333</pos>
+			<size>0.375 0.166667</size>
+			<zIndex>6</zIndex>
+		</image>
+
+		<container name="menuIcons">
+			<pos>0.3125 0.0361</pos>
+			<size>0.375 0.1</size>
+			<captionColor>${captionText}</captionColor>
+		</container>
+
+		<helpsystem name="help">
+			<pos>0.5 ${helpY}</pos>
+			<origin>0.5 0.5</origin>
+			<iconTextSpacing>4</iconTextSpacing>
+			<entrySpacing>30</entrySpacing>
+			<textColor>${helpText}</textColor>
+			<iconColor>FFFFFF</iconColor>
+			<fontSize>0.0311</fontSize>
+			<iconHeight>${helpIcon}</iconHeight>
+		</helpsystem>
+
+		<image name="nandSpaceIcon">
+			<pos>${nandIconPos}</pos>
+			<color>${barLogoColor}</color>
+			<size>0.019531 0.034722</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>70</zIndex>
+		</image>
+
+		<text name="nandSpace">
+			<pos>${nandTextPos}</pos>
+			<size>0.0625 0.038889</size>
+			<fontSize>0.0306</fontSize>
+			<color>${spaceText}</color>
+			<alignment>left</alignment>
+			<zIndex>70</zIndex>
+		</text>
+
+		<image name="diskSpaceIcon">
+			<pos>${diskIconPos}</pos>
+			<color>${barLogoColor}</color>
+			<size>0.019531 0.034722</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>70</zIndex>
+		</image>
+
+		<text name="diskSpace">
+			<pos>${diskTextPos}</pos>
+			<size>0.0625 0.038889</size>
+			<fontSize>0.0306</fontSize>
+			<color>${spaceText}</color>
+			<alignment>left</alignment>
+			<zIndex>70</zIndex>
+		</text>
+
+		<image name="swapSpaceIcon">
+			<pos>${swapIconPos}</pos>
+			<color>${barLogoColor}</color>
+			<size>0.019531 0.034722</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>70</zIndex>
+		</image>
+
+		<text name="swapSpace">
+			<pos>${swapTextPos}</pos>
+			<size>0.0625 0.038889</size>
+			<fontSize>0.0306</fontSize>
+			<color>${spaceText}</color>
+			<alignment>left</alignment>
+			<zIndex>70</zIndex>
+		</text>
+
+		<image name="overclockIcon">
+			<path>${overclockPath}</path>
+			<pos>${overclockPos}</pos>
+			<color>${overclockColor}</color>
+			<size>${overclockSize}</size>
+			<origin>${overclockOrigin}</origin>
+			<zIndex>${overclockZ}</zIndex>
+		</image>
+
+		<helpsystem name="suspend_help">
+			<pos>0.5 0.929167</pos>
+			<origin>0.5 0.5</origin>
+			<iconTextSpacing>4</iconTextSpacing>
+			<entrySpacing>30</entrySpacing>
+			<textColor>${suspendHelp}</textColor>
+			<iconColor>FFFFFF</iconColor>
+			<fontSize>0.0311</fontSize>
+			<iconHeight>0.041667</iconHeight>
+		</helpsystem>
+
+		<container name="suspend_backdrop">
+			<visible>false</visible>
+			<dim>${suspendDim}</dim>
+		</container>
+
+		<image name="suspend_panel">
+			<path>./suspend_panel.png</path>
+			<pos>-0.001563 0.450000</pos>
+			<size>1.003125 0.554167</size>
+		</image>
+
+		<image name="suspend_cell">
+			<path>./suspend_cell.png</path>
+			<pos>0.120313 0.633333</pos>
+			<size>0.150000 0.233333</size>
+		</image>
+
+		<image name="suspend_cell_selected">
+			<path>./suspend_cell_selected.png</path>
+			<pos>0.120313 0.633333</pos>
+			<size>0.150000 0.233333</size>
+		</image>
+
+		<image name="suspend_cell_empty">
+			<path>./suspend_cell_empty.png</path>
+			<pos>0.115625 0.625</pos>
+			<size>0.159375 0.25</size>
+		</image>
+
+		<image name="suspend_cell_empty_selected">
+			<path>./suspend_cell_empty_selected.png</path>
+			<pos>0.115625 0.625</pos>
+			<size>0.159375 0.25</size>
+		</image>
+
+		<image name="suspend_cell_next">
+			<path>./suspend_cell.png</path>
+			<pos>0.323437 0.633333</pos>
+			<size>0.150000 0.233333</size>
+		</image>
+
+		<image name="suspend_shot">
+			<pos>0.132812 0.650000</pos>
+			<size>0.125000 0.166667</size>
+		</image>
+
+		<image name="suspend_frame">
+			<path>./suspend_frame.png</path>
+			<pos>0.132812 0.650000</pos>
+			<size>0.125000 0.166667</size>
+		</image>
+
+		<image name="suspend_frame_selected">
+			<path>./suspend_frame.png</path>
+			<pos>0.132812 0.650000</pos>
+			<size>0.125000 0.166667</size>
+		</image>
+
+		<image name="suspend_trash">
+			<path>./suspend_trash.png</path>
+			<pos>0.885938 0.744444</pos>
+			<size>0.075 0.2</size>
+		</image>
+
+		<image name="suspend_trash_open">
+			<path>./suspend_trash_open.png</path>
+			<pos>0.885938 0.744444</pos>
+			<size>0.075 0.2</size>
+		</image>
+
+		<image name="suspend_float_card">
+			<path>./floating_large_card.png</path>
+		</image>
+
+		<image name="suspend_float_active">
+			<path>./floating_large_active.png</path>
+		</image>
+
+		<image name="suspend_float_frame">
+			<path>./floating_large_frame.png</path>
+		</image>
+
+		<image name="suspend_float_wing_a">
+			<path>./floating_large_wing_a.png</path>
+		</image>
+
+		<image name="suspend_float_wing_b">
+			<path>./floating_large_wing_b.png</path>
+		</image>
+
+		<image name="suspend_float_wing_left_a">
+			<path>./floating_large_wing_left_a.png</path>
+		</image>
+
+		<image name="suspend_float_wing_left_b">
+			<path>./floating_large_wing_left_b.png</path>
+		</image>
+
+		<image name="suspend_float_arrow_left">
+			<path>./floating_arrow_left.png</path>
+		</image>
+
+		<image name="suspend_float_arrow_right">
+			<path>./floating_arrow_right.png</path>
+		</image>
+
+		<image name="suspend_warning">
+			<path>./warning_popup.png</path>
+		</image>
+
+		<image name="suspend_warning_icon">
+			<path>./warning_icon.png</path>
+		</image>
+
+		<text name="suspend_warning_text">
+			<fontSize>0.0306</fontSize>
+			<color>000000</color>
+		</text>
+
+		<image name="suspend_float_ring">
+			<path>./cursor_ring.png</path>
+		</image>
+
+		<image name="suspend_float_balloon">
+			<path>./floating_balloon.png</path>
+		</image>
+
+		<image name="suspend_float_balloon_icon">
+			<path>./floating_balloon_icon.png</path>
+		</image>
+
+		<text name="suspend_float_label">
+			<fontSize>0.0306</fontSize>
+			<color>000000</color>
+		</text>
+
+		<text name="suspend_float_time">
+			<fontSize>0.0333</fontSize>
+			<color>FFFFFF</color>
+		</text>
+
+		<image name="suspend_lock">
+			<path>./suspend_lock.png</path>
+			<pos>0.125000 0.783333</pos>
+			<size>0.037500 0.070833</size>
+		</image>
+
+		<text name="suspend_label">
+			<pos>0.132813 0.822222</pos>
+			<size>0.125 0.033333</size>
+			<fontSize>0.0333</fontSize>
+			<color>${suspendTime}</color>
+			<alignment>right</alignment>
+		</text>
+
+		<text name="suspend_title">
+			<pos>0.404688 0.5125</pos>
+			<size>0.46875 0.083333</size>
+			<fontSize>0.0583</fontSize>
+			<color>${suspendTitle}</color>
+			<alignment>left</alignment>
+		</text>
+
+		<text name="suspend_label_empty">
+			<pos>0.117188 0.722222</pos>
+			<size>0.15625 0.055556</size>
+			<fontSize>0.037</fontSize>
+			<color>${suspendEmpty}</color>
+			<alignment>center</alignment>
+		</text>
+
+		<text name="suspend_notice">
+			<pos>0.546875 0.962500</pos>
+			<size>0.421875 0.038889</size>
+			<fontSize>0.027778</fontSize>
+			<color>${logoColor}</color>
+			<alignment>right</alignment>
+		</text>
+	</view>
+
+	<view name="basic, detailed">
+		<image name="menubar_top" extra="true">
+			<zIndex>21</zIndex>
+		</image>
+
+		<image name="menubar_bottom" extra="true">
+			<zIndex>21</zIndex>
+		</image>
+
+		<image name="menu_strip" extra="true">
+			<zIndex>22</zIndex>
+		</image>
+
+		<image name="bar_logo" extra="true">
+			<zIndex>23</zIndex>
+		</image>
+	</view>
+
+	<view name="detailed">
+		<image name="row_1" extra="true">
+			<path>./list_row.png</path>
+			<pos>0.5375 0.1875</pos>
+			<size>0.4203 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_2" extra="true">
+			<path>./list_row.png</path>
+			<pos>0.5375 0.2667</pos>
+			<size>0.4203 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_3" extra="true">
+			<path>./list_row.png</path>
+			<pos>0.5375 0.3458</pos>
+			<size>0.4203 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_4" extra="true">
+			<path>./list_row.png</path>
+			<pos>0.5375 0.4250</pos>
+			<size>0.4203 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_5" extra="true">
+			<path>./list_row.png</path>
+			<pos>0.5375 0.5042</pos>
+			<size>0.4203 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_6" extra="true">
+			<path>./list_row.png</path>
+			<pos>0.5375 0.5833</pos>
+			<size>0.4203 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_7" extra="true">
+			<path>./list_row.png</path>
+			<pos>0.5375 0.6625</pos>
+			<size>0.4203 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+
+		<textlist name="gamelist">
+			<pos>0.5344 0.1742</pos>
+			<size>0.4266 0.5819</size>
+			<horizontalMargin>0.0219</horizontalMargin>
+			<alignment>left</alignment>
+			<fontSize>0.0444</fontSize>
+			<scrollSound>/media/data/emulationstation/audio/se_sys_cursor.wav</scrollSound>
+			<lineSpacing>1.78</lineSpacing>
+			<fitMinScale>0.7</fitMinScale>
+			<primaryColor>1C1C1C</primaryColor>
+			<secondaryColor>1C1C1C</secondaryColor>
+			<selectedColor>FFFFFF</selectedColor>
+			<favoriteIconPath>./heart_filled.png</favoriteIconPath>
+			<favoriteIconOffsetY>0.05</favoriteIconOffsetY>
+			<selectorImagePath>./list_selector.png</selectorImagePath>
+			<selectorColor>FFFFFF</selectorColor>
+			<selectorHeight>0.0806</selectorHeight>
+			<selectorOffsetY>-0.0069</selectorOffsetY>
+			<zIndex>20</zIndex>
+		</textlist>
+
+		<image name="cover_card" extra="true">
+			<fadeWithInfo>true</fadeWithInfo>
+			<path>./cover_card.png</path>
+			<pos>0.0344 0.157</pos>
+			<size>0.2039 0.5389</size>
+			<zIndex>25</zIndex>
+		</image>
+
+		<image name="md_image">
+			<pos>0.1363 0.383</pos>
+			<maxSize>0.182 0.414</maxSize>
+			<origin>0.5 0.5</origin>
+			<zIndex>30</zIndex>
+		</image>
+
+		<rating name="md_rating">
+			<pos>0.0453 0.6278</pos>
+			<size>0.1172 0.0417</size>
+			<filledPath>./rating_heart_filled.png</filledPath>
+			<unfilledPath>./rating_heart_empty.png</unfilledPath>
+			<zIndex>40</zIndex>
+		</rating>
+
+		<playersicon name="md_playersicon">
+			<pos>0.1828125 0.6236</pos>
+			<size>0.04453 0.04583</size>
+			<onePath>./players_one.png</onePath>
+			<manyPath>./players_many.png</manyPath>
+			<zIndex>40</zIndex>
+		</playersicon>
+
+		<text name="md_code">
+			<pos>0.0344 0.7125</pos>
+			<size>0.2039 0.0417</size>
+			<fontSize>0.0236</fontSize>
+			<color>A8A8A8</color>
+			<alignment>center</alignment>
+			<zIndex>40</zIndex>
+		</text>
+
+		<text name="md_name">
+			<pos>0.2641 0.1597</pos>
+			<size>0.2383 0.0903</size>
+			<fontSize>0.07</fontSize>
+			<color>${detailText}</color>
+			<alignment>left</alignment>
+			<fitMinScale>0.5</fitMinScale>
+			<zIndex>40</zIndex>
+		</text>
+
+		<image name="md_marquee">
+			<logoOnly>true</logoOnly>
+			<pos>0.2641 0.2048</pos>
+			<maxSize>0.2383 0.0903</maxSize>
+			<origin>0 0.5</origin>
+			<visible>true</visible>
+			<zIndex>40</zIndex>
+		</image>
+
+		<image name="scroll_logo" extra="true">
+			<showOnScroll>true</showOnScroll>
+			<path>./scroll_logo.png</path>
+			<pos>0.25 0.496</pos>
+			<maxSize>0.386 0.457</maxSize>
+			<origin>0.5 0.5</origin>
+			<color>FFFFFF40</color>
+			<zIndex>26</zIndex>
+		</image>
+
+		<image name="divider_1" extra="true">
+			<fadeWithInfo>true</fadeWithInfo>
+			<path>./divider.png</path>
+			<pos>0.2641 0.2583</pos>
+			<size>0.2383 0.0028</size>
+			<color>${dividerColor}</color>
+			<zIndex>40</zIndex>
+		</image>
+
+		<text name="md_info">
+			<pos>0.2641 0.2708</pos>
+			<size>0.2383 0.0778</size>
+			<fontSize>0.0306</fontSize>
+			<lineSpacing>1.15</lineSpacing>
+			<color>${detailText}</color>
+			<alignment>left</alignment>
+			<fields>releasedate publisher genre</fields>
+			<separator>  ·  </separator>
+			<breakAfter>2</breakAfter>
+			<zIndex>40</zIndex>
+		</text>
+
+		<image name="divider_2" extra="true">
+			<fadeWithInfo>true</fadeWithInfo>
+			<path>./divider.png</path>
+			<pos>0.2641 0.3639</pos>
+			<size>0.2383 0.0028</size>
+			<color>${dividerColor}</color>
+			<zIndex>40</zIndex>
+		</image>
+
+		<text name="md_description">
+			<pos>0.2641 0.3778</pos>
+			<size>0.2383 0.4028</size>
+			<fontSize>0.0236</fontSize>
+			<lineSpacing>1.25</lineSpacing>
+			<color>${detailText}</color>
+			<alignment>left</alignment>
+			<zIndex>40</zIndex>
+		</text>
+
+		<text name="md_lbl_rating, md_lbl_releasedate, md_lbl_developer, md_lbl_publisher, md_lbl_genre, md_lbl_players, md_lbl_lastplayed, md_lbl_playcount">
+			<pos>1 1</pos>
+			<size>0.1 0.05</size>
+		</text>
+
+		<text name="md_developer, md_publisher, md_genre, md_players, md_playcount">
+			<pos>1 1</pos>
+			<size>0.1 0.05</size>
+		</text>
+
+		<datetime name="md_releasedate, md_lastplayed">
+			<pos>1 1</pos>
+			<size>0.1 0.05</size>
+		</datetime>
+	</view>
+
+	<view name="basic">
+		<image name="row_1" extra="true">
+			<path>./list_row_wide.png</path>
+			<pos>0.1986 0.1875</pos>
+			<size>0.6029 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_2" extra="true">
+			<path>./list_row_wide.png</path>
+			<pos>0.1986 0.2667</pos>
+			<size>0.6029 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_3" extra="true">
+			<path>./list_row_wide.png</path>
+			<pos>0.1986 0.3458</pos>
+			<size>0.6029 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_4" extra="true">
+			<path>./list_row_wide.png</path>
+			<pos>0.1986 0.4250</pos>
+			<size>0.6029 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_5" extra="true">
+			<path>./list_row_wide.png</path>
+			<pos>0.1986 0.5042</pos>
+			<size>0.6029 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_6" extra="true">
+			<path>./list_row_wide.png</path>
+			<pos>0.1986 0.5833</pos>
+			<size>0.6029 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+		<image name="row_7" extra="true">
+			<path>./list_row_wide.png</path>
+			<pos>0.1986 0.6625</pos>
+			<size>0.6029 0.0681</size>
+			<zIndex>10</zIndex>
+		</image>
+
+		<textlist name="gamelist">
+			<pos>0.1955 0.1742</pos>
+			<size>0.6092 0.5819</size>
+			<horizontalMargin>0.0370</horizontalMargin>
+			<alignment>left</alignment>
+			<fontSize>0.0444</fontSize>
+			<scrollSound>/media/data/emulationstation/audio/se_sys_cursor.wav</scrollSound>
+			<lineSpacing>1.78</lineSpacing>
+			<fitMinScale>0.7</fitMinScale>
+			<primaryColor>1C1C1C</primaryColor>
+			<secondaryColor>1C1C1C</secondaryColor>
+			<selectedColor>FFFFFF</selectedColor>
+			<favoriteIconPath>./heart_filled.png</favoriteIconPath>
+			<favoriteIconOffsetY>0.05</favoriteIconOffsetY>
+			<favoriteSlotAlways>true</favoriteSlotAlways>
+			<selectorImagePath>./list_selector_wide.png</selectorImagePath>
+			<selectorColor>FFFFFF</selectorColor>
+			<selectorHeight>0.0806</selectorHeight>
+			<selectorOffsetY>-0.0069</selectorOffsetY>
+			<zIndex>20</zIndex>
+		</textlist>
+	</view>
+
+	<view name="system">
+		<image name="logo">
+			<path>./assets/systems/cards/${system.theme}.png</path>
+		</image>
+
+		<text name="systemCardMaker">
+			<pos>${makerPos}</pos>
+			<size>0.101563 0.047222</size>
+			<fontPath>./assets/fonts/PixelifySans.ttf</fontPath>
+			<fontSize>0.0306</fontSize>
+			<color>${makerText}</color>
+			<activeColor>${makerActiveText}</activeColor>
+			<alignment>left</alignment>
+		</text>
+
+		<text name="systemCardYear">
+			<pos>${yearPos}</pos>
+			<size>${yearSize}</size>
+			<fontPath>./assets/fonts/PressStart2P-Regular.ttf</fontPath>
+			<fontSize>0.025</fontSize>
+			<color>FFFFFF</color>
+			<activeColor>${yearActiveText}</activeColor>
+			<alignment>center</alignment>
+		</text>
+
+		<text name="logoText">
+			<color>1C1C1C</color>
+			<fontSize>0.04</fontSize>
+		</text>
+
+		<image name="menubar_top" extra="true">
+			<path>./menubar_top.png</path>
+			<pos>0 -0.033333</pos>
+			<size>1 0.166667</size>
+			<zIndex>5</zIndex>
+		</image>
+		<image name="menubar_bottom" extra="true">
+			<path>./menubar_bottom.png</path>
+			<pos>0 0.875</pos>
+			<size>1 0.166667</size>
+			<zIndex>5</zIndex>
+		</image>
+		<image name="bar_logo" extra="true">
+			<visible>${barLogo}</visible>
+			<path>./assets/systems/logos/${system.theme}.svg</path>
+			<default>:/logos/${system.theme}.svg</default>
+			<color>${barLogoColor}</color>
+			<pos>${barLogoPos}</pos>
+			<maxSize>${barLogoMax}</maxSize>
+			<origin>${barLogoOrigin}</origin>
+			<zIndex>20</zIndex>
+		</image>
+		<image name="menu_strip" extra="true">
+			<path>./ui/menu_strip.png</path>
+			<pos>0.3125 -0.033333</pos>
+			<size>0.375 0.166667</size>
+			<zIndex>6</zIndex>
+		</image>
+
+		<container name="menuIcons">
+			<pos>0.3125 0.0361</pos>
+			<size>0.375 0.1</size>
+			<captionColor>${captionText}</captionColor>
+		</container>
+
+		<image name="title_bar" extra="true">
+			<path>./title_bar.png</path>
+			<pos>${titleX} ${titleY}</pos>
+			<size>${titleW} ${titleH}</size>
+			<zIndex>10</zIndex>
+		</image>
+
+		<carousel name="systemcarousel">
+			<type>horizontal</type>
+			<scrollSound>/media/data/emulationstation/audio/se_sys_cursor.wav</scrollSound>
+			<transitionStyle>slide</transitionStyle>
+			<fastInfo>true</fastInfo>
+			<pos>${gridX} 0.220833</pos>
+			<size>${gridW} 0.5</size>
+			<logoSize>0.178125 0.283333</logoSize>
+			<logoScale>1</logoScale>
+			<logoAlignment>center</logoAlignment>
+			<maxLogoCount>5</maxLogoCount>
+			<scrollDuration>500</scrollDuration>
+			<cardPath>./system_card.png</cardPath>
+			<cardActivePath>./system_card_active.png</cardActivePath>
+			<cardSize>${cardSize}</cardSize>
+			<cardOffset>0 0.033333</cardOffset>
+			<chipPath>./system_chip.png</chipPath>
+			<chipActivePath>./system_chip_active.png</chipActivePath>
+			<color>00000000</color>
+			<zIndex>40</zIndex>
+		</carousel>
+
+		<text name="systemInfo">
+			<pos>${titleX} ${titleY}</pos>
+			<size>${titleW} ${titleH}</size>
+			<fontSize>0.05</fontSize>
+			<color>${titleText}</color>
+			<alignment>center</alignment>
+			<backgroundColor>00000000</backgroundColor>
+			<zIndex>50</zIndex>
+		</text>
+
+		<text name="systemCount">
+			<fontSize>0.0306</fontSize>
+			<color>8A8A8A</color>
+			<alignment>right</alignment>
+			<backgroundColor>00000000</backgroundColor>
+			<zIndex>50</zIndex>
+		</text>
+	</view>
+
+	<view name="grid">
+		<image name="title_bar" extra="true">
+			<suspendShift>0.072222</suspendShift>
+			<demoShift>0.833333</demoShift>
+			<path>./title_bar.png</path>
+			<pos>${titleX} ${titleY}</pos>
+			<size>${titleW} ${titleH}</size>
+			<zIndex>10</zIndex>
+		</image>
+
+		<text name="logoText">
+			<visible>false</visible>
+		</text>
+
+		<text name="md_name">
+			<suspendShift>0.072222</suspendShift>
+			<demoShift>0.833333</demoShift>
+			<pos>${titleX} ${titleY}</pos>
+			<size>${titleW} ${titleH}</size>
+			<fontSize>0.05</fontSize>
+			<color>${titleText}</color>
+			<alignment>center</alignment>
+			<zIndex>20</zIndex>
+		</text>
+
+		<imagegrid name="gamegrid">
+			<smoothScroll>true</smoothScroll>
+			<suspendShift>0.095833</suspendShift>
+			<demoShift>0.833333</demoShift>
+			<pos>${gridX} ${gridY}</pos>
+			<size>${gridW} 0.4528</size>
+			<margin>0 0</margin>
+			<autoLayout>5 1</autoLayout>
+			<autoLayoutSelectedZoom>1</autoLayoutSelectedZoom>
+			<scrollDuration>500</scrollDuration>
+			<scrollDirection>horizontal</scrollDirection>
+			<scrollSound>/media/data/emulationstation/audio/se_sys_cursor.wav</scrollSound>
+			<centerSelection>true</centerSelection>
+			<scrollLoop>true</scrollLoop>
+			<animate>true</animate>
+			<imageSource>image</imageSource>
+			<zIndex>30</zIndex>
+		</imagegrid>
+
+		<gridtile name="default">
+			<padding>${tilePadding}</padding>
+			<imageOnTop>${imageOnTop}</imageOnTop>
+			<backingColor>${coverBacking}</backingColor>
+			<imageOffset>${coverOffset}</imageOffset>
+			<imageColor>FFFFFF</imageColor>
+			<backgroundCornerSize>0.04375 0.0847</backgroundCornerSize>
+			<backgroundBleed>${tileBleed} 0</backgroundBleed>
+			<backgroundCenterColor>FFFFFFFF</backgroundCenterColor>
+			<backgroundEdgeColor>FFFFFFFF</backgroundEdgeColor>
+			<backgroundImage>./card.png</backgroundImage>
+		</gridtile>
+
+		<gridtile name="selected">
+			<backgroundImage>./card_active.png</backgroundImage>
+			<backgroundBleed>${tileBleed} 0</backgroundBleed>
+		</gridtile>
+
+		<slots name="tile_slots">
+			<pos>${slotsX} ${slotsY}</pos>
+			<size>0.075 0.033333</size>
+			<emptyPath>./slot_empty.png</emptyPath>
+			<savedPath>./slot_saved.png</savedPath>
+			<lockedPath>./slot_locked.png</lockedPath>
+		</slots>
+
+		<slots name="tile_slots_active">
+			<pos>${slotsX} ${slotsY}</pos>
+			<size>0.075 0.033333</size>
+			<emptyPath>./slot_empty_active.png</emptyPath>
+			<savedPath>./slot_saved_active.png</savedPath>
+			<lockedPath>./slot_locked_active.png</lockedPath>
+		</slots>
+
+		<playersicon name="tile_players">
+			<pos>${playersX} ${playersY}</pos>
+			<size>${playersSize}</size>
+			<onePath>./players_one.png</onePath>
+			<manyPath>./players_many.png</manyPath>
+		</playersicon>
+
+		<playersicon name="tile_players_active">
+			<pos>${playersX} ${playersY}</pos>
+			<size>${playersSize}</size>
+			<onePath>./players_one_active.png</onePath>
+			<manyPath>./players_many_active.png</manyPath>
+		</playersicon>
+
+		<image name="floating_card">
+			<path>./floating_card.png</path>
+			<pos>0.124219 0.809722</pos>
+			<size>0.126562 0.208333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_card_active">
+			<path>./floating_card_active.png</path>
+			<pos>0.124219 0.809722</pos>
+			<size>0.117188 0.191667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_screen">
+			<pos>0.124219 0.802778</pos>
+			<size>0.093750 0.125000</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>64</zIndex>
+		</image>
+
+		<image name="floating_frame">
+			<path>./floating_frame.png</path>
+			<pos>0.124219 0.802778</pos>
+			<size>0.093750 0.125000</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+			<color>FFFFFF20</color>
+		</image>
+
+		<image name="floating_wing_left_a">
+			<path>./floating_wing_left_a.png</path>
+			<pos>0.049219 0.738889</pos>
+			<size>0.037500 0.083333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_wing_left_b">
+			<path>./floating_wing_left_b.png</path>
+			<pos>0.049219 0.738889</pos>
+			<size>0.037500 0.083333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_wing_right_a">
+			<path>./floating_wing_a.png</path>
+			<pos>0.199219 0.738889</pos>
+			<size>0.037500 0.083333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_wing_right_b">
+			<path>./floating_wing_b.png</path>
+			<pos>0.199219 0.738889</pos>
+			<size>0.037500 0.083333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_arrow_a">
+			<path>./floating_arrow_a.png</path>
+			<pos>0.124219 0.902778</pos>
+			<size>0.051562 0.091667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_arrow_b">
+			<path>./floating_arrow_b.png</path>
+			<pos>0.124219 0.902778</pos>
+			<size>0.051562 0.091667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_card_small">
+			<path>./floating_card_small.png</path>
+			<pos>0.105469 0.837500</pos>
+			<size>0.089063 0.150000</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+			<color>FFFFFF80</color>
+		</image>
+
+		<image name="floating_screen_small">
+			<pos>0.105469 0.829167</pos>
+			<size>0.062500 0.083333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>64</zIndex>
+		</image>
+
+		<image name="floating_frame_small">
+			<path>./floating_frame_small.png</path>
+			<pos>0.105469 0.829167</pos>
+			<size>0.062500 0.083333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+			<color>FFFFFF20</color>
+		</image>
+
+		<image name="floating_icon_back">
+			<path>./floating_icon_back.png</path>
+			<pos>0.126562 0.790278</pos>
+			<size>0.037500 0.066667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_wing_small_left_a">
+			<path>./floating_wing_small_left_a.png</path>
+			<pos>0.056250 0.791667</pos>
+			<size>0.023438 0.066667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_wing_small_left_b">
+			<path>./floating_wing_small_left_b.png</path>
+			<pos>0.056250 0.791667</pos>
+			<size>0.023438 0.066667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_wing_small_right_a">
+			<path>./floating_wing_small_a.png</path>
+			<pos>0.154688 0.791667</pos>
+			<size>0.023438 0.066667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_wing_small_right_b">
+			<path>./floating_wing_small_b.png</path>
+			<pos>0.154688 0.791667</pos>
+			<size>0.023438 0.066667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>65</zIndex>
+		</image>
+
+		<image name="floating_smoke_1">
+			<path>./floating_smoke_1.png</path>
+			<pos>0.124219 0.809722</pos>
+			<size>0.150000 0.266667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_2">
+			<path>./floating_smoke_2.png</path>
+			<pos>0.124219 0.809722</pos>
+			<size>0.150000 0.266667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_3">
+			<path>./floating_smoke_3.png</path>
+			<pos>0.124219 0.809722</pos>
+			<size>0.150000 0.266667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_4">
+			<path>./floating_smoke_4.png</path>
+			<pos>0.124219 0.809722</pos>
+			<size>0.150000 0.266667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_5">
+			<path>./floating_smoke_5.png</path>
+			<pos>0.124219 0.809722</pos>
+			<size>0.150000 0.266667</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_small_1">
+			<path>./floating_smoke_small_1.png</path>
+			<pos>0.105469 0.837500</pos>
+			<size>0.075000 0.133333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_small_2">
+			<path>./floating_smoke_small_2.png</path>
+			<pos>0.105469 0.837500</pos>
+			<size>0.075000 0.133333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_small_3">
+			<path>./floating_smoke_small_3.png</path>
+			<pos>0.105469 0.837500</pos>
+			<size>0.075000 0.133333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_small_4">
+			<path>./floating_smoke_small_4.png</path>
+			<pos>0.105469 0.837500</pos>
+			<size>0.075000 0.133333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<image name="floating_smoke_small_5">
+			<path>./floating_smoke_small_5.png</path>
+			<pos>0.105469 0.837500</pos>
+			<size>0.075000 0.133333</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>66</zIndex>
+		</image>
+
+		<text name="md_code">
+			<suspendShift>0.072222</suspendShift>
+			<demoShift>0.833333</demoShift>
+			<pos>0.7602 0.2014</pos>
+			<size>0.1328 0.0917</size>
+			<fontSize>0.0306</fontSize>
+			<color>8A8A8A</color>
+			<alignment>right</alignment>
+			<zIndex>41</zIndex>
+		</text>
+
+		<image name="md_favorite">
+			<suspendShift>0.072222</suspendShift>
+			<demoShift>0.833333</demoShift>
+			<path>./heart_filled.png</path>
+			<pos>0.782 0.2236</pos>
+			<size>0.0266 0.0472</size>
+			<zIndex>41</zIndex>
+		</image>
+
+		<text name="md_letters">
+			<pos>${titleX} ${titleY}</pos>
+			<size>${titleW} ${titleH}</size>
+			<fontSize>0.0667</fontSize>
+			<color>${titleText}</color>
+			<alignment>center</alignment>
+		</text>
+
+		<image name="thumbnail_strip">
+			<visibleCount>${thumbCount}</visibleCount>
+			<pos>${thumbPos}</pos>
+			<size>${thumbSize}</size>
+		</image>
+
+		<image name="thumbnail_arrow_a">
+			<path>./thumbnail_arrow_a.png</path>
+			<pos>${arrowPos}</pos>
+			<origin>0.5 0.5</origin>
+			<zIndex>31</zIndex>
+		</image>
+
+		<image name="thumbnail_arrow_b">
+			<path>./thumbnail_arrow_b.png</path>
+			<pos>${arrowPos}</pos>
+			<origin>0.5 0.5</origin>
+			<zIndex>31</zIndex>
+		</image>
+
+		<image name="thumbnail_arrow_c">
+			<path>./thumbnail_arrow_c.png</path>
+			<pos>${arrowPos}</pos>
+			<origin>0.5 0.5</origin>
+			<zIndex>31</zIndex>
+		</image>
+
+		<image name="md_image">
+			<pos>1 1</pos>
+			<visible>false</visible>
+		</image>
+
+		<text name="md_description">
+			<pos>1 1</pos>
+			<size>0.1 0.05</size>
+		</text>
+
+		<text name="md_lbl_rating, md_lbl_releasedate, md_lbl_developer, md_lbl_publisher, md_lbl_genre, md_lbl_players, md_lbl_lastplayed, md_lbl_playcount">
+			<pos>1 1</pos>
+			<size>0.1 0.05</size>
+		</text>
+
+		<text name="md_developer, md_publisher, md_genre, md_players, md_playcount">
+			<pos>1 1</pos>
+			<size>0.1 0.05</size>
+		</text>
+
+		<datetime name="md_releasedate, md_lastplayed">
+			<pos>1 1</pos>
+			<size>0.1 0.05</size>
+		</datetime>
+
+		<rating name="md_rating">
+			<pos>1 1</pos>
+			<size>0.07 0.02</size>
+		</rating>
+	</view>
+</theme>

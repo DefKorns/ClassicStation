@@ -4,8 +4,11 @@
 
 #include "components/DateTimeComponent.h"
 #include "components/RatingComponent.h"
+#include "components/PlayersIconComponent.h"
+#include "components/SuspendSlotsComponent.h"
 #include "components/PagedTextComponent.h"
 #include "views/gamelist/BasicGameListView.h"
+#include "views/gamelist/InfoLine.h"
 
 class DetailedGameListView : public BasicGameListView
 {
@@ -19,6 +22,8 @@ public:
 	virtual void launch(FileData* game) override;
 
 	void onFocusLost() override;
+
+	void onFloatingChanged() override;
 
 private:
 	void updateInfoPanel();
@@ -43,11 +48,10 @@ private:
 	TextComponent mName;
 	TextComponent mCode;
 	TextComponent mInfo;
-	std::vector<std::string> mInfoFields;
-	std::string mInfoSeparator = " ";
-	std::string mPlayersOne = "player";
-	std::string mPlayersMany = "players";
-	std::string buildInfo(FileData* file) const;
+	SuspendSlotsComponent mSlots;
+	PlayersIconComponent mPlayersIcon;
+	InfoLine mInfoLine;
+	bool mLogoOnly = false;
 
 	std::vector<TextComponent*> getMDLabels();
 	std::vector<GuiComponent*> getMDValues();

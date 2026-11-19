@@ -32,6 +32,8 @@ struct ScraperSearchResult
 	MetaDataList mdl;
 	std::string imageUrl;
 	std::string thumbnailUrl;
+	std::string marqueeUrl;
+	std::string marqueeType;
 
 	// Needed to pre-set the image type
 	std::string imageType;
@@ -172,5 +174,8 @@ std::vector<PlatformIds::PlatformId> getScrapePlatforms(const ScraperSearchParam
 //Will overwrite the image at [path] with the new resized one.
 //Returns true if successful, false otherwise.
 bool resizeImage(const std::string& path, int maxWidth, int maxHeight);
+
+bool saveThumbnail(const std::string& source, const std::string& target, int maxWidth, int maxHeight);
+std::string thumbnailPathFor(const std::string& imagePath);
 
 #endif // ES_APP_SCRAPERS_SCRAPER_H

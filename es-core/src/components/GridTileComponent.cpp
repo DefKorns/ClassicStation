@@ -1,14 +1,39 @@
 #include "GridTileComponent.h"
 
+#include <algorithm>
+
 #include "animations/LambdaAnimation.h"
 #include "resources/TextureResource.h"
 #include "ThemeData.h"
 
-GridTileComponent::GridTileComponent(Window* window) : GuiComponent(window), mBackground(window, ":/frame.png"), mBadge(window)
+namespace
 {
-	mBadge.setImage(":/suspend_marker.png");
-	mBadge.setOrigin(0.5f, 0.5f);
-	mBadge.setResize(30.0f, 36.0f);
+	float sUnselectedBrightness = 1.0f;
+	bool sSmoothLoading = false;
+
+	unsigned int scaled(unsigned int color, float factor)
+	{
+		factor = std::max(0.0f, factor);
+		const auto channel = [&](int shift) {
+			const float value = static_cast<float>((color >> shift) & 0xFF) * factor + 0.5f;
+			return static_cast<unsigned int>(std::min(255.0f, value)) << shift;
+		};
+		return channel(24) | channel(16) | channel(8) | (color & 0xFF);
+	}
+}
+
+void GridTileComponent::setSmoothLoading(bool smooth)
+{
+	sSmoothLoading = smooth;
+}
+
+void GridTileComponent::setUnselectedBrightness(float brightness)
+{
+	sUnselectedBrightness = brightness;
+}
+
+GridTileComponent::GridTileComponent(Window* window) : GuiComponent(window), mBackground(window, ":/frame.png")
+{
 	mDefaultProperties.mSize = getDefaultTileSize();
 	mDefaultProperties.mPadding = Vector2f(16.0f, 16.0f);
 	mDefaultProperties.mImageColor = 0xAAAAAABB;
@@ -49,19 +74,45 @@ void GridTileComponent::render(const Transform4x4f& parentTrans)
 
 	if (mVisible)
 	{
-		constexpr unsigned int backing = 0x101010FF;
+		const unsigned int backing = mCurrentProperties.mBackingColor;
 		const Vector2f size = mCurrentProperties.mSize - mCurrentProperties.mPadding * 2;
 
 		Renderer::setMatrix(trans);
-		Renderer::drawRect(-size.x() / 2.0f, -size.y() / 2.0f, size.x(), size.y(), backing, backing);
-		mImage->render(trans);
-		mBackground.render(trans);
-
-		if (mMarked)
+		mImage->setFadeEnabled(!sSmoothLoading);
+		if((!sSmoothLoading || !mImage->isAsyncPending()) && (backing & 0xFF) != 0)
+			Renderer::drawRect(-size.x() / 2.0f, -size.y() / 2.0f, size.x(), size.y(), backing, backing);
+		const float brightness = mSelected ? 1.0f : sUnselectedBrightness;
+		const unsigned int imageColor = scaled(mCurrentProperties.mImageColor, brightness);
+		const unsigned int centerColor = scaled(mCurrentProperties.mBackgroundCenterColor, brightness);
+		const unsigned int edgeColor = scaled(mCurrentProperties.mBackgroundEdgeColor, brightness);
+		if(!mShownKnown || imageColor != mShownImage || centerColor != mShownCenter || edgeColor != mShownEdge)
 		{
-			Transform4x4f badgeTrans = trans;
-			badgeTrans.translate(Vector3f(-mCurrentProperties.mSize.x() / 2.0f + 19.0f, -mCurrentProperties.mSize.y() / 2.0f + 14.0f, 0.0f));
-			mBadge.render(badgeTrans);
+			mImage->setColorShift(imageColor);
+			mBackground.setCenterColor(centerColor);
+			mBackground.setEdgeColor(edgeColor);
+			mShownImage = imageColor;
+			mShownCenter = centerColor;
+			mShownEdge = edgeColor;
+			mShownKnown = true;
+		}
+		Transform4x4f imageTrans = trans;
+		imageTrans.translate(Vector3f(mCurrentProperties.mImageOffset.x(), mCurrentProperties.mImageOffset.y(), 0.0f));
+		if(mCurrentProperties.mImageOnTop)
+		{
+			mBackground.render(trans);
+			mImage->render(imageTrans);
+		}
+		else
+		{
+			mImage->render(imageTrans);
+			mBackground.render(trans);
+		}
+
+		if (mOverlay)
+		{
+			Transform4x4f overlayTrans = trans;
+			overlayTrans.translate(Vector3f(-mCurrentProperties.mSize.x() / 2.0f, -mCurrentProperties.mSize.y() / 2.0f, 0.0f));
+			mOverlay->render(overlayTrans);
 		}
 	}
 }
@@ -80,9 +131,6 @@ void GridTileComponent::applyCurrentProperties()
 
 	mBackground.setImagePath(mCurrentProperties.mBackgroundImage);
 
-	mImage->setColorShift(mCurrentProperties.mImageColor);
-	mBackground.setCenterColor(mCurrentProperties.mBackgroundCenterColor);
-	mBackground.setEdgeColor(mCurrentProperties.mBackgroundEdgeColor);
 
 	resize();
 }
@@ -105,6 +153,13 @@ void applyThemeToProperties(const ThemeData::ThemeElement* elem, GridTilePropert
 
 	if (elem->has("imageColor"))
 		properties->mImageColor = elem->get<unsigned int>("imageColor");
+
+	if (elem->has("imageOnTop"))
+		properties->mImageOnTop = elem->get<bool>("imageOnTop");
+	if (elem->has("imageOffset"))
+		properties->mImageOffset = elem->get<Vector2f>("imageOffset") * screen;
+	if (elem->has("backingColor"))
+		properties->mBackingColor = elem->get<unsigned int>("backingColor");
 
 	if (elem->has("backgroundImage"))
 		properties->mBackgroundImage = elem->get<std::string>("backgroundImage");
@@ -143,6 +198,9 @@ void GridTileComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, cons
 {
 	Vector2f screen = Vector2f((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 
+	if (mOverlay)
+		mOverlay->applyTheme(theme, view, "gridtile", ThemeFlags::ALL);
+
 	// Apply theme to the default gridtile
 	const ThemeData::ThemeElement* elem = theme->getElement(view, "default", "gridtile");
 	if (elem)
@@ -155,6 +213,9 @@ void GridTileComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, cons
 
 	mSelectedProperties.mSize = getSelectedTileSize();
 	mSelectedProperties.mPadding = mDefaultProperties.mPadding;
+	mSelectedProperties.mImageOnTop = mDefaultProperties.mImageOnTop;
+	mSelectedProperties.mBackingColor = mDefaultProperties.mBackingColor;
+	mSelectedProperties.mImageOffset = mDefaultProperties.mImageOffset;
 	mSelectedProperties.mBackgroundImage = mDefaultProperties.mBackgroundImage;
 	mSelectedProperties.mBackgroundCornerSize = mDefaultProperties.mBackgroundCornerSize;
 
@@ -217,6 +278,8 @@ void GridTileComponent::setSelected(bool selected, bool allowAnimation, Vector3f
 	}
 
 	mSelected = selected;
+	if (mOverlay)
+		mOverlay->setSelected(selected);
 
 	if (selected)
 	{

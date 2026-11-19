@@ -9,8 +9,10 @@
 #include "guis/GuiSuspendPoints.h"
 #include "views/gamelist/IGameListView.h"
 #include "SuspendPoints.h"
+#include "SuspendSlotState.h"
 #include <stack>
 #include <string>
+#include <unordered_map>
 
 class ISimpleGameListView : public IGameListView
 {
@@ -37,6 +39,8 @@ public:
 
 	virtual bool openSuspendPoints() override;
 	virtual bool supportsSuspendPoints() const override { return true; }
+	virtual bool floatingAvailable() override;
+	virtual void discardFloating() override;
 
 protected:
 	bool hasExtraButtons() const;
@@ -58,6 +62,10 @@ protected:
 
 	void refreshFloating();
 	virtual void onFloatingChanged() {}
+	virtual void onFloatingErased() {}
+	void eraseFloating();
+	SlotStates suspendStates(const FileData* game) const;
+	bool hasSaveData(const FileData* game) const;
 	bool isFloating(const FileData* file) const;
 	bool jumpToFloating();
 	bool canJumpTo(const FileData* game);
@@ -66,6 +74,15 @@ protected:
 	void applyPendingResume();
 
 	SuspendPoints mSuspendPoints;
+
+	struct TileState
+	{
+		SlotStates states;
+		bool saveData = false;
+	};
+	const TileState& tileState(const FileData* game) const;
+	mutable std::unordered_map<std::string, TileState> mTileStates;
+	mutable int mTileGeneration = 0;
 	SuspendPoint mFloating;
 	int mPendingResume = 0;
 };

@@ -4,6 +4,7 @@
 
 #include "components/HeaderStatus.h"
 #include "components/IList.h"
+#include "components/ImageComponent.h"
 #include "components/MenuIconBar.h"
 #include "components/TextComponent.h"
 #include "resources/Font.h"
@@ -25,6 +26,15 @@ enum CarouselType : unsigned int
 struct SystemViewData
 {
 	std::shared_ptr<GuiComponent> logo;
+	std::shared_ptr<TextComponent> maker;
+	std::shared_ptr<TextComponent> year;
+	unsigned int makerColor = 0;
+	unsigned int makerActiveColor = 0;
+	unsigned int makerShownColor = 0;
+	unsigned int yearColor = 0;
+	unsigned int yearActiveColor = 0;
+	unsigned int yearShownColor = 0;
+	Vector2f yearSize = Vector2f::Zero();
 	std::vector<GuiComponent*> backgroundExtras;
 };
 
@@ -45,6 +55,11 @@ struct SystemViewCarousel
 	int scrollDuration;
 	Vector2f logoSize;
 	float zIndex;
+	bool hasCards;
+	Vector2f cardSize;
+	Vector2f cardOffset;
+	std::string transitionStyle;
+	bool fastInfo = false;
 };
 
 class SystemView : public IList<SystemViewData, SystemData*>
@@ -87,10 +102,17 @@ private:
 
 	SystemViewCarousel mCarousel;
 	TextComponent mSystemInfo;
+	TextComponent mSystemCount;
+	bool mHasSystemCount = false;
+	ImageComponent mCard;
+	ImageComponent mCardActive;
+	ImageComponent mChip;
+	ImageComponent mChipActive;
 	HeaderStatus mHeaderStatus;
 	MenuIconBar mIconBar;
 	std::shared_ptr<bool> mAlive = std::make_shared<bool>(true);
 	bool mHeaderFocus = false;
+	int mScrollCursor = 0;
 	std::string mScrollSound;
 
 	// unit is list index

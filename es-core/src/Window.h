@@ -54,6 +54,7 @@ public:
 	void input(InputConfig* config, Input input);
 	void update(int deltaTime);
 	void render();
+	unsigned int getTimeSinceLastInput() const { return mTimeSinceLastInput; }
 
 	bool init();
 	void deinit();
@@ -67,7 +68,8 @@ public:
 	void renderLoadingScreen(std::string text, float percent = -1, unsigned char opacity = 255);
 	void renderFullScreenImage(const std::string& path);
 
-	void renderHelpPromptsEarly(); // used to render HelpPrompts before a fade
+	void renderHelpPromptsEarly();
+	void skipHelpPrompts() { mRenderedHelpPrompts = true; } // used to render HelpPrompts before a fade
 	void setHelpPrompts(const std::vector<HelpPrompt>& prompts, const HelpStyle& style);
 
 	void setScreenSaver(ScreenSaver* screenSaver) { mScreenSaver = screenSaver; }

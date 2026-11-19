@@ -10,6 +10,7 @@
 #include <array>
 #include "guis/GuiGeneralScreensaverOptions.h"
 #include "guis/GuiMsgBox.h"
+#include "views/ExtraButtons.h"
 #include "guis/GuiScraperStart.h"
 #include "guis/GuiVirtualKeyboard.h"
 #include "guis/GuiSettings.h"
@@ -163,12 +164,6 @@ void GuiMenu::addToggle(const char* name, const std::string& stateArguments, con
 	mMenu.addRow(row);
 }
 
-bool GuiMenu::isFamicomPad()
-{
-	const char* pad = std::getenv("ES_PAD");
-	return pad != nullptr && std::string(pad) == "nes";
-}
-
 void GuiMenu::openController()
 {
 	auto s = new GuiSettings(mWindow, "CONTROLLER");
@@ -252,7 +247,110 @@ void GuiMenu::openDeveloper()
 	journalToggle->setChangedCallback([](bool enabled) { DebugMode::setJournalEnabled(enabled); });
 	s->addWithLabel("VIDEO DEBUG LOG", journalToggle);
 
+	if (ConsoleTools::isOn("overclock available"))
+	{
+		auto overclockToggle = std::make_shared<SwitchComponent>(mWindow, ConsoleTools::isOn("overclock state"));
+		Window* window = mWindow;
+		SwitchComponent* overclockSwitch = overclockToggle.get();
+		overclockToggle->setChangedCallback([window, overclockSwitch](bool enabled) {
+			if (!enabled)
+			{
+				ConsoleTools::run("overclock toggle");
+				return;
+			}
+			auto confirm = new GuiMsgBox(window,
+				"OVERCLOCK RAISES THE CPU TO ITS MAXIMUM FREQUENCY.\n\n"
+				"USE AT YOUR OWN RISK. IT MAY NOT WORK ON EVERY CONSOLE AND CAN CAUSE CRASHES OR REBOOTS, "
+				"ESPECIALLY WITH A WEAK POWER SUPPLY (5V/2A OR MORE RECOMMENDED) OR USB DEVICES ATTACHED.\n\n"
+				"IT STAYS ON UNTIL YOU TURN IT OFF OR RESTART THE CONSOLE, AND TURNS OFF BY ITSELF AT 80 C.\n\n"
+				"ENABLE OVERCLOCK?",
+				"YES", [] { ConsoleTools::run("overclock toggle"); },
+				"NO", [overclockSwitch] { overclockSwitch->setState(false); });
+			confirm->selectButton(1);
+			window->pushGui(confirm);
+		});
+		s->addWithLabel("OVERCLOCK", overclockToggle);
+
+		auto autoToggle = std::make_shared<SwitchComponent>(mWindow, ConsoleTools::isOn("overclock auto state"));
+		SwitchComponent* autoSwitch = autoToggle.get();
+		autoToggle->setChangedCallback([window, autoSwitch](bool enabled) {
+			if (!enabled)
+			{
+				ConsoleTools::run("overclock auto toggle");
+				return;
+			}
+			auto confirm = new GuiMsgBox(window,
+				"OVERCLOCK TURNS ON BY ITSELF ONLY WHILE YOU PLAY N64, PS1, ARCADE, DS, PSP OR GBA GAMES, "
+				"AND GOES BACK TO NORMAL WHEN YOU LEAVE THE GAME.\n\n"
+				"USE AT YOUR OWN RISK. IT MAY NOT WORK ON EVERY CONSOLE AND CAN CAUSE CRASHES OR REBOOTS, "
+				"ESPECIALLY WITH A WEAK POWER SUPPLY (5V/2A OR MORE RECOMMENDED) OR USB DEVICES ATTACHED. "
+				"IT TURNS OFF BY ITSELF AT 80 C.\n\n"
+				"ENABLE OVERCLOCK IN HEAVY GAMES?",
+				"YES", [] { ConsoleTools::run("overclock auto toggle"); },
+				"NO", [autoSwitch] { autoSwitch->setState(false); });
+			confirm->selectButton(1);
+			window->pushGui(confirm);
+		});
+		s->addWithLabel("OVERCLOCK IN HEAVY GAMES", autoToggle);
+	}
+
+	if (ConsoleTools::isOn("swap available"))
+	{
+		Window* window = mWindow;
+		auto swapToggle = std::make_shared<SwitchComponent>(mWindow, ConsoleTools::isOn("swap state"));
+		SwitchComponent* swapSwitch = swapToggle.get();
+		const auto runSwap = [window, swapSwitch](const std::string& action) {
+			window->pushGui(new GuiToolRunner(window, [action] { return ConsoleTools::run("swap " + action); },
+				[window, swapSwitch](const std::string& text) {
+					swapSwitch->setState(ConsoleTools::isOn("swap state"));
+					window->pushGui(new GuiMsgBox(window, text, "OK", nullptr));
+				}));
+		};
+		swapToggle->setChangedCallback([window, swapSwitch, runSwap](bool enabled) {
+			if (!enabled)
+			{
+				runSwap("disable");
+				return;
+			}
+			auto confirm = new GuiMsgBox(window,
+				"SWAP FILE USES PART OF THE SD CARD AS EXTRA MEMORY, WHICH CAN STOP HEAVY GAMES (N64, PSP) FROM CRASHING.\n\n"
+				"IT TAKES " + ConsoleTools::run("swap size") + " MB ON THE SD CARD AND IS SLOWER THAN RAM. "
+				"CREATING IT THE FIRST TIME TAKES A FEW MINUTES, DO NOT TURN OFF THE CONSOLE.\n\n"
+				"USE AT YOUR OWN RISK: IT ADDS WEAR TO THE SD CARD. NO RESTART IS NEEDED AND IT STAYS ON AFTER RESTARTS.\n\n"
+				"ENABLE SWAP FILE?",
+				"YES", [runSwap] { runSwap("enable"); },
+				"NO", [swapSwitch] { swapSwitch->setState(false); });
+			confirm->selectButton(1);
+			window->pushGui(confirm);
+		});
+		s->addWithLabel("SWAP FILE", swapToggle);
+
+		auto swapSize = std::make_shared< OptionListComponent<std::string> >(mWindow, "SWAP SIZE", false);
+		const std::string currentSize = ConsoleTools::run("swap size");
+		for (const char* size : { "256", "512" })
+			swapSize->add(std::string(size) + " MB", size, currentSize == size);
+		OptionListComponent<std::string>* swapSizeList = swapSize.get();
+		swapSize->setSelectedChangedCallback([window, swapSizeList] {
+			ConsoleTools::run("swap setsize " + swapSizeList->getSelected());
+			if (ConsoleTools::isOn("swap state"))
+				window->pushGui(new GuiMsgBox(window,
+					"THE NEW SIZE APPLIES WHEN YOU TURN SWAP FILE OFF AND ON AGAIN. THE FILE IS RECREATED, WHICH TAKES A FEW MINUTES.",
+					"OK", nullptr));
+		});
+		s->addWithLabel("SWAP SIZE", swapSize);
+	}
+
+	s->addWithLabel("MEMORY", std::make_shared<TextComponent>(mWindow, ConsoleTools::run("swap info"), Font::get(FONT_SIZE_MENU), MenuColors::Dim, ALIGN_RIGHT));
+	s->addWithLabel("TEMPERATURE", std::make_shared<TextComponent>(mWindow, ConsoleTools::run("temperature"), Font::get(FONT_SIZE_MENU), MenuColors::Dim, ALIGN_RIGHT));
+
 	mWindow->pushGui(s);
+
+	const std::string cutoffTemperature = ConsoleTools::run("overclock cutoff");
+	if (!cutoffTemperature.empty())
+		mWindow->pushGui(new GuiMsgBox(mWindow,
+			"OVERCLOCK WAS TURNED OFF BY ITSELF BECAUSE THE CPU REACHED " + cutoffTemperature + " C.\n\n"
+			"LET THE CONSOLE COOL DOWN BEFORE TURNING IT ON AGAIN.",
+			"OK", nullptr));
 }
 
 void GuiMenu::openAbout()
@@ -318,6 +416,7 @@ void GuiMenu::openScraperSettings()
 		{ "SCRAPE NAME", "ScrapeName" },
 		{ "SCRAPE DESCRIPTION", "ScrapeDescription" },
 		{ "SCRAPE COVER IMAGE", "ScrapeImage" },
+		{ "SCRAPE LOGO", "ScrapeMarquee" },
 		{ "SCRAPE DETAILS", "ScrapeDetails" },
 		{ "OVERWRITE EXISTING DATA", "ScrapeOverwrite" }
 	};
@@ -797,6 +896,11 @@ void GuiMenu::openUISettings()
 				Scripting::fireEvent("theme-changed", theme_set->getSelected(), oldTheme);
 				CollectionSystemManager::get()->updateSystemsList();
 				ViewController::get()->reloadAll(true); // TODO - replace this with some sort of signal-based implementation
+				if(Settings::getInstance()->getString("GamelistViewStyle") == "grid" && !ViewController::themeHasGridView())
+				{
+					Settings::getInstance()->setString("GamelistViewStyle", "automatic");
+					ViewController::get()->reloadAll(true);
+				}
 			}
 		});
 	}
@@ -918,6 +1022,23 @@ void GuiMenu::openUISettings()
 	show_help->setState(Settings::getInstance()->getBool("ShowHelpPrompts"));
 	s->addWithLabel("ON-SCREEN HELP", show_help);
 	s->addSaveFunc([show_help] { Settings::getInstance()->setBool("ShowHelpPrompts", show_help->getState()); });
+
+	auto menu_animations = std::make_shared<SwitchComponent>(mWindow);
+	menu_animations->setState(Settings::getInstance()->getBool("MenuAnimations"));
+	s->addWithLabel("HEADER ANIMATIONS", menu_animations);
+	auto background_animation = std::make_shared<SwitchComponent>(mWindow);
+	background_animation->setState(Settings::getInstance()->getBool("BackgroundAnimation"));
+	s->addWithLabel("BACKGROUND ANIMATION", background_animation);
+	s->addSaveFunc([background_animation] { Settings::getInstance()->setBool("BackgroundAnimation", background_animation->getState()); });
+	auto suspend_animations = std::make_shared<SwitchComponent>(mWindow);
+	suspend_animations->setState(Settings::getInstance()->getBool("SuspendAnimations"));
+	s->addWithLabel("SUSPEND POINT ANIMATIONS", suspend_animations);
+	s->addSaveFunc([suspend_animations] { Settings::getInstance()->setBool("SuspendAnimations", suspend_animations->getState()); });
+	auto demo_mode = std::make_shared<SwitchComponent>(mWindow);
+	demo_mode->setState(Settings::getInstance()->getBool("DemoMode"));
+	s->addWithLabel("DEMO MODE", demo_mode);
+	s->addSaveFunc([demo_mode] { Settings::getInstance()->setBool("DemoMode", demo_mode->getState()); });
+	s->addSaveFunc([menu_animations] { Settings::getInstance()->setBool("MenuAnimations", menu_animations->getState()); });
 
 	// enable filters (ForceDisableFilters)
 	auto enable_filter = std::make_shared<SwitchComponent>(mWindow);
@@ -1175,6 +1296,7 @@ HelpStyle GuiMenu::getHelpStyle()
 {
 	HelpStyle style = HelpStyle();
 	style.applyTheme(ViewController::get()->getState().getSystem()->getTheme(), "system");
+	style.applyTheme(ViewController::get()->getState().getSystem()->getTheme(), "system", "menu_help");
 	return style;
 }
 

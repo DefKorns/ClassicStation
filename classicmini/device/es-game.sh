@@ -22,6 +22,8 @@ settings_file=$(dirname "$0")/home/.emulationstation/es_settings.cfg
 # shellcheck source=es-autofire.sh
 source "$(dirname "$0")/es-autofire.sh"
 
+heavy_cores="mupen64*|parallel_n64*|glupen64*|ludicrousn64*|pcsx*|mednafen_psx*|mame*|fbalpha*|fbneo*|desmume*|melonds*|drastic*|ppsspp*|mgba*|gpsp*"
+
 esSetting() {
   sed -n "s|^<[a-z]* name=\"$1\" value=\"\([^\"]*\)\" */>.*|\1|p" "$settings_file" 2>/dev/null | head -n 1
 }
@@ -101,6 +103,12 @@ nesDisplayArgs() {
     *) printf ' --graphic-filter gpu720' ;;
   esac
   [ "$(scanlinesOn)" = true ] && printf ' --enable-crt-scanlines'
+}
+
+overclockShimLine() {
+  [ -f "$(dirname "$0")/overclock_auto" ] || return 0
+  # shellcheck disable=SC2016 # the expansion belongs to the generated shim
+  printf 'case "${1#km_}" in %s) set -- "$@" --overclock ;; esac' "$heavy_cores"
 }
 
 noFrameArg() {
@@ -217,6 +225,10 @@ SHIM
   chmod +x "$shim/canoe-shvc"
 }
 
+isRetroarchState() {
+  [ -f "$1" ] && [ "$(head -c 9 "$1")" != HANASTATE ]
+}
+
 desktop=$1
 cmd=$(tr -d '\r' < "$desktop" | sed -n 's/^Exec=//p' | head -n 1)
 path=$(tr -d '\r' < "$desktop" | sed -n 's/^Path=//p' | head -n 1)
@@ -238,10 +250,28 @@ if [ -n "$code" ]; then
   esac
   out=$volatile/$code/suspendpoint0
   floating=$volatile/$code/0
+  resumed=
+  resume_dir=
+  resumed_time=0
+  if [ "$resume" = floating ]; then
+    resume=
+    if [ -n "$native" ] && [ -f "$floating.state" ]; then
+      resumed=$volatile/$code.resume.state
+      cp "$floating.state" "$resumed"
+      [ -f "$floating.state.png" ] && cp "$floating.state.png" "$resumed.png"
+      resumed_time=$(cat "$floating.state_time.txt" 2>/dev/null)
+      case $resumed_time in ''|*[!0-9]*) resumed_time=0 ;; esac
+    elif [ -z "$native" ] && [ -d "$out" ]; then
+      resume_dir=$volatile/$code.resume.dir
+      rm -rf "$resume_dir"
+      mv "$out" "$resume_dir"
+    fi
+  fi
   rm -rf "$volatile"/*/suspendpoint0
   rm -f "$volatile"/*/0.state "$volatile"/*/0.state.png "$volatile"/*/0.state_time.txt
   mkdir -p "$profile/$code" "$volatile/$code"
   suspend_dir=$profile/$code/suspendpoint$resume
+  [ -n "$resume_dir" ] && suspend_dir=$resume_dir
   saved=$profile/$code/$resume
   if [ -n "$native" ]; then
     if [ ! -f "$profile/$code/save.sram" ] && [ -f "$profile/$code/cartridge.sram" ]; then
@@ -249,12 +279,16 @@ if [ -n "$code" ]; then
     fi
     cmd="$cmd --save-data-backing-file $profile/$code/save.sram --save-screenshot-on-quit $floating.state.png --save-on-quit $floating.state"
     cmd="$cmd$(nesDisplayArgs)"
+    [ -n "$resumed" ] && cmd="$cmd --load-state-file $resumed"
     if [ -n "$resume" ]; then
       if [ -f "$saved.state" ]; then
         cmd="$cmd --load-state-file $saved.state"
       else
         cmd="$cmd --load-state-file $suspend_dir/state"
       fi
+    fi
+    if { [ -n "$resumed" ] && isRetroarchState "$resumed"; } || { [ -n "$resume" ] && isRetroarchState "$saved.state"; }; then
+      cmd="$cmd --retroarch"
     fi
   else
     mkdir -p "$out/rollback"
@@ -263,11 +297,11 @@ if [ -n "$code" ]; then
     case "$cmd" in
       *kachikachi*)
         cmd="$cmd --save-on-quit $out/state"
-        [ -n "$resume" ] && cmd="$cmd --load-state-file $suspend_dir/state --load-time-path $suspend_dir/state.time"
+        if [ -n "$resume" ] || [ -n "$resume_dir" ]; then cmd="$cmd --load-state-file $suspend_dir/state --load-time-path $suspend_dir/state.time"; fi
         ;;
       *)
         cmd="$cmd --rollback-mode record --rollback-output-dir $out/rollback/"
-        [ -n "$resume" ] && cmd="$cmd --load-time-path $suspend_dir//state.time --rollback-input-dir $suspend_dir/rollback/"
+        if [ -n "$resume" ] || [ -n "$resume_dir" ]; then cmd="$cmd --load-time-path $suspend_dir//state.time --rollback-input-dir $suspend_dir/rollback/"; fi
         ;;
     esac
   fi
@@ -275,7 +309,7 @@ fi
 
 clearRetroarchFrame
 mkdir -p "$shim"
-printf '#!/bin/sh\nexec retroarch-clover-child "$@"%s\n' "$(retroarchArgs)$(noFrameArg)" > "$shim/retroarch-clover"
+printf '#!/bin/sh\n%s\nexec retroarch-clover-child "$@"%s\n' "$(overclockShimLine)" "$(retroarchArgs)$(noFrameArg)" > "$shim/retroarch-clover"
 chmod +x "$shim/retroarch-clover"
 
 canoeShim
@@ -284,8 +318,25 @@ autofireForGames
 launched=$(cut -d. -f1 /proc/uptime)
 PATH="$shim:$PATH" sh -c "$cmd"
 status=$?
+if [ -n "${resumed:-}" ]; then
+  if [ ! -f "$floating.state" ]; then
+    cp "$resumed" "$floating.state"
+    [ -f "$resumed.png" ] && cp "$resumed.png" "$floating.state.png"
+    printf '%s' "$resumed_time" > "$floating.state_time.txt"
+    restored=1
+  fi
+  rm -f "$resumed" "$resumed.png"
+fi
+if [ -n "${resume_dir:-}" ]; then
+  if [ ! -f "$out/state.png" ]; then
+    rm -rf "$out"
+    mv "$resume_dir" "$out"
+  else
+    rm -rf "$resume_dir"
+  fi
+fi
 autofireForUi
-if [ -n "$native" ] && [ -f "$floating.state" ]; then
+if [ -n "$native" ] && [ -f "$floating.state" ] && [ -z "${restored:-}" ]; then
   played=$(($(cut -d. -f1 /proc/uptime) - launched))
   if [ -n "$resume" ]; then
     if [ -f "$saved.state" ]; then
@@ -296,6 +347,7 @@ if [ -n "$native" ] && [ -f "$floating.state" ]; then
     case $previous in ''|*[!0-9]*) previous=0 ;; esac
     played=$((played + previous))
   fi
+  played=$((played + ${resumed_time:-0}))
   printf '%s' "$played" > "$floating.state_time.txt"
 fi
 exit $status

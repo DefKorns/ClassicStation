@@ -4,3 +4,6 @@
 [submodule "vendor/hmod-build"]
 	path = vendor/hmod-build
 	url = https://github.com/DefKorns/hmod-build.git
+[submodule "vendor/lodepng"]
+	path = vendor/lodepng
+	url = https://github.com/lvandeve/lodepng.git

@@ -31,6 +31,10 @@ public:
 
 	void update(int deltaTime) override;
 
+	static void kickScrolling(int previous, int current, int size);
+	static void setScrollCoast(float factor);
+	void setFadeEnabled(bool enabled) { mFadeEnabled = enabled; }
+	static void setBackdropVisible(float visible);
 	// Resize the image to fit this size. If one axis is zero, scale that axis to maintain aspect ratio.
 	// If both are non-zero, potentially break the aspect ratio.  If both are zero, no resizing.
 	// Can be set before or after an image is loaded.
@@ -87,6 +91,18 @@ private:
 	Vector2f mTargetSize;
 
 	bool mFlipX, mFlipY, mTargetIsMax, mTargetIsMin;
+	float mScrollSpeed = 0.0f;
+	float mScrollOffset = 0.0f;
+	bool mHideOnSuspend = false;
+	unsigned char mBaseOpacity = 255;
+	void applyOpacity();
+	bool mFadeEnabled = true;
+	void advanceScroll(int deltaTime);
+	float mScrollFactor = 1.0f;
+	float mBoostSpeed = 0.0f;
+	int mBoostMs = 0;
+	int mScrollDirection = 1;
+	int mKickSeen = 0;
 
 	// Calculates the correct mSize from our resizing information (set by setResize/setMaxSize).
 	// Used internally whenever the resizing parameters or texture change.

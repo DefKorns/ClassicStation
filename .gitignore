@@ -53,4 +53,4 @@ CPackSourceConfig.cmake
 classicmini/device/resources/cacert.pem
 
 # downloaded by classicmini/hmod/stage.sh
-classicmini/device/themes/
+classicmini/device/themes/simple/

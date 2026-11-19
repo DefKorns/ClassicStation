@@ -1,0 +1,52 @@
+<theme>
+	<formatVersion>3</formatVersion>
+	<defaultView>grid</defaultView>
+
+	<include>./../theme.xml</include>
+
+	<view name="basic, detailed, grid">
+		<image name="menubar_bottom" extra="true">
+			<path>${nesBarPath}</path>
+			<pos>0 0.875</pos>
+			<size>1 0.166667</size>
+			<zIndex>5</zIndex>
+		</image>
+		<image name="bar_logo" extra="true">
+			<visible>${nesBarLogo}</visible>
+			<path>${barLogoPath}</path>
+			<color>${barLogoTint}</color>
+			<pos>${barLogoPos}</pos>
+			<maxSize>${barLogoMax}</maxSize>
+			<origin>${barLogoOrigin}</origin>
+		</image>
+	</view>
+
+	<view name="basic, detailed">
+		<image name="menubar_bottom" extra="true">
+			<zIndex>21</zIndex>
+		</image>
+	</view>
+
+	<view name="grid">
+		<imagegrid name="gamegrid">
+			<gameImage>${blankNes}</gameImage>
+		</imagegrid>
+	</view>
+
+	<view name="system">
+		<image name="menubar_bottom" extra="true">
+			<path>${nesBarPath}</path>
+			<pos>0 0.875</pos>
+			<size>1 0.166667</size>
+			<zIndex>5</zIndex>
+		</image>
+		<image name="bar_logo" extra="true">
+			<visible>${nesBarLogo}</visible>
+			<path>${barLogoPath}</path>
+			<color>${barLogoTint}</color>
+			<pos>${barLogoPos}</pos>
+			<maxSize>${barLogoMax}</maxSize>
+			<origin>${barLogoOrigin}</origin>
+		</image>
+	</view>
+</theme>

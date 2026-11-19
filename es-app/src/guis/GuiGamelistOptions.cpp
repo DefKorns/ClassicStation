@@ -3,6 +3,7 @@
 
 #include "guis/GuiGamelistFilter.h"
 #include "guis/GuiInfoPopup.h"
+#include "guis/GuiMsgBox.h"
 #include "scrapers/Scraper.h"
 #include "views/gamelist/IGameListView.h"
 #include "views/UIModeController.h"
@@ -32,6 +33,21 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) : Gui
 		row.addElement(std::make_shared<TextComponent>(mWindow, "SUSPEND POINTS", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 		row.addElement(makeArrow(mWindow), false);
 		row.makeAcceptInputHandler(std::bind(&GuiGamelistOptions::openSuspendPoints, this));
+		mMenu.addRow(row);
+	}
+
+	if(!mFromPlaceholder && file->getType() == GAME && getGamelist()->floatingAvailable())
+	{
+		row.elements.clear();
+		row.addElement(std::make_shared<TextComponent>(mWindow, "DISCARD UNSAVED SUSPEND POINT", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+		row.makeAcceptInputHandler([this] {
+			SystemData* system = mSystem;
+			Window* window = mWindow;
+			delete this;
+			window->pushGui(new GuiMsgBox(window, "DISCARD THE UNSAVED SUSPEND POINT?", "YES", [system] {
+				ViewController::get()->getGameListView(system)->discardFloating();
+			}, "NO", nullptr));
+		});
 		mMenu.addRow(row);
 	}
 
@@ -391,6 +407,7 @@ HelpStyle GuiGamelistOptions::getHelpStyle()
 {
 	HelpStyle style = HelpStyle();
 	style.applyTheme(mSystem->getTheme(), "system");
+	style.applyTheme(mSystem->getTheme(), "system", "menu_help");
 	return style;
 }
 

@@ -1,3 +1,4 @@
+#include <map>
 #include "components/ImageComponent.h"
 
 #include "resources/TextureResource.h"
@@ -5,6 +6,7 @@
 #include "Settings.h"
 #include "ThemeData.h"
 #include <SDL_timer.h>
+#include <cmath>
 
 Vector2i ImageComponent::getTextureSize() const
 {
@@ -19,12 +21,54 @@ Vector2f ImageComponent::getSize() const
 	return GuiComponent::getSize() * (mBottomRightCrop - mTopLeftCrop);
 }
 
+namespace
+{
+	constexpr float BaseScrollSpeed = 0.175f;
+	constexpr float CursorScrollSpeed = 1.75f;
+	constexpr float CursorScrollDecel = 0.2f;
+	constexpr float CursorScrollAccel = 0.2f;
+	constexpr float CursorScrollMax = 4.0f;
+	constexpr int CursorScrollMs = 200;
+	constexpr int CursorScrollDelayMs = 50;
+	constexpr float ScrollSmoothing = 0.125f;
+	int sKickCount = 0;
+	int sKickDirection = 1;
+	float sScrollCoast = 1.0f;
+	float sBackdropVisible = 1.0f;
+}
+
+void ImageComponent::setBackdropVisible(float visible)
+{
+	sBackdropVisible = visible;
+}
+
+void ImageComponent::setScrollCoast(float factor)
+{
+	sScrollCoast = factor;
+}
+
+void ImageComponent::kickScrolling(int previous, int current, int size)
+{
+	if(size < 2 || previous == current || !Settings::getInstance()->getBool("BackgroundAnimation"))
+		return;
+	int delta = current - previous;
+	if(delta > size / 2)
+		delta -= size;
+	else if(delta < -size / 2)
+		delta += size;
+	if(delta == 0)
+		return;
+	sKickDirection = delta > 0 ? 1 : -1;
+	++sKickCount;
+}
+
 ImageComponent::ImageComponent(Window* window, bool forceLoad, bool dynamic) : GuiComponent(window),
 	mTargetIsMax(false), mTargetIsMin(false), mFlipX(false), mFlipY(false), mTargetSize(0, 0), mColorShift(0xFFFFFFFF),
 	mColorShiftEnd(0xFFFFFFFF), mColorGradientHorizontal(true), mForceLoad(forceLoad), mDynamic(dynamic),
 	mFadeOpacity(0), mFading(false), mRotateByTargetSize(false), mTopLeftCrop(0.0f, 0.0f), mBottomRightCrop(1.0f, 1.0f),
 	mAsyncPending(false)
 {
+	mKickSeen = sKickCount;
 	updateColors();
 }
 
@@ -218,6 +262,20 @@ void ImageComponent::update(int deltaTime)
 {
 	GuiComponent::update(deltaTime);
 
+	if(mScrollSpeed != 0.0f && mTexture && mTexture->isTiled())
+	{
+		if(!Settings::getInstance()->getBool("BackgroundAnimation"))
+		{
+			if(mScrollOffset != 0.0f)
+			{
+				mScrollOffset = 0.0f;
+				updateVertices();
+			}
+		}
+		else
+			advanceScroll(deltaTime);
+	}
+
 	if(mAsyncPending && mTexture)
 	{
 		if(mTexture->updateTextureSize())
@@ -227,6 +285,45 @@ void ImageComponent::update(int deltaTime)
 			resize();
 		}
 	}
+}
+
+void ImageComponent::advanceScroll(int deltaTime)
+{
+	if(mKickSeen != sKickCount)
+	{
+		mKickSeen = sKickCount;
+		const float direction = static_cast<float>(sKickDirection);
+		if(mBoostMs == 0)
+		{
+			mBoostMs = CursorScrollMs;
+			mBoostSpeed = direction * CursorScrollSpeed;
+		}
+		else
+		{
+			mBoostMs = CursorScrollMs - CursorScrollDelayMs;
+			mBoostSpeed = Math::max(-CursorScrollMax, Math::min(CursorScrollMax, mBoostSpeed + direction * CursorScrollAccel));
+		}
+		mScrollDirection = sKickDirection;
+	}
+
+	float target = static_cast<float>(mScrollDirection) * BaseScrollSpeed;
+	mBoostMs = Math::max(0, mBoostMs - deltaTime);
+	if(mBoostMs > 0 && mBoostMs < CursorScrollMs - CursorScrollDelayMs)
+		target += mBoostSpeed;
+	else
+	{
+		if(mBoostSpeed > 0.0f)
+			mBoostSpeed = Math::max(0.0f, mBoostSpeed - CursorScrollDecel);
+		else
+			mBoostSpeed = Math::min(0.0f, mBoostSpeed + CursorScrollDecel);
+		target += mBoostSpeed;
+	}
+	mScrollFactor += (target / BaseScrollSpeed - mScrollFactor) * ScrollSmoothing;
+
+	mScrollOffset = std::fmod(mScrollOffset + mScrollSpeed * mScrollFactor * sScrollCoast * static_cast<float>(deltaTime) / 1000.0f, 1.0f);
+	if(mScrollOffset < 0.0f)
+		mScrollOffset += 1.0f;
+	updateVertices();
 }
 
 void ImageComponent::setResize(float width, float height)
@@ -333,7 +430,16 @@ void ImageComponent::setColorGradientHorizontal(bool horizontal)
 
 void ImageComponent::setOpacity(unsigned char opacity)
 {
-	mOpacity = opacity;
+	mBaseOpacity = opacity;
+	applyOpacity();
+}
+
+void ImageComponent::applyOpacity()
+{
+	const unsigned char effective = mHideOnSuspend ? static_cast<unsigned char>(static_cast<float>(mBaseOpacity) * sBackdropVisible + 0.5f) : mBaseOpacity;
+	if(effective == mOpacity)
+		return;
+	mOpacity = effective;
 	updateColors();
 }
 
@@ -364,6 +470,12 @@ void ImageComponent::updateVertices()
 	{
 		for(int i = 0; i < 4; ++i)
 			mVertices[i].tex[0] = px - mVertices[i].tex[0];
+	}
+
+	if(mScrollOffset != 0.0f)
+	{
+		for(int i = 0; i < 4; ++i)
+			mVertices[i].tex[0] += mScrollOffset;
 	}
 
 	if(mFlipY)
@@ -398,6 +510,9 @@ void ImageComponent::render(const Transform4x4f& parentTrans)
 
 	Transform4x4f trans = parentTrans * getTransform();
 	Renderer::setMatrix(trans);
+
+	if(mHideOnSuspend)
+		applyOpacity();
 
 	if(mTexture && mOpacity > 0 && !mAsyncPending)
 	{
@@ -441,7 +556,7 @@ void ImageComponent::render(const Transform4x4f& parentTrans)
 
 void ImageComponent::fadeIn(bool textureLoaded)
 {
-	if (!mForceLoad)
+	if (!mForceLoad && mFadeEnabled)
 	{
 		if (!textureLoaded)
 		{
@@ -508,9 +623,16 @@ void ImageComponent::applyTheme(const std::shared_ptr<ThemeData>& theme, const s
 	if(properties & PATH && elem->has("path"))
 	{
 		bool tile = (elem->has("tile") && elem->get<bool>("tile"));
-		setImage(elem->get<std::string>("path"), tile);
+		std::string imagePath = elem->get<std::string>("path");
+		if(!mDefaultPath.empty() && !ResourceManager::getInstance()->fileExists(imagePath))
+			imagePath = mDefaultPath;
+		setImage(imagePath, tile);
 	}
 
+	if(elem->has("scrollSpeed"))
+		mScrollSpeed = elem->get<float>("scrollSpeed");
+	if(elem->has("hideOnSuspend"))
+		mHideOnSuspend = elem->get<bool>("hideOnSuspend");
 	if(properties & COLOR)
 	{
 		if(elem->has("color"))

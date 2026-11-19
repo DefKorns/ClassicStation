@@ -3,6 +3,7 @@
 #define ES_CORE_COMPONENTS_GRID_TILE_COMPONENT_H
 
 #include "NinePatchComponent.h"
+#include "GridTileOverlay.h"
 #include "ImageComponent.h"
 #include "resources/TextureResource.h"
 
@@ -16,6 +17,9 @@ struct GridTileProperties
 	Vector2f mBackgroundBleed;
 	unsigned int mBackgroundCenterColor;
 	unsigned int mBackgroundEdgeColor;
+	bool mImageOnTop = false;
+	unsigned int mBackingColor = 0x101010FF;
+	Vector2f mImageOffset = Vector2f::Zero();
 };
 
 class GridTileComponent : public GuiComponent
@@ -31,6 +35,8 @@ public:
 	static Vector2f getDefaultTileSize();
 	Vector2f getSelectedTileSize() const;
 	bool isSelected() const;
+	static void setUnselectedBrightness(float brightness);
+	static void setSmoothLoading(bool smooth);
 
 	void reset();
 
@@ -41,7 +47,8 @@ public:
 
 	void forceSize(Vector2f size, float selectedZoom);
 	void setShiftX(float shift) { mShiftX = shift; }
-	void setMarked(bool marked) { mMarked = marked; }
+	void setOverlay(std::shared_ptr<GridTileOverlay> overlay) { mOverlay = std::move(overlay); }
+	GridTileOverlay* getOverlay() const { return mOverlay.get(); }
 
 	Vector3f getBackgroundPosition();
 
@@ -57,8 +64,11 @@ private:
 
 	std::shared_ptr<ImageComponent> mImage;
 	NinePatchComponent mBackground;
-	ImageComponent mBadge;
-	bool mMarked = false;
+	std::shared_ptr<GridTileOverlay> mOverlay;
+	unsigned int mShownImage = 0;
+	unsigned int mShownCenter = 0;
+	unsigned int mShownEdge = 0;
+	bool mShownKnown = false;
 
 	GridTileProperties mDefaultProperties;
 	GridTileProperties mSelectedProperties;

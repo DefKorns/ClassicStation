@@ -1,19 +1,24 @@
 #include "views/gamelist/GridGameListView.h"
 
 #include "animations/LambdaAnimation.h"
+#include "components/ClassicTileOverlay.h"
 #include "views/UIModeController.h"
 #include "views/ViewController.h"
 #include "CollectionSystemManager.h"
 #include "Settings.h"
+#include "resources/ResourceManager.h"
+#include "scrapers/Scraper.h"
 #include "SystemData.h"
 #include "components/VideoVlcComponent.h"
 #include "guis/GuiInfoPopup.h"
 #include "guis/GuiMenu.h"
 #include "utils/FileSystemUtil.h"
+#include "utils/StringUtil.h"
 #include "FileSorts.h"
 #include "Window.h"
 #include <cstdlib>
 #include <algorithm>
+#include <set>
 #include <stack>
 #include <string>
 
@@ -32,13 +37,16 @@ GridGameListView::GridGameListView(Window* window, FileData* root) :
 
 	mRating(window), mReleaseDate(window), mDeveloper(window), mPublisher(window),
 	mGenre(window), mPlayers(window), mLastPlayed(window), mPlayCount(window),
-	mName(window), mCode(window), mInfo(window), mIconBar(window)
+	mName(window), mCode(window), mInfo(window), mIconBar(window), mFloatingCard(window), mDemo(window), mThumbnails(window), mLetters(window)
 {
 	const float padding = 0.01f;
 
 	mVideo = new VideoVlcComponent(window, getTitlePath());
 
 	mGrid.setPosition(mSize.x() * 0.1f, mSize.y() * 0.1f);
+	mDemo.setDefaultZIndex(0.5f);
+	mDemo.setZIndex(0.5f);
+	addChild(&mDemo);
 	mGrid.setDefaultZIndex(20);
 	mGrid.setCursorChangedCallback([&](const CursorState& /*state*/) { updateInfoPanel(); });
 	addChild(&mGrid);
@@ -138,11 +146,24 @@ GridGameListView::GridGameListView(Window* window, FileData* root) :
 	mIconBar.setDefaultZIndex(70);
 	mIconBar.setZIndex(70);
 	addChild(&mIconBar);
+	mFloatingCard.setDefaultZIndex(65);
+	mFloatingCard.setZIndex(65);
+	mThumbnails.setDefaultZIndex(30);
+	mThumbnails.setZIndex(30);
+	addChild(&mThumbnails);
+	mLetters.setVisible(false);
+	mLetters.setHorizontalAlignment(ALIGN_CENTER);
+	addChild(&mLetters);
 	mDefaultHeaderStatus = true;
 
 	initMDLabels();
 	initMDValues();
-	mGrid.setMarkFunction([this](FileData* file) { return isFloating(file); });
+	mGrid.setTileOverlay(
+		[this] { return std::make_shared<ClassicTileOverlay>(mWindow); },
+		[this](GridTileOverlay& overlay, FileData* file)
+		{
+			static_cast<ClassicTileOverlay&>(overlay).setGame(suspendStates(file), file->getType() == GAME ? file->metadata.get("players") : std::string(), hasSaveData(file));
+		});
 	refreshFloating();
 	updateInfoPanel();
 }
@@ -178,6 +199,12 @@ std::string GridGameListView::getQuickSystemSelectLeftButton()
 
 bool GridGameListView::input(InputConfig* config, Input input)
 {
+	if(mDemo.active() && input.value != 0)
+	{
+		mDemo.cancel();
+		return true;
+	}
+
 	if(mHeaderFocus)
 	{
 		if(input.value != 0)
@@ -228,19 +255,95 @@ const std::string GridGameListView::getImagePath(FileData* file)
 	return file->getThumbnailPath();
 }
 
+namespace
+{
+	constexpr int MaxThumbnailsPerPass = 8;
+	constexpr int ThumbnailIdleMs = 300;
+	std::set<std::string> sFailedThumbnails;
+
+	std::string blankImageFor(const std::string& themeFolder)
+	{
+		static const std::map<std::string, std::string> blanks = {
+			{"fds", "blank_fds"}, {"gb", "blank_gb"}, {"gbc", "blank_gbc"}, {"gba", "blank_gba"}, {"n64", "blank_n64"},
+			{"megadrive", "blank_genesis"}, {"sega32x", "blank_32x"}, {"mastersystem", "blank_sms"}, {"gamegear", "blank_gg"},
+			{"pcengine", "blank_pce"}, {"neogeo", "blank_neogeo"}, {"atari2600", "blank_2600"}, {"arcade", "blank_arcade"},
+			{"pc", "blank_dos"}, {"ports", "blank_app"}};
+		const auto blank = blanks.find(themeFolder);
+		return blank == blanks.end() ? std::string() : ":/" + blank->second + ".png";
+	}
+}
+
 void GridGameListView::populateList(const std::vector<FileData*>& files)
 {
 	mGrid.clear();
+	mThumbJobs.clear();
 	mHeaderText.setText(mRoot->getSystem()->getFullName());
 	if (files.size() > 0)
 	{
+		std::vector<std::string> thumbnails;
+		int generated = 0;
 		for (auto it = files.cbegin(); it != files.cend(); it++)
 		{
-			mGrid.add((*it)->getName(), getImagePath(*it), *it);
+			std::string image = getImagePath(*it);
+			if(image.empty() && mPerGameBlanks && mRoot->getSystem()->isCollection())
+				image = blankImageFor((*it)->getSourceFileData()->getSystem()->getThemeFolder());
+			mGrid.add((*it)->getName(), image, *it);
+			if(!mThumbnails.enabled())
+			{
+				mThumbsSkipped = true;
+				continue;
+			}
+
+			std::string thumbnail = (*it)->metadata.get("thumbnail");
+			bool verified = false;
+			bool deferred = false;
+			std::string scrapedPath;
+			if (thumbnail.empty())
+				thumbnail = image;
+			if (image.find("/downloaded_images/") != std::string::npos && thumbnail.find("/downloaded_images/") == std::string::npos)
+			{
+				const std::string scraped = thumbnailPathFor(image);
+				if (Utils::FileSystem::exists(scraped))
+				{
+					thumbnail = scraped;
+					verified = true;
+				}
+				else if (generated < MaxThumbnailsPerPass && saveThumbnail(image, scraped, 30, 40))
+				{
+					++generated;
+					thumbnail = scraped;
+					verified = true;
+				}
+				else if (sFailedThumbnails.count(image) == 0)
+				{
+					deferred = true;
+					scrapedPath = scraped;
+				}
+			}
+			if (thumbnail == image && image.size() > 4 && image.compare(image.size() - 4, 4, ".png") == 0)
+			{
+				const std::string small = image.substr(0, image.size() - 4) + "_small.png";
+				if (Utils::FileSystem::exists(small))
+				{
+					thumbnail = small;
+					verified = true;
+				}
+			}
+			if (deferred && !verified)
+			{
+				thumbnail = ":/cartridge.svg";
+				mThumbJobs.push_back({static_cast<int>(thumbnails.size()), image, scrapedPath});
+			}
+			else if (thumbnail.empty() || (!verified && !ResourceManager::getInstance()->fileExists(thumbnail)))
+				thumbnail = ":/cartridge.svg";
+			thumbnails.push_back(thumbnail);
 		}
+		if(mThumbnails.enabled())
+			mThumbnails.setEntries(std::move(thumbnails));
 	}
 	else
 	{
+		mThumbnails.setEntries(std::vector<std::string>());
 		addPlaceholder();
 	}
 	updateArrows();
@@ -257,10 +360,34 @@ void GridGameListView::onThemeChanged(const std::shared_ptr<ThemeData>& theme)
 {
 	ISimpleGameListView::onThemeChanged(theme);
 	mIconBar.applyTheme(theme, getName());
+	mFloatingCard.applyTheme(theme, getName());
+	mThumbnails.applyTheme(theme, getName());
+	if(mThumbnails.enabled() && mThumbsSkipped)
+	{
+		mThumbsSkipped = false;
+		onFileChanged(mRoot, FILE_METADATA_CHANGED);
+	}
+	mLetters.applyTheme(theme, getName(), "md_letters", ThemeFlags::ALL ^ ThemeFlags::TEXT);
+	mLetters.setZIndex(45);
+	const ThemeData::ThemeElement* gridElement = theme->getElement(getName(), "gamegrid", "imagegrid");
+	const bool smooth = gridElement != nullptr && gridElement->has("smoothScroll") && gridElement->get<bool>("smoothScroll");
+	mGrid.setSmoothScroll(smooth);
+	GridTileComponent::setSmoothLoading(smooth);
+	mHasLetters = theme->getElement(getName(), "md_letters", "text") != nullptr;
+	mGrid.setTitleOverlayHidden(mHasLetters);
 
 	using namespace ThemeFlags;
 
 	mGrid.applyTheme(theme, getName(), "gamegrid", ALL);
+	if(gridElement == nullptr || !gridElement->has("gameImage"))
+	{
+		const std::string blank = blankImageFor(mRoot->getSystem()->getThemeFolder());
+		if(!blank.empty())
+			mGrid.setDefaultGameImage(blank);
+		mPerGameBlanks = true;
+	}
+	else
+		mPerGameBlanks = false;
 	mName.applyTheme(theme, getName(), "md_name", ALL);
 	mMarquee.applyTheme(theme, getName(), "md_marquee", POSITION | ThemeFlags::SIZE | Z_INDEX | ROTATION | VISIBLE);
 	mImage.applyTheme(theme, getName(), "md_image", POSITION | ThemeFlags::SIZE | Z_INDEX | ROTATION | VISIBLE);
@@ -446,6 +573,7 @@ void GridGameListView::updateInfoPanel()
 	FileData* file = (mGrid.size() == 0 || mGrid.isScrolling()) ? NULL : mGrid.getSelected();
 	if(!mGrid.isScrolling())
 		updateHelpPrompts();
+	syncFloatingCard();
 
 	bool fadingOut;
 	if(file == NULL)
@@ -653,6 +781,55 @@ std::vector<HelpPrompt> GridGameListView::getHelpPrompts()
 
 void GridGameListView::update(int deltaTime)
 {
+	ImageComponent::kickScrolling(mScrollCursor, mGrid.getCursorIndex(), static_cast<int>(mGrid.size()));
+	if(mScrollCursor != mGrid.getCursorIndex())
+		mThumbIdleMs = 0;
+	else
+		mThumbIdleMs += deltaTime;
+	mScrollCursor = mGrid.getCursorIndex();
+	mThumbnails.setPosition(mGrid.getVisualCursor());
+	const bool fast = mHasLetters && mGrid.size() > 0 && mGrid.isFastScrolling();
+	mLetters.setVisible(fast);
+	if(fast)
+	{
+		const std::string selectedName = mGrid.getSelectedName();
+		const std::string letters = Utils::String::toUpper(selectedName.substr(0, Utils::String::moveCursor(selectedName, 0, 2)));
+		if(letters != mLettersText)
+		{
+			mLettersText = letters;
+			mLetters.setText(letters);
+		}
+		mName.setVisible(false);
+		mCode.setVisible(false);
+		mFavorite.setVisible(false);
+		mLettersShown = true;
+	}
+	else if(mLettersShown)
+	{
+		mLettersShown = false;
+		mName.setVisible(true);
+		mCode.setVisible(true);
+		mInfoPending = true;
+	}
+	if(mInfoPending && !mGrid.isScrolling())
+	{
+		mInfoPending = false;
+		updateInfoPanel();
+	}
+	if(!mThumbJobs.empty() && !mGrid.isScrolling() && mThumbIdleMs >= ThumbnailIdleMs)
+	{
+		const int cursor = mGrid.getCursorIndex();
+		const auto nearest = std::min_element(mThumbJobs.begin(), mThumbJobs.end(),
+			[cursor](const ThumbJob& a, const ThumbJob& b) { return std::abs(a.index - cursor) < std::abs(b.index - cursor); });
+		const ThumbJob job = *nearest;
+		mThumbJobs.erase(nearest);
+		if(saveThumbnail(job.image, job.scraped, 30, 40))
+			mThumbnails.updateEntry(job.index, job.scraped);
+		else
+			sFailedThumbnails.insert(job.image);
+	}
+	mDemo.update(deltaTime, mGrid.size() > 0, mGrid.getPosition().y() + 0.075f * static_cast<float>(Renderer::getScreenHeight()));
+	mFloatingCard.update(deltaTime);
 	ISimpleGameListView::update(deltaTime);
 	mVideo->update(deltaTime);
 }
@@ -693,6 +870,23 @@ void GridGameListView::openHeaderMenu()
 
 void GridGameListView::onFloatingChanged()
 {
-	if(mGrid.size() > 0)
-		mGrid.refreshMarks();
+	syncFloatingCard();
+}
+
+void GridGameListView::renderOverHelp(const Transform4x4f& parentTrans)
+{
+	Transform4x4f cardTrans = GuiComponent::demoLift(parentTrans * getTransform());
+	cardTrans.translate(Vector3f(0.0f, -GuiComponent::demoProgress() * 0.17f * static_cast<float>(Renderer::getScreenHeight()), 0.0f));
+	mFloatingCard.render(cardTrans);
+	mDemo.renderActors(parentTrans * getTransform());
+}
+
+void GridGameListView::syncFloatingCard()
+{
+	mFloatingCard.setShown(mFloating.valid);
+	if(!mFloating.valid)
+		return;
+	mFloatingCard.setScreenshot(mFloating.thumbnail);
+	mFloatingCard.setPlaytime(mFloating.playtime);
+	mFloatingCard.setHighlighted(mGrid.size() > 0 && isFloating(mGrid.getSelected()));
 }

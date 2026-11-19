@@ -74,14 +74,16 @@ protected:
 	ImageComponent mGradient;
 	std::shared_ptr<Font> mTitleOverlayFont;
 
-	const ScrollTierList& mTierList;
-	const ListLoopType mLoopType;
+	const ScrollTierList* mTierList;
+	ListLoopType mLoopType;
 
 	std::vector<Entry> mEntries;
 
 public:
+	void setTierList(const ScrollTierList& tierList) { mTierList = &tierList; }
+
 	IList(Window* window, const ScrollTierList& tierList = LIST_SCROLL_STYLE_QUICK, const ListLoopType& loopType = LIST_PAUSE_AT_END) : GuiComponent(window),
-		mGradient(window), mTierList(tierList), mLoopType(loopType)
+		mGradient(window), mTierList(&tierList), mLoopType(loopType)
 	{
 		mCursor = 0;
 		mViewportTop = 0;
@@ -128,6 +130,7 @@ public:
 	}
 
 	inline int getCursorIndex() const { return mCursor; }
+	inline bool isFastScrolling() const { return mScrollVelocity != 0 && mScrollTier >= mTierList->count - 1; }
 
 	inline const std::string& getSelectedName()
 	{
@@ -230,7 +233,7 @@ protected:
 	void listUpdate(int deltaTime)
 	{
 		// update the title overlay opacity
-		const int dir = (mScrollTier >= mTierList.count - 1) ? 1 : -1; // fade in if scroll tier is >= 1, otherwise fade out
+		const int dir = (mScrollTier >= mTierList->count - 1) ? 1 : -1; // fade in if scroll tier is >= 1, otherwise fade out
 		int op = mTitleOverlayOpacity + deltaTime*dir; // we just do a 1-to-1 time -> opacity, no scaling
 		if(op >= 255)
 			mTitleOverlayOpacity = 255;
@@ -244,7 +247,7 @@ protected:
 
 		// Cap the delta time used for scrolling to prevent multiple scroll jumps
 		// after a long-blocking frame (e.g., slow NAS I/O)
-		const int maxScrollDelta = mTierList.tiers[mScrollTier].scrollDelay;
+		const int maxScrollDelta = mTierList->tiers[mScrollTier].scrollDelay;
 		int scrollDelta = (deltaTime > maxScrollDelta) ? maxScrollDelta : deltaTime;
 
 		mScrollCursorAccumulator += scrollDelta;
@@ -253,16 +256,16 @@ protected:
 		// we delay scrolling until after scroll tier has updated so isScrolling() returns accurately during onCursorChanged callbacks
 		// we don't just do scroll tier first because it would not catch the scrollDelay == tier length case
 		int scrollCount = 0;
-		while(mScrollCursorAccumulator >= mTierList.tiers[mScrollTier].scrollDelay)
+		while(mScrollCursorAccumulator >= mTierList->tiers[mScrollTier].scrollDelay)
 		{
-			mScrollCursorAccumulator -= mTierList.tiers[mScrollTier].scrollDelay;
+			mScrollCursorAccumulator -= mTierList->tiers[mScrollTier].scrollDelay;
 			scrollCount++;
 		}
 
 		// are we ready to go even FASTER?
-		while(mScrollTier < mTierList.count - 1 && mScrollTierAccumulator >= mTierList.tiers[mScrollTier].length)
+		while(mScrollTier < mTierList->count - 1 && mScrollTierAccumulator >= mTierList->tiers[mScrollTier].length)
 		{
-			mScrollTierAccumulator -= mTierList.tiers[mScrollTier].length;
+			mScrollTierAccumulator -= mTierList->tiers[mScrollTier].length;
 			mScrollTier++;
 		}
 

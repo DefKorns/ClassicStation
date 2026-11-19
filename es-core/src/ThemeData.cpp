@@ -17,6 +17,14 @@ std::vector<std::string> ThemeData::sSupportedFeatures { { "video" }, { "carouse
 
 std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> ThemeData::sElementMap {
 	{ "image", {
+		{ "fadeWithInfo", BOOLEAN },
+		{ "logoOnly", BOOLEAN },
+		{ "showOnScroll", BOOLEAN },
+		{ "visibleCount", FLOAT },
+		{ "scrollSpeed", FLOAT },
+		{ "suspendShift", FLOAT },
+		{ "demoShift", FLOAT },
+		{ "hideOnSuspend", BOOLEAN },
 		{ "pos", RESOLUTION_PAIR },
 		{ "size", RESOLUTION_PAIR },
 		{ "maxSize", RESOLUTION_PAIR },
@@ -32,6 +40,9 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "visible", BOOLEAN },
 		{ "zIndex", FLOAT } } },
 	{ "imagegrid", {
+		{ "smoothScroll", BOOLEAN },
+		{ "suspendShift", FLOAT },
+		{ "demoShift", FLOAT },
 		{ "pos", RESOLUTION_PAIR },
 		{ "size", RESOLUTION_PAIR },
 		{ "margin", RESOLUTION_PAIR },
@@ -53,6 +64,9 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "size", RESOLUTION_PAIR },
 		{ "padding", RESOLUTION_PAIR },
 		{ "imageColor", COLOR },
+		{ "imageOnTop", BOOLEAN },
+		{ "backingColor", COLOR },
+		{ "imageOffset", RESOLUTION_PAIR },
 		{ "backgroundImage", PATH },
 		{ "backgroundCornerSize", RESOLUTION_PAIR },
 		{ "backgroundBleed", RESOLUTION_PAIR },
@@ -60,6 +74,9 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "backgroundCenterColor", COLOR },
 		{ "backgroundEdgeColor", COLOR } } },
 	{ "text", {
+		{ "suspendShift", FLOAT },
+		{ "demoShift", FLOAT },
+		{ "activeColor", COLOR },
 		{ "pos", RESOLUTION_PAIR },
 		{ "size", RESOLUTION_PAIR },
 		{ "origin", NORMALIZED_PAIR },
@@ -83,6 +100,7 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "separator", STRING },
 		{ "playersOne", STRING },
 		{ "playersMany", STRING },
+		{ "breakAfter", FLOAT },
 		{ "suffixOne", STRING },
 		{ "value", STRING },
 		{ "visible", BOOLEAN },
@@ -114,8 +132,11 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "favoriteIconSize", FLOAT },
 		{ "favoriteIconOffsetX", FLOAT },
 		{ "favoriteIconOffsetY", FLOAT },
+		{ "favoriteSlotAlways", BOOLEAN },
 		{ "zIndex", FLOAT } } },
 	{ "container", {
+		{ "captionColor", COLOR },
+		{ "dim", FLOAT },
 		{ "pos", RESOLUTION_PAIR },
 		{ "size", RESOLUTION_PAIR },
 	 	{ "origin", NORMALIZED_PAIR },
@@ -156,6 +177,23 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "unfilledPath", PATH },
 		{ "visible", BOOLEAN },
 		{ "zIndex", FLOAT } } },
+	{ "slots", {
+		{ "pos", RESOLUTION_PAIR },
+		{ "size", RESOLUTION_PAIR },
+		{ "origin", NORMALIZED_PAIR },
+		{ "emptyPath", PATH },
+		{ "savedPath", PATH },
+		{ "lockedPath", PATH },
+		{ "visible", BOOLEAN },
+		{ "zIndex", FLOAT } } },
+	{ "playersicon", {
+		{ "pos", RESOLUTION_PAIR },
+		{ "size", RESOLUTION_PAIR },
+		{ "origin", NORMALIZED_PAIR },
+		{ "onePath", PATH },
+		{ "manyPath", PATH },
+		{ "visible", BOOLEAN },
+		{ "zIndex", FLOAT } } },
 	{ "sound", {
 		{ "path", PATH } } },
 	{ "helpsystem", {
@@ -164,7 +202,10 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "textColor", COLOR },
 		{ "iconColor", COLOR },
 		{ "fontPath", PATH },
-		{ "fontSize", RESOLUTION_FLOAT } } },
+		{ "fontSize", RESOLUTION_FLOAT },
+		{ "iconHeight", RESOLUTION_FLOAT },
+		{ "iconTextSpacing", FLOAT },
+		{ "entrySpacing", FLOAT } } },
 	{ "video", {
 		{ "pos", RESOLUTION_PAIR },
 		{ "size", RESOLUTION_PAIR },
@@ -193,7 +234,15 @@ std::map<std::string, std::map<std::string, ThemeData::ElementPropertyType>> The
 		{ "logoAlignment", STRING },
 		{ "maxLogoCount", FLOAT },
 		{ "scrollDuration", FLOAT },
+		{ "cardPath", PATH },
+		{ "cardActivePath", PATH },
+		{ "cardSize", NORMALIZED_PAIR },
+		{ "cardOffset", NORMALIZED_PAIR },
+		{ "chipPath", PATH },
+		{ "chipActivePath", PATH },
 		{ "zIndex", FLOAT },
+		{ "transitionStyle", STRING },
+		{ "fastInfo", BOOLEAN },
 		{ "scrollSound", PATH } } }
 };
 

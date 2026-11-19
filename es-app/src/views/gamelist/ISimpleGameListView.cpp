@@ -9,17 +9,15 @@
 #include "Settings.h"
 #include "Sound.h"
 #include "SystemData.h"
+#include "UiSound.h"
 #include "Window.h"
 #include "InputManager.h"
+#include "views/ExtraButtons.h"
 #include <cstdlib>
 
 namespace
 {
-	bool environmentIsNes()
-	{
-		const char* pad = std::getenv("ES_PAD");
-		return pad != nullptr && std::string(pad) == "nes";
-	}
+	int sTileGeneration = 0;
 
 	std::string gameCode(const FileData* game)
 	{
@@ -29,7 +27,7 @@ namespace
 
 bool ISimpleGameListView::hasExtraButtons() const
 {
-	return !environmentIsNes() || InputManager::getInstance()->hasJoystickOtherThan("Nintendo Clovercon");
+	return ::hasExtraButtons();
 }
 
 ISimpleGameListView::ISimpleGameListView(Window* window, FileData* root) : IGameListView(window, root),
@@ -226,6 +224,7 @@ bool ISimpleGameListView::isFloating(const FileData* file) const
 
 void ISimpleGameListView::refreshFloating()
 {
+	++sTileGeneration;
 	mFloating = mSuspendPoints.floating();
 	onFloatingChanged();
 	updateHelpPrompts();
@@ -270,6 +269,37 @@ bool ISimpleGameListView::jumpToFloating()
 	return true;
 }
 
+const ISimpleGameListView::TileState& ISimpleGameListView::tileState(const FileData* game) const
+{
+	if(mTileGeneration != sTileGeneration)
+	{
+		mTileStates.clear();
+		mTileGeneration = sTileGeneration;
+	}
+	const std::string code = gameCode(game);
+	auto found = mTileStates.find(code);
+	if(found == mTileStates.end())
+	{
+		TileState state;
+		state.states = slotStates(mSuspendPoints.slots(code));
+		state.saveData = mSuspendPoints.hasSaveData(code);
+		found = mTileStates.emplace(code, std::move(state)).first;
+	}
+	return found->second;
+}
+
+SlotStates ISimpleGameListView::suspendStates(const FileData* game) const
+{
+	if(game == nullptr || game->getType() != GAME)
+		return SlotStates{};
+	return tileState(game).states;
+}
+
+bool ISimpleGameListView::hasSaveData(const FileData* game) const
+{
+	return game != nullptr && game->getType() == GAME && tileState(game).saveData;
+}
+
 bool ISimpleGameListView::openSuspendPoints()
 {
 	FileData* game = getCursor();
@@ -287,10 +317,46 @@ bool ISimpleGameListView::openSuspendPoints()
 	return true;
 }
 
+void ISimpleGameListView::eraseFloating()
+{
+	++sTileGeneration;
+	if(!mFloating.valid)
+		return;
+	UiSound::play("se_sys_delete.wav");
+	onFloatingErased();
+	mFloating = SuspendPoint();
+	onFloatingChanged();
+	updateHelpPrompts();
+}
+
+bool ISimpleGameListView::floatingAvailable()
+{
+	return isFloating(getCursor());
+}
+
+void ISimpleGameListView::discardFloating()
+{
+	if(!mFloating.valid)
+		return;
+	static_cast<void>(mSuspendPoints.discardFloating());
+	mFloating = SuspendPoint();
+	onFloatingChanged();
+	updateHelpPrompts();
+}
+
 void ISimpleGameListView::applyPendingResume()
 {
+	if(mPendingResume != 0)
+	{
+		mFloating = SuspendPoint();
+		onFloatingChanged();
+	}
+	else
+		eraseFloating();
 	if(mPendingResume > 0)
 		setenv("ES_RESUME", std::to_string(mPendingResume).c_str(), 1);
+	else if(mPendingResume < 0)
+		setenv("ES_RESUME", "floating", 1);
 	else
 		unsetenv("ES_RESUME");
 	mPendingResume = 0;

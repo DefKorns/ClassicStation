@@ -25,6 +25,12 @@ nand_keep="menu_display.svg menu_system.svg menu_network.svg menu_library.svg me
 home_disabled="0x7FFF"
 home_default="0x0024"
 home_prev_file=/var/lib/hakchi/emulationstation/home_combination.prev
+cpu_freq_dir=/sys/devices/system/cpu/cpu0/cpufreq
+swap_file=/media/data/emulationstation/classicstation.swap
+swap_conf=/media/data/emulationstation/swap.conf
+swap_sizes="256 512"
+swap_default_size=512
+swap_margin_mb=128
 
 isValidName() {
   case "$1" in
@@ -65,6 +71,70 @@ findCloverSounds() {
   done
   found=$(find /usr/share -name bgm_home.wav 2>/dev/null | head -n 1)
   [ -n "$found" ] && dirname "$found"
+}
+
+overclockAvailable() {
+  [ -w "$cpu_freq_dir/scaling_max_freq" ] && [ -r "$cpu_freq_dir/cpuinfo_boot_freq" ] && [ -r "$cpu_freq_dir/cpuinfo_max_freq" ] \
+    && [ "$(cat "$cpu_freq_dir/cpuinfo_boot_freq")" != "$(cat "$cpu_freq_dir/cpuinfo_max_freq")" ]
+}
+
+overclockActive() {
+  [ "$(cat "$cpu_freq_dir/scaling_max_freq")" = "$(cat "$cpu_freq_dir/cpuinfo_max_freq")" ]
+}
+
+swapConfGet() {
+  [ -f "$swap_conf" ] && sed -n "s/^$1=//p" "$swap_conf" | head -n 1
+}
+
+swapConfSet() {
+  mkdir -p "${swap_conf%/*}" || return 1
+  { [ -f "$swap_conf" ] && grep -v "^$1=" "$swap_conf"; echo "$1=$2"; } > "$swap_conf.tmp" && mv "$swap_conf.tmp" "$swap_conf"
+}
+
+swapSize() {
+  local size
+  size=$(swapConfGet size)
+  case " $swap_sizes " in
+  *" $size "*) echo "$size" ;;
+  *) echo "$swap_default_size" ;;
+  esac
+}
+
+swapAvailable() {
+  command -v swapon >/dev/null && command -v mkswap >/dev/null && [ -d /media/data ] && [ -w /media/data ] \
+    && [ "$(awk '$2 == "/media" { print $3 }' /proc/mounts)" = ext4 ]
+}
+
+swapFileReady() {
+  [ -f "$swap_file" ] && [ "$(stat -c %s "$swap_file")" = "$(($(swapSize) * 1048576))" ]
+}
+
+swapActive() {
+  grep -q "^$swap_file " /proc/swaps
+}
+
+swapCreate() {
+  local size_mb="$1" free_kb need_mb old_kb
+  need_mb=$((size_mb + swap_margin_mb))
+  free_kb=$(df -k /media | tail -n 1 | awk '{ print $4 }')
+  old_kb=$(du -k "$swap_file" 2>/dev/null | awk '{ print $1 }')
+  old_kb=${old_kb:-0}
+  rm -f "$swap_file.tmp"
+  if [ "$free_kb" -lt $((need_mb * 1024)) ]; then
+    if [ $((free_kb + old_kb)) -lt $((need_mb * 1024)) ]; then
+      echo "Not enough free space on the SD card: $need_mb MB needed."
+      return 1
+    fi
+    swapConfSet enabled 0
+    rm -f "$swap_file"
+  fi
+  if dd if=/dev/zero of="$swap_file.tmp" bs=1M count="$size_mb" 2>/dev/null && chmod 600 "$swap_file.tmp" \
+    && mkswap "$swap_file.tmp" >/dev/null 2>&1 && sync && mv "$swap_file.tmp" "$swap_file"; then
+    return 0
+  fi
+  rm -f "$swap_file.tmp"
+  echo "Could not create the swap file on the SD card."
+  return 1
 }
 
 isUsbWritable() {
@@ -200,6 +270,72 @@ case "$1" in
         save_config
         ;;
     esac
+    ;;
+  overclock)
+    case "$2" in
+      available) printState overclockAvailable ;;
+      state) printState overclockActive ;;
+      auto)
+        case "$3" in
+          state) printState test -f "$es_dir/overclock_auto" ;;
+          toggle) if [ -f "$es_dir/overclock_auto" ]; then rm -f "$es_dir/overclock_auto"; else touch "$es_dir/overclock_auto"; fi ;;
+        esac
+        ;;
+      cutoff)
+        [ -f /tmp/es-oc-cutoff ] && { cat /tmp/es-oc-cutoff; rm -f /tmp/es-oc-cutoff; }
+        ;;
+      toggle)
+        overclockAvailable || exit 1
+        if overclockActive; then
+          cat "$cpu_freq_dir/cpuinfo_boot_freq" > "$cpu_freq_dir/scaling_max_freq"
+        else
+          cat "$cpu_freq_dir/cpuinfo_max_freq" > "$cpu_freq_dir/scaling_max_freq"
+        fi
+        ;;
+    esac
+    ;;
+  swap)
+    case "$2" in
+      available) printState swapAvailable ;;
+      state) printState swapActive ;;
+      size) swapSize ;;
+      setsize)
+        case " $swap_sizes " in
+        *" $3 "*) swapConfSet size "$3" ;;
+        *) exit 1 ;;
+        esac
+        ;;
+      enable)
+        swapAvailable || { echo "Swap needs an ext4 SD card or USB stick."; exit 1; }
+        if swapActive && ! swapFileReady; then
+          swapoff "$swap_file" || { echo "Not enough free memory to resize the swap. Close games and try again."; exit 1; }
+        fi
+        if swapActive; then swapConfSet enabled 1; echo "Swap is already enabled."; exit 0; fi
+        swapFileReady || swapCreate "$(swapSize)" || exit 1
+        swapon -p 0 "$swap_file" || { echo "Could not enable the swap file."; exit 1; }
+        swapConfSet enabled 1
+        echo "Swap file enabled ($(swapSize) MB). No restart needed, and it stays on after restarts."
+        ;;
+      disable)
+        if swapActive && ! swapoff "$swap_file"; then
+          echo "Not enough free memory to turn swap off. Close games and try again."
+          exit 1
+        fi
+        swapConfSet enabled 0
+        echo "Swap file disabled. No restart needed. The file stays on the SD card."
+        ;;
+      boot)
+        [ "$(swapConfGet enabled)" = 1 ] && swapAvailable && [ -f "$swap_file" ] && ! swapActive && swapon -p 0 "$swap_file" >/dev/null 2>&1
+        ;;
+      info)
+        free -m | awk '/buffers\/cache/ { free = $4 } /^Swap/ { used = $3; total = $2 } END { printf "%s MB free, swap %s / %s MB\n", free, used, total }'
+        ;;
+    esac
+    ;;
+  temperature)
+    degrees=$(cat /sys/class/thermal/thermal_zone0/temp)
+    [ "$degrees" -lt 1000 ] 2>/dev/null || degrees=$((degrees / 1000))
+    printf "%s C, %s MHz\n" "$degrees" "$(($(cat "$cpu_freq_dir/scaling_cur_freq") / 1000))"
     ;;
   audio)
     case "$2" in

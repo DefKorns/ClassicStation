@@ -31,6 +31,8 @@ namespace MenuColors
 	extern unsigned int Key;
 	extern unsigned int KeyHighlight;
 	extern unsigned int KeyHighlightText;
+	extern float MenuHeight;
+	extern float FontScale;
 
 	bool isLight();
 	Scheme schemeFromName(const std::string& name);

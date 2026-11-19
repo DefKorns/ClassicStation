@@ -107,6 +107,18 @@ bool ResourceManager::fileExists(const std::string& path) const
 	return Utils::FileSystem::exists(path);
 }
 
+std::string ResourceManager::preferPng(const std::string& svgPath) const
+{
+	static const std::string extension = ".svg";
+	if(svgPath.size() > extension.size() && svgPath.compare(svgPath.size() - extension.size(), extension.size(), extension) == 0)
+	{
+		const std::string png = svgPath.substr(0, svgPath.size() - extension.size()) + ".png";
+		if(fileExists(png))
+			return png;
+	}
+	return svgPath;
+}
+
 void ResourceManager::unloadAll()
 {
 	auto iter = mReloadables.cbegin();

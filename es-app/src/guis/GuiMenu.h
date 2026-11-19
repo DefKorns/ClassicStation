@@ -39,7 +39,6 @@ private:
 	void openController();
 	void openNetworkList();
 	void copyResourcesToUsb();
-	static bool isFamicomPad();
 	void openAbout();
 	void openDeveloper();
 	void openSystemInfo();
