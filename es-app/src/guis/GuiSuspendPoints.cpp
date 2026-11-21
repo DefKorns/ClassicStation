@@ -424,10 +424,22 @@ void GuiSuspendPoints::saveSelected(SuspendPoints::SaveMode mode)
 	}
 }
 
+void GuiSuspendPoints::confirmOverwrite()
+{
+	const std::weak_ptr<bool> alive = mAlive;
+	auto* confirm = new GuiMsgBox(mWindow, "OVERWRITE THIS SUSPEND POINT?", "YES", [this, alive] {
+		if(alive.expired())
+			return;
+		saveSelected(SuspendPoints::SaveMode::Overwrite);
+	}, "NO", nullptr);
+	confirm->selectButton(1);
+	mWindow->pushGui(confirm);
+}
+
 void GuiSuspendPoints::confirmDelete(int slot)
 {
 	const std::weak_ptr<bool> alive = mAlive;
-	mWindow->pushGui(new GuiMsgBox(mWindow, "DELETE THIS SUSPEND POINT?", "YES", [this, slot, alive] {
+	auto* confirm = new GuiMsgBox(mWindow, "DELETE THIS SUSPEND POINT?", "YES", [this, slot, alive] {
 		if(alive.expired())
 			return;
 		UiSound::play("se_sys_delete.wav");
@@ -437,7 +449,9 @@ void GuiSuspendPoints::confirmDelete(int slot)
 		refresh();
 		if(mOnChanged)
 			mOnChanged();
-	}, "NO", nullptr));
+	}, "NO", nullptr);
+	confirm->selectButton(1);
+	mWindow->pushGui(confirm);
 }
 
 void GuiSuspendPoints::enterMove()
@@ -666,7 +680,7 @@ void GuiSuspendPoints::update(int deltaTime)
 		{
 			mHolding = false;
 			mHeldMs = 0;
-			saveSelected(SuspendPoints::SaveMode::Overwrite);
+			confirmOverwrite();
 		}
 	}
 }

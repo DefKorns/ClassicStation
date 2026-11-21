@@ -64,6 +64,7 @@ private:
 	void renderFloating(const Transform4x4f& trans);
 	void renderWarning(const Transform4x4f& trans);
 	void confirmDelete(int slot);
+	void confirmOverwrite();
 	void enterMove();
 	bool anySaved() const;
 	int nearestSaved(int from) const;
