@@ -1076,8 +1076,8 @@
 		<text name="md_code">
 			<suspendShift>0.072222</suspendShift>
 			<demoShift>0.833333</demoShift>
-			<pos>0.7602 0.2014</pos>
-			<size>0.1328 0.0917</size>
+			<pos>0.6602 0.2014</pos>
+			<size>0.2328 0.0917</size>
 			<fontSize>0.0306</fontSize>
 			<color>8A8A8A</color>
 			<alignment>right</alignment>
