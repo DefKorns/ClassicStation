@@ -6,7 +6,7 @@
 #define BUTTON_GRID_VERT_PADDING 32
 #define BUTTON_GRID_HORIZ_PADDING 10
 
-#define TITLE_HEIGHT (mTitle->getFont()->getLetterHeight() + TITLE_VERT_PADDING)
+#define TITLE_HEIGHT (mTitle->getFont()->getLetterHeight() + TITLE_VERT_PADDING + subtitleHeight())
 
 MenuComponent::MenuComponent(Window* window, const char* title, const std::shared_ptr<Font>& titleFont) : GuiComponent(window),
 	mBackground(window), mGrid(window, Vector2i(1, 3))
@@ -39,6 +39,27 @@ void MenuComponent::setTitle(const char* title, const std::shared_ptr<Font>& fon
 {
 	mTitle->setText(Utils::String::toUpper(title));
 	mTitle->setFont(font);
+}
+
+void MenuComponent::setSubtitle(const std::string& subtitle)
+{
+	if(!mSubtitle)
+	{
+		mSubtitle = std::make_shared<TextComponent>(mWindow, subtitle, Font::get(FONT_SIZE_SMALL), MenuColors::Dim, ALIGN_CENTER);
+		mTitleBlock = std::make_shared<ComponentGrid>(mWindow, Vector2i(1, 2));
+		mGrid.removeEntry(mTitle);
+		mTitleBlock->setEntry(mTitle, Vector2i(0, 0), false);
+		mTitleBlock->setEntry(mSubtitle, Vector2i(0, 1), false);
+		mGrid.setEntry(mTitleBlock, Vector2i(0, 0), false);
+	}
+	else
+		mSubtitle->setText(subtitle);
+	updateSize();
+}
+
+float MenuComponent::subtitleHeight() const
+{
+	return mSubtitle ? mSubtitle->getFont()->getHeight() - TITLE_VERT_PADDING * 0.4f : 0.0f;
 }
 
 float MenuComponent::getButtonGridHeight() const
@@ -78,6 +99,8 @@ void MenuComponent::onSizeChanged()
 	mGrid.setRowHeightPerc(2, getButtonGridHeight() / mSize.y());
 
 	mGrid.setSize(mSize);
+	if(mTitleBlock)
+		mTitleBlock->setRowHeightPerc(0, (TITLE_HEIGHT - mSubtitle->getFont()->getHeight()) / TITLE_HEIGHT);
 }
 
 void MenuComponent::addButton(const std::string& name, const std::string& helpText, const std::function<void()>& callback)

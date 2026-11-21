@@ -8,9 +8,13 @@
   */
 #include "ConsoleTools.h"
 
+#include <arpa/inet.h>
 #include <array>
 #include <cstdio>
+#include <ifaddrs.h>
 #include <memory>
+#include <net/if.h>
+#include <netinet/in.h>
 
 namespace
 {
@@ -55,5 +59,29 @@ namespace ConsoleTools
 	bool isOn(const std::string& arguments)
 	{
 		return run(arguments) == "on";
+	}
+
+	std::string localAddress()
+	{
+		struct ifaddrs* all = nullptr;
+		if(getifaddrs(&all) != 0)
+			return "";
+
+		std::string address;
+		for(const struct ifaddrs* entry = all; entry != nullptr; entry = entry->ifa_next)
+		{
+			if(entry->ifa_addr == nullptr || entry->ifa_addr->sa_family != AF_INET || (entry->ifa_flags & IFF_LOOPBACK) != 0)
+				continue;
+			char text[INET_ADDRSTRLEN];
+			const auto* socket = reinterpret_cast<const struct sockaddr_in*>(entry->ifa_addr);
+			if(inet_ntop(AF_INET, &socket->sin_addr, text, sizeof text) != nullptr)
+			{
+				address = text;
+				if(std::string(entry->ifa_name) == "wlan0")
+					break;
+			}
+		}
+		freeifaddrs(all);
+		return address;
 	}
 }

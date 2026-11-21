@@ -33,6 +33,7 @@
 #include "ConsoleTools.h"
 #include "MusicPlayer.h"
 #include "guis/GuiNetworkList.h"
+#include "guis/GuiSavedNetworks.h"
 #include "guis/GuiAbout.h"
 #include "guis/GuiSystemInfo.h"
 #include "guis/GuiToolRunner.h"
@@ -116,9 +117,9 @@ void GuiMenu::showCategory(int category)
 		addEntry("SCRAPER", MenuColors::Text, true, [this] { openScraperSettings(); });
 		break;
 	case Network:
-		addEntry("DISPLAY IP ADDRESS", MenuColors::Text, false, [this] { showToolResult("ip"); });
-		addEntry("RECONNECT", MenuColors::Text, false, [this] { showToolResult("reconnect"); });
+		addEntry("CURRENT NETWORK", MenuColors::Text, true, [this] { GuiSavedNetworks::openCurrent(mWindow); });
 		addEntry("CONNECT TO NETWORK", MenuColors::Text, true, [this] { openNetworkList(); });
+		addEntry("SAVED NETWORKS", MenuColors::Text, true, [this] { GuiSavedNetworks::open(mWindow); });
 		break;
 	case Tools:
 		addEntry("CONTROLLER", MenuColors::Text, true, [this] { openController(); });

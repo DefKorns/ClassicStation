@@ -185,6 +185,7 @@ case "$1" in
       echo "Already connected to the internet."
     else
       if ! hasAddress || ! wpa_cli status 2>/dev/null | grep -q '^wpa_state=COMPLETED'; then
+        wpa_cli enable_network all >/dev/null 2>&1
         wpa_cli reconnect >/dev/null 2>&1
         for _ in $(seq 1 10); do
           hasAddress && break
@@ -243,6 +244,101 @@ case "$1" in
       wpa_cli enable_network all >/dev/null
       wpa_cli save_config >/dev/null
       echo "Could not connect to $ES_SSID. Check the password."
+    fi
+    ;;
+  savednetworks)
+    wpa_cli list_networks 2>/dev/null | awk -F'	' 'NR > 2 && $2 != "" { print $2 "	" ($4 ~ /CURRENT/ ? "CONNECTED" : "") }'
+    ;;
+  wififorget)
+    network_id=$(wpa_cli list_networks | awk -F'	' -v ssid="$ES_SSID" '$2 == ssid { print $1; exit }')
+    if [ -z "$network_id" ]; then
+      echo "$ES_SSID is not saved."
+    else
+      wpa_cli remove_network "$network_id" >/dev/null
+      wpa_cli save_config >/dev/null
+      echo "Forgot $ES_SSID."
+    fi
+    ;;
+  wifistatus)
+    wpa_cli list_networks 2>/dev/null | awk -F'	' 'NR > 2 && $4 ~ /CURRENT/ { print $2; exit }'
+    ;;
+  wifiselect)
+    network_id=$(wpa_cli list_networks | awk -F'	' -v ssid="$ES_SSID" '$2 == ssid { print $1; exit }')
+    if [ -z "$network_id" ]; then
+      echo "$ES_SSID is not saved."
+    else
+      wpa_cli enable_network all >/dev/null 2>&1
+      wpa_cli select_network "$network_id" >/dev/null
+      connected=0
+      for _ in $(seq 1 20); do
+        if wpa_cli status 2>/dev/null | grep -q '^wpa_state=COMPLETED'; then connected=1; break; fi
+        sleep 1
+      done
+      if [ "$connected" = 1 ]; then echo "Connected to $ES_SSID."; else echo "Could not connect to $ES_SSID."; fi
+    fi
+    ;;
+  wifidisconnect)
+    wpa_cli disable_network all >/dev/null 2>&1
+    wpa_cli disconnect >/dev/null 2>&1
+    echo "Disconnected."
+    ;;
+  wifibackup)
+    wifi_dir=/media/data/wifi_backup/$(echo "$ES_SSID" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9_.-')
+    wpa_cli save_config >/dev/null 2>&1
+    if [ "$wifi_dir" = /media/data/wifi_backup/ ] || ! grep -q "ssid=\"$ES_SSID\"" /etc/wpa_supplicant/wpa_supplicant.conf; then
+      echo "$ES_SSID is not saved."
+    elif mkdir -p "$wifi_dir" && awk -v ssid="ssid=\"$ES_SSID\"" '
+        /^[ 	]*network[ 	]*=[ 	]*\{/ { inside = 1; block = $0 "\n"; keep = 0; next }
+        inside { block = block $0 "\n"; sub(/^[ 	]+/, ""); if ($0 == ssid) keep = 1; if ($0 ~ /^\}/) { inside = 0; if (keep) kept = kept block } next }
+        { print }
+        END { printf "%s", kept }
+      ' /etc/wpa_supplicant/wpa_supplicant.conf > "$wifi_dir/wpa_supplicant.conf.tmp" && mv -f "$wifi_dir/wpa_supplicant.conf.tmp" "$wifi_dir/wpa_supplicant.conf"; then
+      echo "Backed up $ES_SSID to the SD card."
+    else
+      rm -f "$wifi_dir/wpa_supplicant.conf.tmp"
+      echo "Could not write the backup. Check the SD card."
+    fi
+    ;;
+  wifibackups)
+    for wifi_dir in /media/data/wifi_backup/*/; do
+      [ -f "${wifi_dir}wpa_supplicant.conf" ] || continue
+      wifi_dir=${wifi_dir%/}
+      echo "${wifi_dir##*/}"
+    done
+    ;;
+  wifirestore)
+    wifi_backup=/media/data/wifi_backup/$ES_SSID/wpa_supplicant.conf
+    if [ -z "$ES_SSID" ] || [ "${ES_SSID#*/}" != "$ES_SSID" ] || [ ! -f "$wifi_backup" ]; then
+      echo "No backup found on the SD card."
+    else
+      blockField() {
+        awk -v block="$1" -v field="$2" '
+          /^[ 	]*network[ 	]*=[ 	]*\{/ { n++; inside = 1; next }
+          inside && /^[ 	]*\}/ { inside = 0; next }
+          inside && n == block { sub(/^[ 	]+/, ""); i = index($0, "="); if (substr($0, 1, i - 1) == field) { print substr($0, i + 1); exit } }
+        ' "$wifi_backup"
+      }
+      blocks=$(grep -c '^[[:space:]]*network[[:space:]]*=' "$wifi_backup")
+      restored=0
+      block=1
+      while [ "$block" -le "$blocks" ]; do
+        ssid=$(blockField "$block" ssid | sed 's/^"\(.*\)"$/\1/')
+        if [ -n "$ssid" ] && ! wpa_cli list_networks | awk -F'	' -v ssid="$ssid" '$2 == ssid { found = 1 } END { exit !found }'; then
+          network_id=$(wpa_cli add_network | tail -n 1)
+          awk -v block="$block" '
+            /^[ 	]*network[ 	]*=[ 	]*\{/ { n++; inside = 1; next }
+            inside && /^[ 	]*\}/ { inside = 0; next }
+            inside && n == block { sub(/^[ 	]+/, ""); i = index($0, "="); if (i > 1) print substr($0, 1, i - 1) "	" substr($0, i + 1) }
+          ' "$wifi_backup" | while IFS='	' read -r key value; do
+            wpa_cli set_network "$network_id" "$key" "$value" >/dev/null
+          done
+          restored=$((restored + 1))
+        fi
+        block=$((block + 1))
+      done
+      wpa_cli enable_network all >/dev/null
+      wpa_cli save_config >/dev/null
+      if [ "$restored" -gt 0 ]; then echo "Restored $restored network(s)."; else echo "Every network in the backup is already saved."; fi
     fi
     ;;
   sysinfo)

@@ -17,6 +17,7 @@ namespace ConsoleTools
 {
 	std::string run(const std::string& arguments, const std::map<std::string, std::string>& environment = {});
 	bool isOn(const std::string& arguments);
+	std::string localAddress();
 }
 
 #endif // ES_APP_CONSOLE_TOOLS_H

@@ -52,6 +52,7 @@ set(ES_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiSystemInfo.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiVirtualKeyboard.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiNetworkList.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiSavedNetworks.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiGamelistFilter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiCollectionSystemsOptions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiRandomCollectionOptions.h
@@ -129,6 +130,7 @@ set(ES_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiSystemInfo.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiVirtualKeyboard.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiNetworkList.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiSavedNetworks.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiGamelistFilter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiCollectionSystemsOptions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiRandomCollectionOptions.cpp
