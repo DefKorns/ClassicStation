@@ -154,6 +154,10 @@ isJapaneseConsole() {
   [ "$sfregion" = jpn ]
 }
 
+romajiAvailable() {
+  [ -f "$es_dir/es_romaji.txt" ] && isJapaneseConsole
+}
+
 isJapaneseFamicom() {
   [ "$sftype" = "nes" ] && [ "$sfregion" = "jpn" ]
 }
@@ -259,6 +263,7 @@ case "$1" in
       echo "$ES_SSID is not saved."
     else
       wpa_cli remove_network "$network_id" >/dev/null
+      wpa_cli enable_network all >/dev/null 2>&1
       wpa_cli save_config >/dev/null
       echo "Forgot $ES_SSID."
     fi
@@ -288,12 +293,13 @@ case "$1" in
     ;;
   wifibackup)
     wifi_dir=/media/data/wifi_backup/$(echo "$ES_SSID" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9_.-')
+    wpa_cli enable_network all >/dev/null 2>&1
     wpa_cli save_config >/dev/null 2>&1
-    if [ "$wifi_dir" = /media/data/wifi_backup/ ] || ! grep -q "ssid=\"$ES_SSID\"" /etc/wpa_supplicant/wpa_supplicant.conf; then
+    if [ "$wifi_dir" = /media/data/wifi_backup/ ] || ! grep -qxF "	ssid=\"$ES_SSID\"" /etc/wpa_supplicant/wpa_supplicant.conf; then
       echo "$ES_SSID is not saved."
-    elif mkdir -p "$wifi_dir" && awk -v ssid="ssid=\"$ES_SSID\"" '
+    elif mkdir -p "$wifi_dir" && ES_WANT="ssid=\"$ES_SSID\"" awk '
         /^[ 	]*network[ 	]*=[ 	]*\{/ { inside = 1; block = $0 "\n"; keep = 0; next }
-        inside { block = block $0 "\n"; sub(/^[ 	]+/, ""); if ($0 == ssid) keep = 1; if ($0 ~ /^\}/) { inside = 0; if (keep) kept = kept block } next }
+        inside { block = block $0 "\n"; sub(/^[ 	]+/, ""); if ($0 == ENVIRON["ES_WANT"]) keep = 1; if ($0 ~ /^\}/) { inside = 0; if (keep) kept = kept block } next }
         { print }
         END { printf "%s", kept }
       ' /etc/wpa_supplicant/wpa_supplicant.conf > "$wifi_dir/wpa_supplicant.conf.tmp" && mv -f "$wifi_dir/wpa_supplicant.conf.tmp" "$wifi_dir/wpa_supplicant.conf"; then
@@ -378,7 +384,7 @@ case "$1" in
     ;;
   romaji)
     case "$2" in
-      available) printState test -f "$es_dir/es_romaji.txt" && isJapaneseConsole ;;
+      available) printState romajiAvailable ;;
       state) printState test -f "$es_dir/romaji_on" ;;
       toggle)
         if [ -f "$es_dir/romaji_on" ]; then rm -f "$es_dir/romaji_on"; else touch "$es_dir/romaji_on"; fi
