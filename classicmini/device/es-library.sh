@@ -20,8 +20,11 @@ script_init
 out=${1:?output dir}
 store=${ES_STORE:-$(findGameStorage)} || store=
 max_depth=8
+here=$(dirname "$0")
+romaji=
 covers=/media/data/emulationstation/covers
 us=$(printf '\037')
+[ -f "$here/romaji_on" ] && [ -f "$here/es_romaji.txt" ] && romaji=$here/es_romaji.txt
 
 chdRead() {
   dd if="$1" bs=1 skip="$2" count="$3" 2>/dev/null | od -An -tx1 | tr -d ' \n'
@@ -134,7 +137,7 @@ readGames() {
   local has=0
   [ -d "$covers" ] && has=1
   printf '%s\n' "$store"/*/CLV-*/CLV-*.desktop |
-  awk -v dir="$covers" -v has="$has" -v root=000 -v maxdepth="$max_depth" -v sep="$us" '
+  awk -v dir="$covers" -v has="$has" -v romaji="$romaji" -v root=000 -v maxdepth="$max_depth" -v sep="$us" '
   function esc(s) {
     gsub(/&/, "\\&amp;", s)
     gsub(/</, "\\&lt;", s)
@@ -157,6 +160,13 @@ readGames() {
     delete onpath[menu]
   }
   BEGIN {
+    if (romaji != "") {
+      while ((getline line < romaji) > 0) {
+        t = index(line, "\t"); if (!t) continue
+        rom[substr(line, 1, t - 1)] = substr(line, t + 1)
+      }
+      close(romaji)
+    }
     if (has) {
       cmd = "ls -1a \"" dir "\" 2>/dev/null"
       while ((cmd | getline f) > 0) {
@@ -206,7 +216,7 @@ readGames() {
     if (ge == "") ge = sg
 
     id = ++total
-    menuOf[id] = m; code[id] = c; name[id] = nm; exec[id] = ex; icon[id] = ic; desc[id] = ds; players[id] = pl
+    menuOf[id] = m; code[id] = c; name[id] = (c in rom) ? rom[c] : nm; exec[id] = ex; icon[id] = ic; desc[id] = ds; players[id] = pl
     recs[m, ++count[m]] = id
 
     split(ex, w, " ")

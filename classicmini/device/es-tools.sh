@@ -150,6 +150,10 @@ hasUsbResources() {
   [ -f "$usb_resources/fallback_ja.ttf" ] && [ -f "$usb_resources/menu_system.svg" ]
 }
 
+isJapaneseConsole() {
+  [ "$sfregion" = jpn ]
+}
+
 isJapaneseFamicom() {
   [ "$sftype" = "nes" ] && [ "$sfregion" = "jpn" ]
 }
@@ -369,6 +373,17 @@ case "$1" in
       toggle)
         if [ "$cfg_disable_armet" = "y" ]; then cfg_disable_armet='n'; else cfg_disable_armet='y'; fi
         save_config
+        ;;
+    esac
+    ;;
+  romaji)
+    case "$2" in
+      available) printState test -f "$es_dir/es_romaji.txt" && isJapaneseConsole ;;
+      state) printState test -f "$es_dir/romaji_on" ;;
+      toggle)
+        if [ -f "$es_dir/romaji_on" ]; then rm -f "$es_dir/romaji_on"; else touch "$es_dir/romaji_on"; fi
+        rm -f "$es_dir/library.stamp.count"
+        touch /tmp/es-rebuild
         ;;
     esac
     ;;

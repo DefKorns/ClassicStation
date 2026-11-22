@@ -36,6 +36,7 @@ private:
 	void addEntry(const char* name, unsigned int color, bool add_arrow, const std::function<void()>& func);
 	void addVersionInfo();
 	void addToggle(const char* name, const std::string& stateArguments, const std::string& toggleArguments);
+	void addRomajiToggle();
 	void showToolResult(const std::string& arguments);
 	void openController();
 	void openNetworkList();

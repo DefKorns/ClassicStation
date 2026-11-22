@@ -115,6 +115,8 @@ void GuiMenu::showCategory(int category)
 	case Library:
 		addEntry("GAME COLLECTION SETTINGS", MenuColors::Text, true, [this] { openCollectionSystemSettings(); });
 		addEntry("SCRAPER", MenuColors::Text, true, [this] { openScraperSettings(); });
+		if (ConsoleTools::isOn("romaji available"))
+			addRomajiToggle();
 		break;
 	case Network:
 		addEntry("CURRENT NETWORK", MenuColors::Text, true, [this] { GuiSavedNetworks::openCurrent(mWindow); });
@@ -165,6 +167,28 @@ void GuiMenu::addToggle(const char* name, const std::string& stateArguments, con
 
 	ComponentListRow row;
 	row.addElement(std::make_shared<TextComponent>(mWindow, name, Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+	row.addElement(toggle, false);
+	mMenu.addRow(row);
+}
+
+void GuiMenu::addRomajiToggle()
+{
+	auto toggle = std::make_shared<SwitchComponent>(mWindow, ConsoleTools::isOn("romaji state"));
+	SwitchComponent* romajiSwitch = toggle.get();
+	Window* window = mWindow;
+	toggle->setChangedCallback([window, romajiSwitch](bool enabled) {
+		const bool previous = !enabled;
+		window->pushGui(new GuiMsgBox(window,
+			enabled ? "SHOW GAME TITLES IN ROMAJI?\nCLASSICSTATION WILL RESTART." : "SHOW THE ORIGINAL GAME TITLES?\nCLASSICSTATION WILL RESTART.",
+			"YES", [] {
+				ConsoleTools::run("romaji toggle");
+				quitES(QuitMode::RESTART);
+			},
+			"NO", [romajiSwitch, previous] { romajiSwitch->setState(previous); }));
+	});
+
+	ComponentListRow row;
+	row.addElement(std::make_shared<TextComponent>(mWindow, "ROMAJI TITLES", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 	row.addElement(toggle, false);
 	mMenu.addRow(row);
 }
