@@ -8,6 +8,7 @@
   */
 #include "guis/GuiToolRunner.h"
 
+#include "guis/GuiInfoPopup.h"
 #include "guis/GuiMsgBox.h"
 #include "renderers/Renderer.h"
 #include "Window.h"
@@ -50,4 +51,17 @@ void GuiToolRunner::render(const Transform4x4f& parentTrans)
 	Renderer::setMatrix(trans);
 	Renderer::drawRect(0.0f, 0.0f, mSize.x(), mSize.y(), 0x00000090, 0x00000090);
 	mBusy.render(trans);
+}
+
+void GuiToolRunner::report(Window* window, const std::string& text, const std::function<void()>& then)
+{
+	if(!text.empty() && text.front() == '!')
+	{
+		window->pushGui(new GuiMsgBox(window, text.substr(1), "OK", then));
+		return;
+	}
+
+	window->setInfoPopup(new GuiInfoPopup(window, text, 2500));
+	if(then)
+		then();
 }

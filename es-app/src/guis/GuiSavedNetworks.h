@@ -30,6 +30,7 @@ public:
 	static void openCurrent(Window* window);
 
 	bool input(InputConfig* config, Input input) override;
+	void update(int deltaTime) override;
 	std::vector<HelpPrompt> getHelpPrompts() override;
 	HelpStyle getHelpStyle() override;
 
@@ -41,6 +42,7 @@ private:
 		std::string label;
 		std::string detail;
 		Action action;
+		Action onHold;
 	};
 
 	GuiSavedNetworks(Window* window, const std::string& title, const std::vector<Row>& rows);
@@ -54,6 +56,9 @@ private:
 	void addRow(const Row& row);
 
 	MenuComponent mMenu;
+	std::vector<Row> mRows;
+	bool mHolding = false;
+	int mHeldMs = 0;
 };
 
 #endif // ES_APP_GUIS_GUI_SAVED_NETWORKS_H
