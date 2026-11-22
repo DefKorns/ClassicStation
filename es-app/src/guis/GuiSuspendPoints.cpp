@@ -432,7 +432,6 @@ void GuiSuspendPoints::confirmOverwrite()
 			return;
 		saveSelected(SuspendPoints::SaveMode::Overwrite);
 	}, "NO", nullptr);
-	confirm->selectButton(1);
 	mWindow->pushGui(confirm);
 }
 
@@ -450,7 +449,6 @@ void GuiSuspendPoints::confirmDelete(int slot)
 		if(mOnChanged)
 			mOnChanged();
 	}, "NO", nullptr);
-	confirm->selectButton(1);
 	mWindow->pushGui(confirm);
 }
 

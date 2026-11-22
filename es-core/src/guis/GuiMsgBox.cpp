@@ -64,6 +64,10 @@ GuiMsgBox::GuiMsgBox(Window* window, const std::string& text,
 	mBackground.setCenterColor(MenuColors::Panel);
 	mBackground.setEdgeColor(MenuColors::Panel);
 	addChild(&mGrid);
+
+	for(size_t i = 0; i < mButtons.size(); i++)
+		if(mButtons.size() > 1 && Utils::String::toUpper(mButtons[i]->getText()) == "NO")
+			selectButton(i);
 }
 
 void GuiMsgBox::selectButton(size_t index)

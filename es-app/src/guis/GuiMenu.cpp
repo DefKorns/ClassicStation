@@ -317,7 +317,6 @@ void GuiMenu::openDeveloperPage(const std::map<std::string, std::string>& info)
 				"ENABLE OVERCLOCK?",
 				"YES", [] { ConsoleTools::run("overclock toggle"); },
 				"NO", [overclockSwitch] { overclockSwitch->setState(false); });
-			confirm->selectButton(1);
 			window->pushGui(confirm);
 		});
 		s->addWithLabel("OVERCLOCK", overclockToggle);
@@ -339,7 +338,6 @@ void GuiMenu::openDeveloperPage(const std::map<std::string, std::string>& info)
 				"ENABLE OVERCLOCK IN HEAVY GAMES?",
 				"YES", [] { ConsoleTools::run("overclock auto toggle"); },
 				"NO", [autoSwitch] { autoSwitch->setState(false); });
-			confirm->selectButton(1);
 			window->pushGui(confirm);
 		});
 		s->addWithLabel("OVERCLOCK IN HEAVY GAMES", autoToggle);
@@ -371,7 +369,6 @@ void GuiMenu::openDeveloperPage(const std::map<std::string, std::string>& info)
 				"ENABLE SWAP FILE?",
 				"YES", [runSwap] { runSwap("enable"); },
 				"NO", [swapSwitch] { swapSwitch->setState(false); });
-			confirm->selectButton(1);
 			window->pushGui(confirm);
 		});
 		s->addWithLabel("SWAP FILE", swapToggle);

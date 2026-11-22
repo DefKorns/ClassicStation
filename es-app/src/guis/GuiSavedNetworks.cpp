@@ -70,7 +70,6 @@ void GuiSavedNetworks::openActions(Window* window, const std::string& name, bool
 		auto* confirm = new GuiMsgBox(window, "FORGET " + name + "?", "YES", [window, name, page] {
 			closeAndRun(page, [window, name] { runTool(window, "wififorget", name, [window] { open(window); }); });
 		}, "NO", nullptr);
-		confirm->selectButton(1);
 		window->pushGui(confirm);
 	} });
 	auto* page = new GuiSavedNetworks(window, name, rows);

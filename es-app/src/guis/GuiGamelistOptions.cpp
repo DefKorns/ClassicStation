@@ -351,7 +351,7 @@ void GuiGamelistOptions::openMetaDataEd()
 		ViewController::get()->getGameListView(file->getSystem())->onFileChanged(file, FILE_METADATA_CHANGED);
 	};
 
-	mWindow->pushGui(new GuiMetaDataEd(mWindow, &file->metadata, file->metadata.getMDD(), p, Utils::FileSystem::getFileName(file->getPath()), saveBtnFunc, nullptr));
+	mWindow->pushGui(new GuiMetaDataEd(mWindow, &file->metadata, file->metadata.getMDD(), p, Utils::FileSystem::getFileName(file->getPath()), saveBtnFunc));
 }
 
 void GuiGamelistOptions::jumpToLetter()
