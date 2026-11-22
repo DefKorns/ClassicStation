@@ -4,6 +4,7 @@
 
 #include "MenuColors.h"
 #include "GuiComponent.h"
+#include "I18n.h"
 #include "Log.h"
 #include "Window.h"
 #include <functional>
@@ -318,7 +319,11 @@ private:
 		{
 			// display # selected
 			std::stringstream ss;
-			ss << getSelectedObjects().size() << " SELECTED";
+			const auto selectedCount = getSelectedObjects().size();
+			if(selectedCount == 1)
+				ss << I18n::tr("1 SELECTED");
+			else
+				ss << selectedCount << " " << I18n::tr("SELECTED");
 			mText.setText(ss.str());
 			mText.setSize(0, mText.getSize().y());
 			setSize(mText.getSize().x() + mRightArrow.getSize().x() + 24, mText.getSize().y());

@@ -7,6 +7,7 @@
 #include "components/ComponentList.h"
 #include "components/NinePatchComponent.h"
 #include "components/TextComponent.h"
+#include "I18n.h"
 #include "utils/StringUtil.h"
 
 class ButtonComponent;
@@ -31,7 +32,7 @@ public:
 	inline void addWithLabel(const std::string& label, const std::shared_ptr<GuiComponent>& comp, bool setCursorHere = false, bool invert_when_selected = true)
 	{
 		ComponentListRow row;
-		row.addElement(std::make_shared<TextComponent>(mWindow, Utils::String::toUpper(label), Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+		row.addElement(std::make_shared<TextComponent>(mWindow, Utils::String::toUpper(I18n::tr(label)), Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 		row.addElement(comp, false, invert_when_selected);
 		addRow(row, setCursorHere);
 	}

@@ -3,6 +3,7 @@
 
 #include "guis/GuiDetectDevice.h"
 #include "AudioManager.h"
+#include "I18n.h"
 #include "guis/GuiMsgBox.h"
 #include "resources/Font.h"
 #include "utils/FileSystemUtil.h"
@@ -545,6 +546,7 @@ int main(int argc, char* argv[])
 
 	MenuColors::apply(MenuColors::schemeFromName(Settings::getInstance()->getString("ColorScheme")));
 
+	I18n::load(Settings::getInstance()->getString("Language"));
 	Window window;
 	SystemScreenSaver screensaver(&window);
 	PowerSaver::init();

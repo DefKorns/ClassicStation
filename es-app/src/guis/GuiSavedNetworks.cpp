@@ -8,6 +8,7 @@
   */
 #include "MenuColors.h"
 #include "guis/GuiSavedNetworks.h"
+#include "I18n.h"
 
 #include "guis/GuiMsgBox.h"
 #include "guis/GuiToolRunner.h"
@@ -67,7 +68,7 @@ void GuiSavedNetworks::openActions(Window* window, const std::string& name, bool
 		closeAndRun(page, [window, name] { runTool(window, "wifibackup", name, [] { return; }); });
 	} });
 	rows.push_back({ "FORGET", "", [window, name](GuiSavedNetworks* page) {
-		auto* confirm = new GuiMsgBox(window, "FORGET " + name + "?", "YES", [window, name, page] {
+		auto* confirm = new GuiMsgBox(window, I18n::tr("FORGET") + " " + name + "?", "YES", [window, name, page] {
 			closeAndRun(page, [window, name] { runTool(window, "wififorget", name, [window] { open(window); }); });
 		}, "NO", nullptr);
 		window->pushGui(confirm);
@@ -146,9 +147,9 @@ std::vector<SavedNetwork> GuiSavedNetworks::parseSaved(const std::string& toolOu
 void GuiSavedNetworks::addRow(const Row& row)
 {
 	ComponentListRow listRow;
-	listRow.addElement(std::make_shared<TextComponent>(mWindow, row.label, Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+	listRow.addElement(std::make_shared<TextComponent>(mWindow, I18n::tr(row.label), Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 	if(!row.detail.empty())
-		listRow.addElement(std::make_shared<TextComponent>(mWindow, row.detail, Font::get(FONT_SIZE_SMALL), MenuColors::Dim), false);
+		listRow.addElement(std::make_shared<TextComponent>(mWindow, I18n::tr(row.detail), Font::get(FONT_SIZE_SMALL), MenuColors::Dim), false);
 	const Action action = row.action;
 	listRow.makeAcceptInputHandler([this, action] { action(this); });
 	mMenu.addRow(listRow);

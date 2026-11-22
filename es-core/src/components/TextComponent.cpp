@@ -3,6 +3,7 @@
 #include "utils/StringUtil.h"
 #include "Log.h"
 #include "Settings.h"
+#include "I18n.h"
 
 TextComponent::TextComponent(Window* window) : GuiComponent(window),
 	mFont(Font::get(FONT_SIZE_MEDIUM)), mUppercase(false), mColor(0x000000FF), mAutoCalcExtent(true, true),
@@ -82,9 +83,25 @@ unsigned char TextComponent::getOpacity() const
 	return mColor & 0x000000FF;
 }
 
+namespace
+{
+	bool isInterfaceText(const std::string& text)
+	{
+		bool letter = false;
+		for(const char c : text)
+		{
+			if(c >= 'a' && c <= 'z')
+				return false;
+			if(c >= 'A' && c <= 'Z')
+				letter = true;
+		}
+		return letter;
+	}
+}
+
 void TextComponent::setText(const std::string& text)
 {
-	mText = text;
+	mText = isInterfaceText(text) ? I18n::tr(text) : text;
 	onTextChanged();
 }
 
