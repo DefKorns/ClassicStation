@@ -408,7 +408,7 @@ void SystemView::onCursorChanged(const CursorState& /*state*/)
 		else
 		{
 			ss << gameCount << " GAME" << (gameCount == 1 ? "" : "S");
-			if(showFavorites)
+			if(showFavorites && favoriteCount > 0)
 				ss << " (" << favoriteCount << " FAVORITE" << (favoriteCount == 1 ? "" : "S") << ")";
 		}
 

@@ -18,6 +18,7 @@ export ES_GAME=1
 shim=/tmp/es-shim
 profile=/var/lib/clover/profiles/0
 volatile=/var/cache/clover/volatile
+cpu_freq_dir=/sys/devices/system/cpu/cpu0/cpufreq
 settings_file=$(dirname "$0")/home/.emulationstation/es_settings.cfg
 # shellcheck source=es-autofire.sh
 source "$(dirname "$0")/es-autofire.sh"
@@ -231,6 +232,23 @@ SHIM
   chmod +x "$shim/canoe-shvc"
 }
 
+openborOverclock() {
+  [ -f "$(dirname "$0")/overclock_auto" ] || return 0
+  [ "$(cat "$cpu_freq_dir/scaling_max_freq")" = "$(cat "$cpu_freq_dir/cpuinfo_max_freq")" ] && return 0
+  cat "$cpu_freq_dir/cpuinfo_max_freq" > "$cpu_freq_dir/scaling_max_freq" && openbor_oc=1
+}
+
+openborShim() {
+  local first name
+  first=${cmd%% *}
+  case "$first" in /bin/openbor|/bin/openbor-legacy|/bin/openbor-debug) ;; *) return 0 ;; esac
+  name=${first##*/}
+  sed '/startmcp.flag/d' /bin/openbor > "$shim/$name" || return 0
+  chmod +x "$shim/$name"
+  cmd="$shim/$name --rexec \"$PWD\"${cmd#"$first"}"
+  openborOverclock
+}
+
 isRetroarchState() {
   [ -f "$1" ] && [ "$(head -c 9 "$1")" != HANASTATE ]
 }
@@ -319,11 +337,13 @@ printf '#!/bin/sh\n%s\n%s\nexec retroarch-clover-child "$@"%s\n' "$(overclockShi
 chmod +x "$shim/retroarch-clover"
 
 canoeShim
+openborShim
 crtfxEnv
 autofireForGames
 launched=$(cut -d. -f1 /proc/uptime)
 PATH="$shim:$PATH" sh -c "$cmd"
 status=$?
+[ -z "${openbor_oc:-}" ] || cat "$cpu_freq_dir/cpuinfo_boot_freq" > "$cpu_freq_dir/scaling_max_freq"
 if [ -n "${resumed:-}" ]; then
   if [ ! -f "$floating.state" ]; then
     cp "$resumed" "$floating.state"

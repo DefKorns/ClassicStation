@@ -23,6 +23,10 @@ All licensed under the [SIL Open Font License 1.1](https://openfontlicense.org).
   u/br1ans (the "Hakchi Folders ALL HD" set shared on Reddit), the pixel-art consoles of the "Additional Icon Pack 2.22
   for Hakchi/CE/NESC/SNESC" by faustbear (free to use, share and modify with credit), and arcade bezels used for
   the All Games, Last Played and Random cards.
+- The swap file option of the DEVELOPER menu follows the idea of the Hakchi Memory Booster by Swingflip
+  (<https://github.com/TheOtherGuys-Hakchi-Projects/Hakchi-Memory-Booster>), GPL-3.0. No code was copied.
+- The OVERCLOCK switch of the DEVELOPER menu uses the method of Easy OC by bslenul: it writes the maximum frequency
+  to `scaling_max_freq` and nothing is written to flash.
 - The single `awk` pass that resolves covers in `device/es-library.sh` comes from code shared by DNA64
   (<https://github.com/dna64>).
 

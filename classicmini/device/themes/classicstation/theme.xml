@@ -49,6 +49,67 @@
 		<helpsystem name="menu_help">
 			<textColor>${menuHelp}</textColor>
 		</helpsystem>
+
+		<image name="nandSpaceIcon">
+			<pos>${nandIconPos}</pos>
+			<color>${barLogoColor}</color>
+			<size>0.019531 0.034722</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>70</zIndex>
+		</image>
+
+		<text name="nandSpace">
+			<pos>${nandTextPos}</pos>
+			<size>0.0625 0.038889</size>
+			<fontSize>0.0306</fontSize>
+			<color>${spaceText}</color>
+			<alignment>left</alignment>
+			<zIndex>70</zIndex>
+		</text>
+
+		<image name="diskSpaceIcon">
+			<pos>${diskIconPos}</pos>
+			<color>${barLogoColor}</color>
+			<size>0.019531 0.034722</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>70</zIndex>
+		</image>
+
+		<text name="diskSpace">
+			<pos>${diskTextPos}</pos>
+			<size>0.0625 0.038889</size>
+			<fontSize>0.0306</fontSize>
+			<color>${spaceText}</color>
+			<alignment>left</alignment>
+			<zIndex>70</zIndex>
+		</text>
+
+		<image name="swapSpaceIcon">
+			<pos>${swapIconPos}</pos>
+			<color>${barLogoColor}</color>
+			<size>0.019531 0.034722</size>
+			<origin>0.5 0.5</origin>
+			<zIndex>70</zIndex>
+		</image>
+
+		<text name="swapSpace">
+			<pos>${swapTextPos}</pos>
+			<size>0.0625 0.038889</size>
+			<fontSize>0.0306</fontSize>
+			<color>${spaceText}</color>
+			<alignment>left</alignment>
+			<zIndex>70</zIndex>
+		</text>
+
+		<image name="overclockIcon">
+			<path>${overclockPath}</path>
+			<pos>${overclockPos}</pos>
+			<color>${overclockColor}</color>
+			<size>${overclockSize}</size>
+			<origin>${overclockOrigin}</origin>
+			<zIndex>${overclockZ}</zIndex>
+		</image>
+
 	</view>
 
 	<view name="basic, detailed, grid">
@@ -113,66 +174,6 @@
 			<fontSize>0.0311</fontSize>
 			<iconHeight>${helpIcon}</iconHeight>
 		</helpsystem>
-
-		<image name="nandSpaceIcon">
-			<pos>${nandIconPos}</pos>
-			<color>${barLogoColor}</color>
-			<size>0.019531 0.034722</size>
-			<origin>0.5 0.5</origin>
-			<zIndex>70</zIndex>
-		</image>
-
-		<text name="nandSpace">
-			<pos>${nandTextPos}</pos>
-			<size>0.0625 0.038889</size>
-			<fontSize>0.0306</fontSize>
-			<color>${spaceText}</color>
-			<alignment>left</alignment>
-			<zIndex>70</zIndex>
-		</text>
-
-		<image name="diskSpaceIcon">
-			<pos>${diskIconPos}</pos>
-			<color>${barLogoColor}</color>
-			<size>0.019531 0.034722</size>
-			<origin>0.5 0.5</origin>
-			<zIndex>70</zIndex>
-		</image>
-
-		<text name="diskSpace">
-			<pos>${diskTextPos}</pos>
-			<size>0.0625 0.038889</size>
-			<fontSize>0.0306</fontSize>
-			<color>${spaceText}</color>
-			<alignment>left</alignment>
-			<zIndex>70</zIndex>
-		</text>
-
-		<image name="swapSpaceIcon">
-			<pos>${swapIconPos}</pos>
-			<color>${barLogoColor}</color>
-			<size>0.019531 0.034722</size>
-			<origin>0.5 0.5</origin>
-			<zIndex>70</zIndex>
-		</image>
-
-		<text name="swapSpace">
-			<pos>${swapTextPos}</pos>
-			<size>0.0625 0.038889</size>
-			<fontSize>0.0306</fontSize>
-			<color>${spaceText}</color>
-			<alignment>left</alignment>
-			<zIndex>70</zIndex>
-		</text>
-
-		<image name="overclockIcon">
-			<path>${overclockPath}</path>
-			<pos>${overclockPos}</pos>
-			<color>${overclockColor}</color>
-			<size>${overclockSize}</size>
-			<origin>${overclockOrigin}</origin>
-			<zIndex>${overclockZ}</zIndex>
-		</image>
 
 		<helpsystem name="suspend_help">
 			<pos>0.5 0.929167</pos>

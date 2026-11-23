@@ -195,7 +195,7 @@ GuiInputConfig::GuiInputConfig(Window* window, InputConfig* target, bool reconfi
 		// check if the hotkey enable button is set. if not prompt the user to use select or nothing.
 		Input input;
 		if (!mTargetConfig->getInputByName("HotKeyEnable", &input)) {
-			mWindow->pushGui(new GuiMsgBox(mWindow,
+			auto* hotkeyBox = new GuiMsgBox(mWindow,
 				"YOU DIDN'T CHOOSE A HOTKEY ENABLE BUTTON. THIS IS REQUIRED FOR EXITING GAMES WITH A CONTROLLER. DO YOU WANT TO USE THE SELECT BUTTON DEFAULT ? PLEASE ANSWER YES TO USE SELECT OR NO TO NOT SET A HOTKEY ENABLE BUTTON.",
 				"YES", [this, okFunction] {
 					Input input;
@@ -209,7 +209,9 @@ GuiInputConfig::GuiInputConfig(Window* window, InputConfig* target, bool reconfi
 					mTargetConfig->mapInput("HotKeyEnable", Input(DEVICE_KEYBOARD, TYPE_KEY, 0, 1, true));
 					okFunction();
 				}
-			));
+			);
+			hotkeyBox->selectButton(0);
+			mWindow->pushGui(hotkeyBox);
 		} else {
 			okFunction();
 		}

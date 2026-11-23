@@ -9,6 +9,7 @@
 #include "MenuColors.h"
 #include "guis/GuiNetworkList.h"
 
+#include "guis/GuiMsgBox.h"
 #include "guis/GuiToolRunner.h"
 #include "guis/GuiVirtualKeyboard.h"
 #include "views/ViewController.h"
@@ -72,6 +73,8 @@ void GuiNetworkList::askPassword(const std::string& name)
 		[this, name](const std::string& password) {
 			if(password.size() >= 8)
 				connect(name, password);
+			else
+				mWindow->pushGui(new GuiMsgBox(mWindow, "THE PASSWORD MUST HAVE AT LEAST 8 CHARACTERS", "OK", [this, name] { askPassword(name); }));
 		}));
 }
 
@@ -86,8 +89,11 @@ void GuiNetworkList::askHiddenName()
 
 void GuiNetworkList::connect(const std::string& name, const std::string& password)
 {
-	mWindow->pushGui(new GuiToolRunner(mWindow, [name, password] {
+	Window* window = mWindow;
+	window->pushGui(new GuiToolRunner(window, [name, password] {
 		return ConsoleTools::run("wificonnect", { { "ES_SSID", name }, { "ES_PSK", password } });
+	}, [window](const std::string& text) {
+		GuiToolRunner::report(window, text, nullptr);
 	}));
 }
 

@@ -16,7 +16,7 @@ class GuiMetaDataEd : public GuiComponent
 {
 public:
 	GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector<MetaDataDecl>& mdd, ScraperSearchParams params,
-		const std::string& header, std::function<void()> savedCallback, std::function<void()> deleteFunc);
+		const std::string& header, std::function<void()> savedCallback);
 
 	bool input(InputConfig* config, Input input) override;
 	void onSizeChanged() override;
@@ -46,7 +46,6 @@ private:
 	std::vector<MetaDataDecl> mMetaDataDecl;
 	MetaDataList* mMetaData;
 	std::function<void()> mSavedCallback;
-	std::function<void()> mDeleteFunc;
 };
 
 #endif // ES_APP_GUIS_GUI_META_DATA_ED_H

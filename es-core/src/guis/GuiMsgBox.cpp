@@ -29,15 +29,9 @@ GuiMsgBox::GuiMsgBox(Window* window, const std::string& text,
 	if(mButtons.size() == 1)
 	{
 		mAcceleratorFunc = mButtons.front()->getPressedFunc();
-	}else{
-		for(auto it = mButtons.cbegin(); it != mButtons.cend(); it++)
-		{
-			if(Utils::String::toUpper((*it)->getText()) == "OK" || Utils::String::toUpper((*it)->getText()) == "NO")
-			{
-				mAcceleratorFunc = (*it)->getPressedFunc();
-				break;
-			}
-		}
+	}else if(mButtons.size() == 2)
+	{
+		mAcceleratorFunc = mButtons.back()->getPressedFunc();
 	}
 
 	// put the buttons into a ComponentGrid
@@ -64,6 +58,9 @@ GuiMsgBox::GuiMsgBox(Window* window, const std::string& text,
 	mBackground.setCenterColor(MenuColors::Panel);
 	mBackground.setEdgeColor(MenuColors::Panel);
 	addChild(&mGrid);
+
+	if(mButtons.size() == 2)
+		selectButton(1);
 }
 
 void GuiMsgBox::selectButton(size_t index)

@@ -90,11 +90,12 @@ for cfg in es_settings.cfg es_input.cfg; do
   [ -f "$es_dir/home/.emulationstation/$cfg" ] || cp "$es_dir/defaults/$cfg" "$es_dir/home/.emulationstation/"
 done
 sh "$es_dir/es-theme.sh" "$sftype"
+buildLibrary() {
 library_stamp=$es_dir/library.stamp
 games_dir=$(findGameStorage)
 games_count=0
 [ -n "$games_dir" ] && games_count=$(find "$games_dir" -name '*.desktop' ! -path '*/CLV-Z-ESRET/*' | wc -l)
-if [ -d "$es_dir/library" ] && [ "$(cat "$library_stamp.count" 2>/dev/null)" = "$games_count" ]   && [ -z "$(find "$games_dir" /media/data/emulationstation/covers "$es_dir/es-library.sh" \( -name '*.desktop' -o -name '*.png' -o -name 'aliases.txt' -o -name 'es-library.sh' \) ! -path '*/CLV-Z-ESRET/*' -newer "$library_stamp" 2>/dev/null | head -n 1)" ]; then
+if [ -d "$es_dir/library" ] && [ "$(cat "$library_stamp.count" 2>/dev/null)" = "$games_count" ]   && [ -z "$(find "$games_dir" /media/data/emulationstation/covers "$es_dir/es-library.sh" "$es_dir/es_romaji.txt" \( -name '*.desktop' -o -name '*.png' -o -name 'aliases.txt' -o -name 'es-library.sh' -o -name 'es_romaji.txt' \)! -path '*/CLV-Z-ESRET/*' -newer "$library_stamp" 2>/dev/null | head -n 1)" ]; then
   rm -rf /tmp/es-library
   cp -a "$es_dir/library" /tmp/es-library
 else
@@ -112,10 +113,13 @@ if [ -s /tmp/es-library/originals.txt ] && [ ! -f "$es_dir/originals_seeded" ] &
   grep -q 'name="CollectionSystemsAuto" value="[^"]*originals' "$settings_file" && : > "$es_dir/originals_seeded"
 fi
 sh "$es_dir/es-systems.sh" /tmp/es-library "$es_dir/es_systems.cfg" "$es_dir/home/.emulationstation/es_systems.cfg"
+}
+buildLibrary
 [ -f /media/data/emulationstation/audio/bgm_home.wav ] || sh "$es_dir/es-tools.sh" audio import >/dev/null 2>&1
 sh "$es_dir/es-tools.sh" swap boot >/dev/null 2>&1
 while true; do
   rm -f /tmp/es-quit /tmp/es-restart /tmp/es-sysrestart /tmp/es-shutdown
+  [ -f /tmp/es-rebuild ] && { rm -f /tmp/es-rebuild; drawSplash restart; buildLibrary; }
   es_started=$(date +%s)
   HOME=$es_dir/home LD_LIBRARY_PATH=$es_dir ES_FAVORITES_FILE=$es_dir/favorites.txt ES_ORIGINALS_FILE=/tmp/es-library/originals.txt ES_ORIGINALS_YEAR=$originals_year ES_NOTICE=$es_notice "$es_dir/emulationstation" "$@"
   es_notice=

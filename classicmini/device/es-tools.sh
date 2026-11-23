@@ -66,6 +66,29 @@ printState() {
   if "$@"; then echo "on"; else echo "off"; fi
 }
 
+savedNetworkId() {
+  wpa_cli list_networks 2>/dev/null | ES_WANT=$1 awk -F'\t' '$2 == ENVIRON["ES_WANT"] { print $1; exit }'
+}
+
+savedSsidValues() {
+  local id
+  for id in $(wpa_cli list_networks 2>/dev/null | awk -F'\t' 'NR > 2 { print $1 }'); do
+    printf '%s\n' "$(wpa_cli get_network "$id" ssid 2>/dev/null | tail -n 1)"
+  done
+}
+
+backupFolderName() {
+  local plain dir
+  plain=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9_.-' | sed 's/^\.*//')
+  plain=${plain:-wifi}
+  dir=/media/data/wifi_backup/$plain
+  if [ ! -f "$dir/wpa_supplicant.conf" ] || grep -qxF "	ssid=$2" "$dir/wpa_supplicant.conf"; then
+    printf '%s' "$plain"
+  else
+    printf '%s_%s' "$plain" "$(printf '%s' "$1" | cksum | cut -d' ' -f1)"
+  fi
+}
+
 cfgEquals() {
   [ "$(getCfg "$1")" = "$2" ]
 }
@@ -150,6 +173,14 @@ hasUsbResources() {
   [ -f "$usb_resources/fallback_ja.ttf" ] && [ -f "$usb_resources/menu_system.svg" ]
 }
 
+isJapaneseConsole() {
+  [ "$sfregion" = jpn ]
+}
+
+romajiAvailable() {
+  [ -f "$es_dir/es_romaji.txt" ] && isJapaneseConsole
+}
+
 isJapaneseFamicom() {
   [ "$sftype" = "nes" ] && [ "$sfregion" = "jpn" ]
 }
@@ -185,6 +216,7 @@ case "$1" in
       echo "Already connected to the internet."
     else
       if ! hasAddress || ! wpa_cli status 2>/dev/null | grep -q '^wpa_state=COMPLETED'; then
+        wpa_cli enable_network all >/dev/null 2>&1
         wpa_cli reconnect >/dev/null 2>&1
         for _ in $(seq 1 10); do
           hasAddress && break
@@ -193,7 +225,7 @@ case "$1" in
         hasAddress || /etc/init.d/S92networking restart >/dev/null 2>&1
         sleep 3
       fi
-      if esHasInternet; then echo "Connected."; elif hasAddress; then echo "Connected, but there is no internet."; else echo "Connection failed. Check the Wi-Fi adapter."; fi
+      if esHasInternet; then echo "Connected."; elif hasAddress; then echo "!Connected, but there is no internet."; else echo "!Connection failed. Check the Wi-Fi adapter."; fi
     fi
     ;;
   networks)
@@ -209,26 +241,34 @@ case "$1" in
     echo "$found"
     ;;
   wificonnect)
-    network_id=$(wpa_cli list_networks | awk -F'	' -v ssid="$ES_SSID" '$2 == ssid { print $1; exit }')
+    old_id=$(savedNetworkId "$ES_SSID")
     added=0
-    if [ -z "$network_id" ]; then
+    if [ -n "$old_id" ] && [ -z "$ES_PSK" ]; then
+      network_id=$old_id
+    else
       network_id=$(wpa_cli add_network | tail -n 1)
       wpa_cli set_network "$network_id" ssid "\"$ES_SSID\"" >/dev/null
       wpa_cli set_network "$network_id" scan_ssid 1 >/dev/null
+      if [ -n "$ES_PSK" ]; then
+        wpa_cli set_network "$network_id" psk "\"$ES_PSK\"" >/dev/null
+      else
+        wpa_cli set_network "$network_id" key_mgmt NONE >/dev/null
+      fi
       added=1
-    fi
-    if [ -n "$ES_PSK" ]; then
-      wpa_cli set_network "$network_id" psk "\"$ES_PSK\"" >/dev/null
-    else
-      wpa_cli set_network "$network_id" key_mgmt NONE >/dev/null
     fi
     wpa_cli select_network "$network_id" >/dev/null
     connected=0
+    handshake=0
     for _ in $(seq 1 20); do
-      if wpa_cli status 2>/dev/null | grep -q '^wpa_state=COMPLETED'; then connected=1; break; fi
+      wifi_state=$(wpa_cli status 2>/dev/null | sed -n 's/^wpa_state=//p')
+      case "$wifi_state" in
+        COMPLETED) connected=1; break ;;
+        4WAY_HANDSHAKE|GROUP_HANDSHAKE) handshake=1 ;;
+      esac
       sleep 1
     done
     if [ "$connected" = 1 ]; then
+      [ "$added" = 1 ] && [ -n "$old_id" ] && wpa_cli remove_network "$old_id" >/dev/null
       for _ in $(seq 1 10); do
         ip -4 addr show wlan0 2>/dev/null | grep -q 'inet ' && break
         sleep 1
@@ -237,12 +277,132 @@ case "$1" in
       wpa_cli enable_network all >/dev/null
       wpa_cli save_config >/dev/null
       sleep 2
-      if esHasInternet; then echo "Connected to $ES_SSID."; else echo "Connected to $ES_SSID, but there is no internet."; fi
+      if esHasInternet; then echo "Connected to $ES_SSID."; else echo "!Connected to $ES_SSID, but there is no internet."; fi
     else
       [ "$added" = 1 ] && wpa_cli remove_network "$network_id" >/dev/null
       wpa_cli enable_network all >/dev/null
       wpa_cli save_config >/dev/null
-      echo "Could not connect to $ES_SSID. Check the password."
+      if [ "$handshake" = 1 ]; then
+        echo "!Wrong password for $ES_SSID."
+      elif [ -z "$ES_PSK" ]; then
+        echo "!Could not connect to $ES_SSID."
+      elif wpa_cli scan_results 2>/dev/null | ES_WANT=$ES_SSID awk -F'\t' 'NR > 2 && $5 == ENVIRON["ES_WANT"] { found = 1 } END { exit !found }'; then
+        echo "!Could not connect to $ES_SSID. Check the password."
+      else
+        echo "!Could not find $ES_SSID. Move closer and try again."
+      fi
+    fi
+    ;;
+  savednetworks)
+    wpa_cli list_networks 2>/dev/null | awk -F'	' 'NR > 2 && $2 != "" { print $2 "	" ($4 ~ /CURRENT/ ? "CONNECTED" : "") }'
+    ;;
+  wififorget)
+    network_id=$(savedNetworkId "$ES_SSID")
+    if [ -z "$network_id" ]; then
+      echo "!$ES_SSID is not saved."
+    else
+      wpa_cli remove_network "$network_id" >/dev/null
+      wpa_cli enable_network all >/dev/null 2>&1
+      wpa_cli save_config >/dev/null
+      echo "Forgot $ES_SSID."
+    fi
+    ;;
+  wifistatus)
+    wpa_cli list_networks 2>/dev/null | awk -F'	' 'NR > 2 && $4 ~ /CURRENT/ { print $2; exit }'
+    ;;
+  wifiselect)
+    network_id=$(savedNetworkId "$ES_SSID")
+    if [ -z "$network_id" ]; then
+      echo "!$ES_SSID is not saved."
+    else
+      wpa_cli enable_network all >/dev/null 2>&1
+      wpa_cli select_network "$network_id" >/dev/null
+      connected=0
+      for _ in $(seq 1 20); do
+        if wpa_cli status 2>/dev/null | grep -q '^wpa_state=COMPLETED'; then connected=1; break; fi
+        sleep 1
+      done
+      if [ "$connected" = 1 ]; then echo "Connected to $ES_SSID."; else echo "!Could not connect to $ES_SSID."; fi
+    fi
+    ;;
+  wifidisconnect)
+    wpa_cli disable_network all >/dev/null 2>&1
+    wpa_cli disconnect >/dev/null 2>&1
+    echo "Disconnected."
+    ;;
+  wifibackup)
+    wpa_cli enable_network all >/dev/null 2>&1
+    wpa_cli save_config >/dev/null 2>&1
+    network_id=$(savedNetworkId "$ES_SSID")
+    ssid_value=
+    [ -n "$network_id" ] && ssid_value=$(wpa_cli get_network "$network_id" ssid 2>/dev/null | tail -n 1)
+    if [ -z "$ssid_value" ] || [ "$ssid_value" = FAIL ]; then
+      echo "!$ES_SSID is not saved."
+    else
+      wifi_dir=/media/data/wifi_backup/$(backupFolderName "$ES_SSID" "$ssid_value")
+      if mkdir -p "$wifi_dir" && ES_WANT="ssid=$ssid_value" awk '
+          /^[ \t]*network[ \t]*=[ \t]*\{/ { inside = 1; block = $0 "\n"; keep = 0; next }
+          inside { block = block $0 "\n"; sub(/^[ \t]+/, ""); if ($0 == ENVIRON["ES_WANT"]) keep = 1; if ($0 ~ /^\}/) { inside = 0; if (keep) kept = kept block } next }
+          { print }
+          END { printf "%s", kept }
+        ' /etc/wpa_supplicant/wpa_supplicant.conf > "$wifi_dir/wpa_supplicant.conf.tmp" && mv -f "$wifi_dir/wpa_supplicant.conf.tmp" "$wifi_dir/wpa_supplicant.conf"; then
+        echo "Backed up $ES_SSID to the SD card."
+      else
+        rm -f "$wifi_dir/wpa_supplicant.conf.tmp"
+        echo "!Could not write the backup. Check the SD card."
+      fi
+    fi
+    ;;
+  wifibackups)
+    for wifi_dir in /media/data/wifi_backup/*/; do
+      [ -f "${wifi_dir}wpa_supplicant.conf" ] || continue
+      wifi_dir=${wifi_dir%/}
+      echo "${wifi_dir##*/}"
+    done
+    ;;
+  wifidelete)
+    wifi_dir=/media/data/wifi_backup/$ES_SSID
+    if [ -z "$ES_SSID" ] || [ "$ES_SSID" = . ] || [ "$ES_SSID" = .. ] || [ "${ES_SSID#*/}" != "$ES_SSID" ] || [ ! -f "$wifi_dir/wpa_supplicant.conf" ]; then
+      echo "!No backup found on the SD card."
+    elif rm -rf "$wifi_dir"; then
+      echo "Deleted the backup of $ES_SSID."
+    else
+      echo "!Could not delete the backup. Check the SD card."
+    fi
+    ;;
+  wifirestore)
+    wifi_backup=/media/data/wifi_backup/$ES_SSID/wpa_supplicant.conf
+    if [ -z "$ES_SSID" ] || [ "$ES_SSID" = . ] || [ "$ES_SSID" = .. ] || [ "${ES_SSID#*/}" != "$ES_SSID" ] || [ ! -f "$wifi_backup" ]; then
+      echo "!No backup found on the SD card."
+    else
+      blockField() {
+        awk -v block="$1" -v field="$2" '
+          /^[ 	]*network[ 	]*=[ 	]*\{/ { n++; inside = 1; next }
+          inside && /^[ 	]*\}/ { inside = 0; next }
+          inside && n == block { sub(/^[ 	]+/, ""); i = index($0, "="); if (substr($0, 1, i - 1) == field) { print substr($0, i + 1); exit } }
+        ' "$wifi_backup"
+      }
+      blocks=$(grep -c '^[[:space:]]*network[[:space:]]*=' "$wifi_backup")
+      restored=0
+      block=1
+      while [ "$block" -le "$blocks" ]; do
+        ssid=$(blockField "$block" ssid)
+        if [ -n "$ssid" ] && ! savedSsidValues | grep -qxF -- "$ssid"; then
+          network_id=$(wpa_cli add_network | tail -n 1)
+          awk -v block="$block" '
+            /^[ 	]*network[ 	]*=[ 	]*\{/ { n++; inside = 1; next }
+            inside && /^[ 	]*\}/ { inside = 0; next }
+            inside && n == block { sub(/^[ 	]+/, ""); i = index($0, "="); if (i > 1) print substr($0, 1, i - 1) "	" substr($0, i + 1) }
+          ' "$wifi_backup" | while IFS='	' read -r key value; do
+            wpa_cli set_network "$network_id" "$key" "$value" >/dev/null
+          done
+          restored=$((restored + 1))
+        fi
+        block=$((block + 1))
+      done
+      wpa_cli enable_network all >/dev/null
+      wpa_cli save_config >/dev/null
+      if [ "$restored" -gt 0 ]; then echo "Restored $restored network(s)."; else echo "Every network in the backup is already saved."; fi
     fi
     ;;
   sysinfo)
@@ -273,6 +433,17 @@ case "$1" in
       toggle)
         if [ "$cfg_disable_armet" = "y" ]; then cfg_disable_armet='n'; else cfg_disable_armet='y'; fi
         save_config
+        ;;
+    esac
+    ;;
+  romaji)
+    case "$2" in
+      available) printState romajiAvailable ;;
+      state) printState test -f "$es_dir/romaji_on" ;;
+      toggle)
+        if [ -f "$es_dir/romaji_on" ]; then rm -f "$es_dir/romaji_on"; else touch "$es_dir/romaji_on"; fi
+        rm -f "$es_dir/library.stamp.count"
+        touch /tmp/es-rebuild
         ;;
     esac
     ;;

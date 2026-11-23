@@ -33,7 +33,7 @@ namespace
 }
 
 GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector<MetaDataDecl>& mdd, ScraperSearchParams scraperParams,
-	const std::string& /*header*/, std::function<void()> saveCallback, std::function<void()> deleteFunc) : GuiComponent(window),
+	const std::string& /*header*/, std::function<void()> saveCallback) : GuiComponent(window),
 	mScraperParams(scraperParams),
 
 	mBackground(window, ":/frame.png"),
@@ -41,8 +41,7 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 
 	mMetaDataDecl(mdd),
 	mMetaData(md),
-	mSavedCallback(saveCallback),
-	mDeleteFunc(deleteFunc)
+	mSavedCallback(saveCallback)
 {
 	mBackground.setCenterColor(MenuColors::Panel);
 	mBackground.setEdgeColor(MenuColors::Panel);
@@ -171,13 +170,6 @@ GuiMetaDataEd::GuiMetaDataEd(Window* window, MetaDataList* md, const std::vector
 
 	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, "SAVE", "save", [&] { save(); delete this; }));
 	buttons.push_back(std::make_shared<ButtonComponent>(mWindow, "CANCEL", "cancel", [&] { delete this; }));
-
-	if(mDeleteFunc)
-	{
-		auto deleteFileAndSelf = [&] { mDeleteFunc(); delete this; };
-		auto deleteBtnFunc = [this, deleteFileAndSelf] { mWindow->pushGui(new GuiMsgBox(mWindow, "THIS WILL DELETE THE ACTUAL GAME FILE(S)!\nARE YOU SURE?", "YES", deleteFileAndSelf, "NO", nullptr)); };
-		buttons.push_back(std::make_shared<ButtonComponent>(mWindow, "DELETE", "delete", deleteBtnFunc));
-	}
 
 	mButtons = makeButtonGrid(mWindow, buttons);
 	mGrid.setEntry(mButtons, Vector2i(0, 2), true, false);

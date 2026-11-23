@@ -39,7 +39,9 @@ public:
 	void addButton(const std::string& label, const std::string& helpText, const std::function<void()>& callback);
 
 	void setTitle(const char* title, const std::shared_ptr<Font>& font);
+	void setSubtitle(const std::string& subtitle);
 
+	inline int getCursor() const { return mList->getCursorId(); }
 	inline void setCursorToList() { mGrid.setCursorTo(mList); }
 	inline void setCursorToButtons() { assert(mButtonGrid); mGrid.setCursorTo(mButtonGrid); }
 
@@ -49,11 +51,14 @@ private:
 	void updateSize();
 	void updateGrid();
 	float getButtonGridHeight() const;
+	float subtitleHeight() const;
 
 	NinePatchComponent mBackground;
 	ComponentGrid mGrid;
 
 	std::shared_ptr<TextComponent> mTitle;
+	std::shared_ptr<TextComponent> mSubtitle;
+	std::shared_ptr<ComponentGrid> mTitleBlock;
 	std::shared_ptr<ComponentList> mList;
 	std::shared_ptr<ComponentGrid> mButtonGrid;
 	std::vector< std::shared_ptr<ButtonComponent> > mButtons;

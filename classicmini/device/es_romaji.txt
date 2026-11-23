@@ -1,0 +1,71 @@
+CLV-P-HAAAJ	Sūpā Mario Burazāzu
+CLV-P-HAACJ	Sūpā Mario Burazāzu Surī
+CLV-P-HAADJ	Sūpā Mario USA
+CLV-P-HAAEJ	Donkī Kongu
+CLV-P-HAAHJ	Ekisaitobaiku
+CLV-P-HAAMJ	Mario Ōpun Gorufu
+CLV-P-HAANJ	Zeruda no Densetsu Za Hairaru Fantajī
+CLV-P-HAAPJ	Hoshi no Kābī: Yume no Izumi no Monogatari
+CLV-P-HAAQJ	Metoroido
+CLV-P-HAARJ	Barūn Faito
+CLV-P-HAASJ	Rinku no Bōken
+CLV-P-HAAUJ	Aisu Kuraimā
+CLV-P-HAAWJ	Mario Burazāzu
+CLV-P-HAAXJ	Dr. Mario
+CLV-P-HABBJ	Rockman 2 Dr. Wily no Nazo
+CLV-P-HABCJ	Makaimura
+CLV-P-HABLJ	Fainaru Fantajī III
+CLV-P-HABMJ	Pakkuman
+CLV-P-HABNJ	Gyaraga
+CLV-P-HABQJ	Akumajō Dracula
+CLV-P-HABRJ	Guradiusu
+CLV-P-HABVJ	Sūpā Kontora: Eirian no Gyakushū
+CLV-P-HACAJ	Ī Aru Kanfū
+CLV-P-HACBJ	Ninja Ryūkenden
+CLV-P-HACCJ	Soromon no Kagi
+CLV-P-HACEJ	Tsuppari Ōzumō
+CLV-P-HACHJ	Double Dragon II: The Revenge
+CLV-P-HACJJ	Dauntaun Nekketsu Monogatari
+CLV-P-HACLJ	Downtown Nekketsu Kōshinkyoku: Soreyuke Daiundōkai
+CLV-P-HACPJ	Atoranchisu no Nazo
+CLV-P-HBAAJ	Famicom Jump: Hero Retsuden
+CLV-P-HBABJ	Famicom Jump II: Saikyō no Shichinin
+CLV-P-HBACJ	Dragon Ball: Shenlong no Nazo
+CLV-P-HBAEJ	Dragon Ball 3: Goku Den
+CLV-P-HBAFJ	Dragon Ball Z: Kyōshū! Saiyajin
+CLV-P-HBAKJ	Tag Team Match: MUSCLE
+CLV-P-HBALJ	Kinnikuman: Kinniku-sei Ōi Sōdatsusen
+CLV-P-HBAMJ	Captain Tsubasa
+CLV-P-HBANJ	Captain Tsubasa Vol. II: Super Striker
+CLV-P-HBAPJ	Hokuto no Ken 3: Shin Seiki Sōzō: Seiken Retsuden
+CLV-P-HBARJ	Saint Seiya: Ōgon Densetsu
+CLV-P-HBASJ	Saint Seiya: Ōgon Densetsu Kanketsu-hen
+CLV-P-HBAUJ	Ankoku Shinwa: Yamato Takeru Densetsu
+CLV-P-HBAVJ	Sakigake!! Otokojuku Shippū Ichi Gō Sei
+CLV-P-HBAXJ	Magical Taluluto-kun FANTASTIC WORLD!!
+CLV-P-HBAZJ	Rokudenashi Blues
+CLV-P-HBBBJ	Dragon Quest
+CLV-P-HBBCJ	Tenchi o Kurau
+CLV-P-HBBEJ	Sekiryūō
+CLV-P-HBBFJ	Hokuto no Ken
+CLV-P-VAAAJ	Sūpā Mario Wārudo
+CLV-P-VAABJ	F-Zero
+CLV-P-VAAEJ	Zeruda no Densetsu: Kamigami no Toraifōsu
+CLV-P-VAAFJ	Sūpā Mario Kāto
+CLV-P-VAAGJ	Faiā Emuburemu: Monshō no Nazo
+CLV-P-VAAHJ	Sūpā Metoroido
+CLV-P-VAALJ	Sūpā Donkī Kongu
+CLV-P-VAAQJ	Hoshi no Kābī Sūpā Derakkusu
+CLV-P-VABBJ	Sūpā Sutorīto Faitā Tsū
+CLV-P-VABCJ	Rockman X
+CLV-P-VABDJ	Chōmakaimura
+CLV-P-VABQJ	Sūpā Mario RPG
+CLV-P-VABRJ	Seiken Densetsu 2
+CLV-P-VABTJ	Fainaru Fantajī Shikkusu
+CLV-P-VACCJ	Kontora Supirittsu
+CLV-P-VACDJ	Ganbare Goemon: Yukihime Kyūshutsu Emaki
+CLV-P-VADFJ	Super Formation Soccer
+CLV-P-VADGJ	Sutā Fokkusu
+CLV-P-VADJJ	Sūpā Mario: Yosshī Airando
+CLV-P-VADKJ	Sutā Fokkusu 2
+CLV-P-VADZJ	Panel de Pon

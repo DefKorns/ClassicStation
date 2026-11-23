@@ -33,6 +33,7 @@
 #include "ConsoleTools.h"
 #include "MusicPlayer.h"
 #include "guis/GuiNetworkList.h"
+#include "guis/GuiSavedNetworks.h"
 #include "guis/GuiAbout.h"
 #include "guis/GuiSystemInfo.h"
 #include "guis/GuiToolRunner.h"
@@ -114,11 +115,13 @@ void GuiMenu::showCategory(int category)
 	case Library:
 		addEntry("GAME COLLECTION SETTINGS", MenuColors::Text, true, [this] { openCollectionSystemSettings(); });
 		addEntry("SCRAPER", MenuColors::Text, true, [this] { openScraperSettings(); });
+		if (ConsoleTools::isOn("romaji available"))
+			addRomajiToggle();
 		break;
 	case Network:
-		addEntry("DISPLAY IP ADDRESS", MenuColors::Text, false, [this] { showToolResult("ip"); });
-		addEntry("RECONNECT", MenuColors::Text, false, [this] { showToolResult("reconnect"); });
+		addEntry("CURRENT NETWORK", MenuColors::Text, true, [this] { GuiSavedNetworks::openCurrent(mWindow); });
 		addEntry("CONNECT TO NETWORK", MenuColors::Text, true, [this] { openNetworkList(); });
+		addEntry("SAVED NETWORKS", MenuColors::Text, true, [this] { GuiSavedNetworks::open(mWindow); });
 		break;
 	case Tools:
 		addEntry("CONTROLLER", MenuColors::Text, true, [this] { openController(); });
@@ -164,6 +167,28 @@ void GuiMenu::addToggle(const char* name, const std::string& stateArguments, con
 
 	ComponentListRow row;
 	row.addElement(std::make_shared<TextComponent>(mWindow, name, Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+	row.addElement(toggle, false);
+	mMenu.addRow(row);
+}
+
+void GuiMenu::addRomajiToggle()
+{
+	auto toggle = std::make_shared<SwitchComponent>(mWindow, ConsoleTools::isOn("romaji state"));
+	SwitchComponent* romajiSwitch = toggle.get();
+	Window* window = mWindow;
+	toggle->setChangedCallback([window, romajiSwitch](bool enabled) {
+		const bool previous = !enabled;
+		window->pushGui(new GuiMsgBox(window,
+			enabled ? "SHOW GAME TITLES IN ROMAJI?\nCLASSICSTATION WILL RESTART." : "SHOW THE ORIGINAL GAME TITLES?\nCLASSICSTATION WILL RESTART.",
+			"YES", [] {
+				ConsoleTools::run("romaji toggle");
+				quitES(QuitMode::RESTART);
+			},
+			"NO", [romajiSwitch, previous] { romajiSwitch->setState(previous); }));
+	});
+
+	ComponentListRow row;
+	row.addElement(std::make_shared<TextComponent>(mWindow, "ROMAJI TITLES", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 	row.addElement(toggle, false);
 	mMenu.addRow(row);
 }
@@ -292,7 +317,6 @@ void GuiMenu::openDeveloperPage(const std::map<std::string, std::string>& info)
 				"ENABLE OVERCLOCK?",
 				"YES", [] { ConsoleTools::run("overclock toggle"); },
 				"NO", [overclockSwitch] { overclockSwitch->setState(false); });
-			confirm->selectButton(1);
 			window->pushGui(confirm);
 		});
 		s->addWithLabel("OVERCLOCK", overclockToggle);
@@ -306,7 +330,7 @@ void GuiMenu::openDeveloperPage(const std::map<std::string, std::string>& info)
 				return;
 			}
 			auto confirm = new GuiMsgBox(window,
-				"OVERCLOCK TURNS ON BY ITSELF ONLY WHILE YOU PLAY N64, PS1, ARCADE, DS, PSP OR GBA GAMES, "
+				"OVERCLOCK TURNS ON BY ITSELF ONLY WHILE YOU PLAY N64, PS1, ARCADE, DS, PSP, GBA OR OPENBOR GAMES, "
 				"AND GOES BACK TO NORMAL WHEN YOU LEAVE THE GAME.\n\n"
 				"USE AT YOUR OWN RISK. IT MAY NOT WORK ON EVERY CONSOLE AND CAN CAUSE CRASHES OR REBOOTS, "
 				"ESPECIALLY WITH A WEAK POWER SUPPLY (5V/2A OR MORE RECOMMENDED) OR USB DEVICES ATTACHED. "
@@ -314,7 +338,6 @@ void GuiMenu::openDeveloperPage(const std::map<std::string, std::string>& info)
 				"ENABLE OVERCLOCK IN HEAVY GAMES?",
 				"YES", [] { ConsoleTools::run("overclock auto toggle"); },
 				"NO", [autoSwitch] { autoSwitch->setState(false); });
-			confirm->selectButton(1);
 			window->pushGui(confirm);
 		});
 		s->addWithLabel("OVERCLOCK IN HEAVY GAMES", autoToggle);
@@ -346,7 +369,6 @@ void GuiMenu::openDeveloperPage(const std::map<std::string, std::string>& info)
 				"ENABLE SWAP FILE?",
 				"YES", [runSwap] { runSwap("enable"); },
 				"NO", [swapSwitch] { swapSwitch->setState(false); });
-			confirm->selectButton(1);
 			window->pushGui(confirm);
 		});
 		s->addWithLabel("SWAP FILE", swapToggle);

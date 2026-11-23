@@ -31,3 +31,13 @@ Resources
 
 Open Sans font
 	http://www.google.com/fonts/specimen/Open+Sans
+
+
+Ideas
+=====
+
+Hakchi Memory Booster (swap file option)
+	Swingflip - https://github.com/TheOtherGuys-Hakchi-Projects/Hakchi-Memory-Booster
+
+Easy OC (overclock switch)
+	bslenul
