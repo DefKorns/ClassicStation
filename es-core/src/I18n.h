@@ -15,6 +15,7 @@
 namespace I18n
 {
 	void load(const std::string& language);
+	void loadFromText(const std::string& text);
 	const std::string& language();
 	std::string tr(const std::string& text);
 }

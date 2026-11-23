@@ -1047,7 +1047,13 @@ void GuiMenu::openBehaviourSettings()
 
 	auto languageSelection = std::make_shared< OptionListComponent<std::string> >(mWindow, "LANGUAGE", false);
 	languageSelection->add("English", "en", I18n::language() == "en");
+	languageSelection->add("Deutsch", "de", I18n::language() == "de");
+	languageSelection->add("Español", "es", I18n::language() == "es");
+	languageSelection->add("Français", "fr", I18n::language() == "fr");
+	languageSelection->add("Italiano", "it", I18n::language() == "it");
+	languageSelection->add("Nederlands", "nl", I18n::language() == "nl");
 	languageSelection->add("Português", "pt", I18n::language() == "pt");
+	languageSelection->add("Русский", "ru", I18n::language() == "ru");
 	s->addWithLabel("LANGUAGE", languageSelection);
 	Window* languageWindow = mWindow;
 	s->addSaveFunc([languageSelection, languageWindow]

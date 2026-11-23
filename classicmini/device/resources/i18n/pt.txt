@@ -44,6 +44,7 @@ CUSTOM VIDEO FILTER	FILTRO DE VÍDEO PERSONALIZADO
 DARK	ESCURO
 DEBUG MODE	MODO DE DEPURAÇÃO
 DEFAULT KEY	CHAVE PREDEFINIDA
+DELETE THE BACKUP OF %s?	APAGAR A CÓPIA DE %s?
 DELETE THIS SUSPEND POINT?	APAGAR ESTE PONTO DE SUSPENSÃO?
 DELETE	APAGAR
 DEMO MODE	MODO DE DEMONSTRAÇÃO
@@ -215,6 +216,7 @@ SYSTEM INFORMATION	INFORMAÇÃO DO SISTEMA
 SYSTEM VOLUME	VOLUME DO SISTEMA
 TEMPERATURE	TEMPERATURA
 THE CURRENT THEME HAS NO OPTIONS.	O TEMA ATUAL NÃO TEM OPÇÕES.
+THE PASSWORD MUST HAVE AT LEAST 8 CHARACTERS	A PALAVRA-PASSE TEM DE TER PELO MENOS 8 CARACTERES
 THEGAMESDB API KEY	CHAVE API DO THEGAMESDB
 THEME OPTIONS	OPÇÕES DO TEMA
 THEME SET	CONJUNTO DE TEMAS
@@ -341,3 +343,24 @@ stop editing	parar de editar
 suspend point list	lista de pontos de suspensão
 system	sistema
 type	escrever
+
+# Wi-Fi messages from es-tools.sh. A %s stands for the network name or a count; the longest matching entry wins.
+Connected to %s.	Ligado a %s.
+Connected to %s, but there is no internet.	Ligado a %s, mas sem internet.
+Connected.	Ligado.
+Connected, but there is no internet.	Ligado, mas sem internet.
+Connection failed. Check the Wi-Fi adapter.	A ligação falhou. Verifique o adaptador Wi-Fi.
+Wrong password for %s.	Palavra-passe errada para %s.
+Could not connect to %s.	Não foi possível ligar a %s.
+Could not connect to %s. Check the password.	Não foi possível ligar a %s. Verifique a palavra-passe.
+Could not find %s. Move closer and try again.	Não foi possível encontrar %s. Aproxime-se e tente novamente.
+Disconnected.	Desligado.
+Forgot %s.	Rede %s esquecida.
+%s is not saved.	A rede %s não está guardada.
+Backed up %s to the SD card.	Cópia de %s guardada no cartão SD.
+Could not write the backup. Check the SD card.	Não foi possível gravar a cópia. Verifique o cartão SD.
+Deleted the backup of %s.	Cópia de %s apagada.
+Could not delete the backup. Check the SD card.	Não foi possível apagar a cópia. Verifique o cartão SD.
+No backup found on the SD card.	Nenhuma cópia encontrada no cartão SD.
+Restored %s network(s).	%s rede(s) restaurada(s).
+Every network in the backup is already saved.	Todas as redes da cópia já estão guardadas.

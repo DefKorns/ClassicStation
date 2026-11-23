@@ -12,11 +12,21 @@
 #include "resources/ResourceManager.h"
 #include <sstream>
 #include <unordered_map>
+#include <vector>
 
 namespace
 {
+	struct Template
+	{
+		std::string prefix;
+		std::string suffix;
+		std::string translation;
+	};
+
 	std::unordered_map<std::string, std::string> sCatalog;
+	std::vector<Template> sTemplates;
 	std::string sLanguage = "en";
+	const std::string Placeholder = "%s";
 
 	std::string unescape(const std::string& text)
 	{
@@ -38,6 +48,7 @@ namespace
 void I18n::load(const std::string& language)
 {
 	sCatalog.clear();
+	sTemplates.clear();
 	sLanguage = language.empty() ? "en" : language;
 	if(sLanguage == "en")
 		return;
@@ -51,7 +62,14 @@ void I18n::load(const std::string& language)
 	}
 
 	const ResourceData data = ResourceManager::getInstance()->getFileData(path);
-	std::istringstream lines(std::string(reinterpret_cast<const char*>(data.ptr.get()), data.length));
+	loadFromText(std::string(reinterpret_cast<const char*>(data.ptr.get()), data.length));
+}
+
+void I18n::loadFromText(const std::string& text)
+{
+	sCatalog.clear();
+	sTemplates.clear();
+	std::istringstream lines(text);
 	for(std::string line; std::getline(lines, line);)
 	{
 		if(!line.empty() && line.back() == '\r')
@@ -59,7 +77,14 @@ void I18n::load(const std::string& language)
 		const size_t tab = line.find('\t');
 		if(line.empty() || line[0] == '#' || tab == std::string::npos)
 			continue;
-		sCatalog[unescape(line.substr(0, tab))] = unescape(line.substr(tab + 1));
+
+		const std::string key = unescape(line.substr(0, tab));
+		const std::string translation = unescape(line.substr(tab + 1));
+		const size_t slot = key.find(Placeholder);
+		if(slot != std::string::npos && key.find(Placeholder, slot + Placeholder.size()) == std::string::npos)
+			sTemplates.push_back({ key.substr(0, slot), key.substr(slot + Placeholder.size()), translation });
+		else
+			sCatalog[key] = translation;
 	}
 }
 
@@ -70,10 +95,29 @@ const std::string& I18n::language()
 
 std::string I18n::tr(const std::string& text)
 {
-	if(sCatalog.empty())
+	if(sCatalog.empty() && sTemplates.empty())
 		return text;
 	const auto found = sCatalog.find(text);
 	if(found != sCatalog.end())
 		return found->second;
-	return text;
+
+	const Template* best = nullptr;
+	for(const Template& entry : sTemplates)
+	{
+		const size_t fixed = entry.prefix.size() + entry.suffix.size();
+		if(text.size() < fixed || text.compare(0, entry.prefix.size(), entry.prefix) != 0 ||
+			text.compare(text.size() - entry.suffix.size(), entry.suffix.size(), entry.suffix) != 0)
+			continue;
+		if(best == nullptr || fixed > best->prefix.size() + best->suffix.size())
+			best = &entry;
+	}
+	if(best == nullptr)
+		return text;
+
+	const std::string argument = text.substr(best->prefix.size(), text.size() - best->prefix.size() - best->suffix.size());
+	std::string result = best->translation;
+	const size_t slot = result.find(Placeholder);
+	if(slot != std::string::npos)
+		result.replace(slot, Placeholder.size(), argument);
+	return result;
 }

@@ -10,6 +10,7 @@
 
 #include "guis/GuiInfoPopup.h"
 #include "guis/GuiMsgBox.h"
+#include "I18n.h"
 #include "renderers/Renderer.h"
 #include "Window.h"
 #include <chrono>
@@ -61,7 +62,7 @@ void GuiToolRunner::report(Window* window, const std::string& text, const std::f
 		return;
 	}
 
-	window->setInfoPopup(new GuiInfoPopup(window, text, 2500));
+	window->setInfoPopup(new GuiInfoPopup(window, I18n::tr(text), 2500));
 	if(then)
 		then();
 }
