@@ -21,6 +21,10 @@ awk '
     name = $0
     sub(/^Name *= */, "", name)
     sub(/\r$/, "", name)
+    gsub(/®|™/, " ", name)
+    gsub(/  +/, " ", name)
+    sub(/^ +/, "", name)
+    sub(/ +$/, "", name)
     code = FILENAME
     sub(/.*\//, "", code)
     sub(/\.desktop$/, "", code)

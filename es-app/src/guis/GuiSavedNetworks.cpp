@@ -17,7 +17,13 @@
 #include "SystemData.h"
 #include "Window.h"
 #include "renderers/Renderer.h"
+#include <algorithm>
 #include <sstream>
+
+namespace
+{
+	constexpr int HoldToDeleteMs = 600;
+}
 
 void GuiSavedNetworks::open(Window* window)
 {
@@ -46,10 +52,21 @@ void GuiSavedNetworks::openCurrent(Window* window)
 		std::string name = output.substr(0, output.find('\n'));
 		while(!name.empty() && (name.back() == '\r' || name.back() == ' '))
 			name.pop_back();
-		if(name.empty())
-			runTool(window, "reconnect", "", [] { return; });
-		else
+		if(!name.empty())
+		{
 			openActions(window, name, true);
+			return;
+		}
+
+		window->pushGui(new GuiToolRunner(window, [] { return ConsoleTools::run("savednetworks"); }, [window](const std::string& saved) {
+			const std::vector<SavedNetwork> networks = parseSaved(saved);
+			if(networks.empty())
+				runTool(window, "reconnect", "", [] { return; });
+			else if(networks.size() == 1)
+				openActions(window, networks.front().name, false);
+			else
+				open(window);
+		}));
 	}));
 }
 
@@ -93,10 +110,14 @@ void GuiSavedNetworks::openRestore(Window* window)
 			const std::string name = line;
 			rows.push_back({ name, "", [window, name](GuiSavedNetworks* page) {
 				closeAndRun(page, [window, name] { runTool(window, "wifirestore", name, [window] { open(window); }); });
+			}, [window, name](GuiSavedNetworks* page) {
+				window->pushGui(new GuiMsgBox(window, "DELETE THE BACKUP OF " + name + "?", "YES", [window, name, page] {
+					closeAndRun(page, [window, name] { runTool(window, "wifidelete", name, [window] { openRestore(window); }); });
+				}, "NO", nullptr));
 			} });
 		}
 		if(rows.empty())
-			rows.push_back({ "NO BACKUPS FOUND", "", [](GuiSavedNetworks*) { return; } });
+			rows.push_back({ "NO BACKUPS FOUND", "", [](GuiSavedNetworks*) { return; }, nullptr });
 		window->pushGui(new GuiSavedNetworks(window, "RESTORE NETWORKS", rows));
 	}));
 }
@@ -106,7 +127,7 @@ void GuiSavedNetworks::runTool(Window* window, const std::string& arguments, con
 	window->pushGui(new GuiToolRunner(window, [arguments, name] {
 		return ConsoleTools::run(arguments, { { "ES_SSID", name } });
 	}, [window, then](const std::string& text) {
-		window->pushGui(new GuiMsgBox(window, text, "OK", then));
+		GuiToolRunner::report(window, text, then);
 	}));
 }
 
@@ -117,7 +138,7 @@ void GuiSavedNetworks::closeAndRun(GuiSavedNetworks* page, std::function<void()>
 }
 
 GuiSavedNetworks::GuiSavedNetworks(Window* window, const std::string& title, const std::vector<Row>& rows)
-	: GuiComponent(window), mMenu(window, title.c_str())
+	: GuiComponent(window), mMenu(window, title.c_str()), mRows(rows)
 {
 	addChild(&mMenu);
 
@@ -157,13 +178,46 @@ void GuiSavedNetworks::addRow(const Row& row)
 
 bool GuiSavedNetworks::input(InputConfig* config, Input input)
 {
-	if(config->isMappedTo("b", input) && input.value != 0)
+	if(config->isMappedTo("b", input))
 	{
-		delete this;
-		return true;
+		const int cursor = mMenu.getCursor();
+		const bool holdable = cursor >= 0 && cursor < static_cast<int>(mRows.size()) && mRows[cursor].onHold;
+		if(input.value != 0)
+		{
+			if(holdable)
+			{
+				mHolding = true;
+				mHeldMs = 0;
+			}
+			else
+				delete this;
+			return true;
+		}
+
+		if(mHolding)
+		{
+			delete this;
+			return true;
+		}
 	}
 
 	return GuiComponent::input(config, input);
+}
+
+void GuiSavedNetworks::update(int deltaTime)
+{
+	GuiComponent::update(deltaTime);
+	if(!mHolding)
+		return;
+
+	mHeldMs += deltaTime;
+	if(mHeldMs < HoldToDeleteMs)
+		return;
+
+	mHolding = false;
+	const int cursor = mMenu.getCursor();
+	if(cursor >= 0 && cursor < static_cast<int>(mRows.size()) && mRows[cursor].onHold)
+		mRows[cursor].onHold(this);
 }
 
 HelpStyle GuiSavedNetworks::getHelpStyle()
@@ -177,6 +231,7 @@ HelpStyle GuiSavedNetworks::getHelpStyle()
 std::vector<HelpPrompt> GuiSavedNetworks::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts = mMenu.getHelpPrompts();
-	prompts.push_back(HelpPrompt("b", "back"));
+	const bool deletable = std::any_of(mRows.begin(), mRows.end(), [](const Row& row) { return static_cast<bool>(row.onHold); });
+	prompts.push_back(HelpPrompt("b", deletable ? "back (hold: delete)" : "back"));
 	return prompts;
 }

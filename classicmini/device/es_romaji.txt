@@ -12,9 +12,9 @@ CLV-P-HAASJ	Rinku no Bōken
 CLV-P-HAAUJ	Aisu Kuraimā
 CLV-P-HAAWJ	Mario Burazāzu
 CLV-P-HAAXJ	Dr. Mario
-CLV-P-HABBJ	Rockman®2 Dr. Wily no Nazo
-CLV-P-HABCJ	Makaimura®
-CLV-P-HABLJ	Fainaru Fantajī® III
+CLV-P-HABBJ	Rockman 2 Dr. Wily no Nazo
+CLV-P-HABCJ	Makaimura
+CLV-P-HABLJ	Fainaru Fantajī III
 CLV-P-HABMJ	Pakkuman
 CLV-P-HABNJ	Gyaraga
 CLV-P-HABQJ	Akumajō Dracula

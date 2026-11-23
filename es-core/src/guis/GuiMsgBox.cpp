@@ -19,8 +19,6 @@ GuiMsgBox::GuiMsgBox(Window* window, const std::string& text,
 	mMsg = std::make_shared<TextComponent>(mWindow, I18n::tr(text), Font::get(FONT_SIZE_MENU), MenuColors::Text, ALIGN_CENTER);
 	mGrid.setEntry(mMsg, Vector2i(0, 0), false, false);
 
-	const std::string originalNames[] = { name1, name2, name3 };
-
 	// create the buttons
 	mButtons.push_back(std::make_shared<ButtonComponent>(mWindow, I18n::tr(name1), I18n::tr(name1), std::bind(&GuiMsgBox::deleteMeAndCall, this, func1)));
 	if(!name2.empty())
@@ -32,16 +30,9 @@ GuiMsgBox::GuiMsgBox(Window* window, const std::string& text,
 	if(mButtons.size() == 1)
 	{
 		mAcceleratorFunc = mButtons.front()->getPressedFunc();
-	}else{
-		for(auto it = mButtons.cbegin(); it != mButtons.cend(); it++)
-		{
-			const std::string original = Utils::String::toUpper(originalNames[it - mButtons.cbegin()]);
-			if(original == "OK" || original == "NO")
-			{
-				mAcceleratorFunc = (*it)->getPressedFunc();
-				break;
-			}
-		}
+	}else if(mButtons.size() == 2)
+	{
+		mAcceleratorFunc = mButtons.back()->getPressedFunc();
 	}
 
 	// put the buttons into a ComponentGrid
@@ -69,9 +60,8 @@ GuiMsgBox::GuiMsgBox(Window* window, const std::string& text,
 	mBackground.setEdgeColor(MenuColors::Panel);
 	addChild(&mGrid);
 
-	for(size_t i = 0; i < mButtons.size(); i++)
-		if(mButtons.size() > 1 && Utils::String::toUpper(originalNames[i]) == "NO")
-			selectButton(i);
+	if(mButtons.size() == 2)
+		selectButton(1);
 }
 
 void GuiMsgBox::selectButton(size_t index)

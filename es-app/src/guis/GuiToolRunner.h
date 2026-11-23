@@ -25,6 +25,8 @@ public:
 	void update(int deltaTime) override;
 	void render(const Transform4x4f& parentTrans) override;
 
+	static void report(Window* window, const std::string& text, const std::function<void()>& then);
+
 private:
 	BusyComponent mBusy;
 	std::future<std::string> mResult;

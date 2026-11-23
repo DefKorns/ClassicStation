@@ -42,6 +42,7 @@ public:
 	void setTitle(const char* title, const std::shared_ptr<Font>& font);
 	void setSubtitle(const std::string& subtitle);
 
+	inline int getCursor() const { return mList->getCursorId(); }
 	inline void setCursorToList() { mGrid.setCursorTo(mList); }
 	inline void setCursorToButtons() { assert(mButtonGrid); mGrid.setCursorTo(mButtonGrid); }
 
