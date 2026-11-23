@@ -14,8 +14,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-source /etc/preinit
-script_init
+if [ -n "${ES_STORE:-}" ]; then
+  source /etc/preinit.d/b0000_defines
+else
+  source /etc/preinit
+  script_init
+fi
 
 out=${1:?output dir}
 store=${ES_STORE:-$(findGameStorage)} || store=
@@ -27,7 +31,9 @@ us=$(printf '\037')
 [ -f "$here/romaji_on" ] && [ -f "$here/es_romaji.txt" ] && romaji=$here/es_romaji.txt
 
 chdRead() {
-  dd if="$1" bs=1 skip="$2" count="$3" 2>/dev/null | od -An -tx1 | tr -d ' \n'
+  local byte hex=
+  for byte in $(od -An -tx1 -j"$2" -N"$3" "$1" 2>/dev/null); do hex=$hex$byte; done
+  printf '%s' "$hex"
 }
 
 chdSystem() {
@@ -128,9 +134,20 @@ systemOf() {
 
 xmlPath() {
   case $1 in
-    *[\&\<\>]*) printf '%s\n' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' ;;
-    *) printf '%s\n' "$1" ;;
+    *[\&\<\>]*) xml_path=$(printf '%s\n' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g') ;;
+    *) xml_path=$1 ;;
   esac
+}
+
+replaceAll() {
+  local rest="$1" head=
+  while :; do
+    case $rest in
+      *"$2"*) head=$head${rest%%"$2"*}$3; rest=${rest#*"$2"} ;;
+      *) break ;;
+    esac
+  done
+  replaced=$head$rest
 }
 
 readGames() {
@@ -260,7 +277,8 @@ readGames() {
 default_covers=" "
 small_covers=$(find "$store/.storage" -maxdepth 2 -name '*.png' ! -name '*_small.png' -size -8k 2>/dev/null)
 while IFS= read -r png; do
-  [ -n "$png" ] && [ "$(chdRead "$png" 16 8)" = 0000008c000000cc ] || continue
+  [ -n "$png" ] || continue
+  [ "$(chdRead "$png" 16 8)" = 0000008c000000cc ] || continue
   png=${png##*/}
   default_covers="$default_covers${png%.png} "
 done <<EOF
@@ -271,18 +289,20 @@ parts=$(mktemp -d)
 rm -rf "$out"
 mkdir -p "$out"
 seen=" "
+copied=" "
 
 if [ -n "$store" ]; then
 readGames | while IFS=$us read -r menu code exe ext icon name desc year players genre cover; do
   game_dir=$store/$menu/$code
   system=other
   systemOf
-  [ -f "$out/$system/$code.desktop" ] && continue
+  case $copied in *" $system/$code "*) continue ;; esac
+  copied="$copied$system/$code "
   case $seen in
     *" $system "*) ;;
     *) mkdir -p "$out/$system"; seen="$seen$system " ;;
   esac
-  cp "$game_dir/$code.desktop" "$out/$system/$code.desktop"
+  echo "$game_dir/$code.desktop" >> "$parts/$system.lst"
 
   [ -n "$cover" ] && [ -f "${covers}_small/${cover##*/}" ] && cover=${covers}_small/${cover##*/}
   case $icon in /var/games/*) icon=$store/$menu/${icon#/var/games/} ;; esac
@@ -299,22 +319,33 @@ readGames | while IFS=$us read -r menu code exe ext icon name desc year players 
     echo "  <game>"
     echo "    <path>./$code.desktop</path>"
     echo "    <name>$name</name>"
-    [ -n "$icon" ] && echo "    <image>$(xmlPath "$icon")</image>"
+    if [ -n "$icon" ]; then xmlPath "$icon"; echo "    <image>$xml_path</image>"; fi
     [ -n "$desc" ] && echo "    <desc>$desc</desc>"
     [ ${#year} -eq 8 ] && echo "    <releasedate>${year}T000000</releasedate>"
     [ -n "$players" ] && echo "    <players>$players</players>"
     [ -n "$genre" ] && echo "    <genre>$genre</genre>"
     echo "    <code>$code</code>"
-    [ -n "$small" ] && echo "    <marquee>$(xmlPath "$small")</marquee>"
-    [ -n "$thumb" ] && echo "    <thumbnail>$(xmlPath "$thumb")</thumbnail>"
+    if [ -n "$small" ]; then xmlPath "$small"; echo "    <marquee>$xml_path</marquee>"; fi
+    if [ -n "$thumb" ]; then xmlPath "$thumb"; echo "    <thumbnail>$xml_path</thumbnail>"; fi
     echo "  </game>"
   } >> "$parts/$system.xml"
 done
 fi
 
+for lst in "$parts"/*.lst; do
+  [ -f "$lst" ] || continue
+  system=${lst##*/}
+  system=${system%.lst}
+  set --
+  while IFS= read -r file; do set -- "$@" "$file"; done < "$lst"
+  cp "$@" "$out/$system/"
+done
+
 originals_root=${squashfs:-/var/squashfs}/usr/share/games
+orig_seen=" "
 stock_only=
-ls "$parts"/*.xml >/dev/null 2>&1 || stock_only=1
+set -- "$parts"/*.xml
+[ -e "$1" ] || stock_only=1
 : > "$out/originals.txt"
 for desktop in "$originals_root"/*/*/CLV-*/CLV-*.desktop "$originals_root"/CLV-*/CLV-*.desktop; do
   [ -f "$desktop" ] || continue
@@ -337,24 +368,28 @@ for desktop in "$originals_root"/*/*/CLV-*/CLV-*.desktop "$originals_root"/CLV-*
     !hr && /^ReleaseDate *=/ { sub(/^ReleaseDate *= */, ""); rel = $0; hr = 1 }
     !hg && /^Genre *=/ { sub(/^Genre *= */, ""); ge = $0; hg = 1 }
     !hs && /^sortRawGenre *=/ { sub(/^sortRawGenre *= */, ""); sg = $0; hs = 1 }
-    END { if (ge == "") ge = sg; gsub(/-/, "", rel); print esc(nm) sep esc(ds) sep rel sep pl sep esc(ge) }
+    !he && /^Exec=/ { sub(/^Exec=/, ""); ex = $0; he = 1 }
+    END { if (ge == "") ge = sg; gsub(/-/, "", rel); print esc(nm) sep esc(ds) sep rel sep pl sep esc(ge) sep ex }
   ' "$desktop")
-  IFS=$us read -r name desc year players genre <<EOF
+  IFS=$us read -r name desc year players genre exec_line <<EOF
 $info
 EOF
-  exec_line=$(tr -d '\r' < "$desktop" | sed -n 's/^Exec=//p' | head -n 1)
   tool=${exec_line%% *}
   wrapper=/bin/${tool##*/}-wr
   [ -x "$wrapper" ] && exec_line="$wrapper ${exec_line#* }"
-  exec_line=$(printf '%s' "$exec_line" | sed 's|/var/squashfs/usr/share/games/|/usr/share/games/|g; s|/usr/share/games/|/var/squashfs/usr/share/games/|g')
-  rom=$(printf '%s' "$exec_line" | awk '{ for (i = 2; i <= NF; i++) if ($i !~ /^-/) { print $i; exit } }')
-  rom=$(printf '%s' "${rom##*/}" | tr '[:upper:]' '[:lower:]')
+  replaceAll "$exec_line" /var/squashfs/usr/share/games/ /usr/share/games/
+  replaceAll "$replaced" /usr/share/games/ /var/squashfs/usr/share/games/
+  exec_line=$replaced
+  rom=$(printf '%s' "$exec_line" | awk '{ for (i = 2; i <= NF; i++) if ($i !~ /^-/) { r = $i; sub(/.*\//, "", r); print tolower(r); exit } }')
   rom=${rom%.7z}; rom=${rom%.zip}; rom=${rom%.gz}
   case $rom in *.*) ext=${rom##*.} ;; *) ext= ;; esac
   exe=${tool##*/}
   system=other
   systemOf
-  mkdir -p "$out/$system"
+  case $orig_seen in
+    *" $system "*) ;;
+    *) mkdir -p "$out/$system"; orig_seen="$orig_seen$system " ;;
+  esac
   [ -f "$out/$system/$code.desktop" ] && continue
   awk -v launch="$exec_line" -v saves="/var/saves/$code" '/^Exec=/ { print "Exec=" launch; next } /^Path=/ { print "Path=" saves; next } { print }' "$desktop" > "$out/$system/$code.desktop"
   icon=$game_dir/$code.png
@@ -365,14 +400,13 @@ EOF
     echo "  <game>"
     echo "    <path>./$code.desktop</path>"
     echo "    <name>$name</name>"
-    [ -n "$icon" ] && echo "    <image>$(xmlPath "$icon")</image>"
+    if [ -n "$icon" ]; then xmlPath "$icon"; echo "    <image>$xml_path</image>"; fi
     [ -n "$desc" ] && echo "    <desc>$desc</desc>"
     [ ${#year} -eq 8 ] && echo "    <releasedate>${year}T000000</releasedate>"
     [ -n "$players" ] && echo "    <players>$players</players>"
     [ -n "$genre" ] && echo "    <genre>$genre</genre>"
     echo "    <code>$code</code>"
-    [ -n "$small" ] && echo "    <marquee>$(xmlPath "$small")</marquee>"
-    [ -n "$small" ] && echo "    <thumbnail>$(xmlPath "$small")</thumbnail>"
+    if [ -n "$small" ]; then xmlPath "$small"; echo "    <marquee>$xml_path</marquee>"; echo "    <thumbnail>$xml_path</thumbnail>"; fi
     echo "  </game>"
   } >> "$parts/$system.xml"
 done
