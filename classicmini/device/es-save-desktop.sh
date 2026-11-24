@@ -15,7 +15,7 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 code=${1:?game code}
-if [ -n "${ES_STORE:-}" ]; then
+if [ -n "${ES_STORE:-}" ] && [ -d "$ES_STORE" ]; then
   store=$ES_STORE
 else
   source /etc/preinit
