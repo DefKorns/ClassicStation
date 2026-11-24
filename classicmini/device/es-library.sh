@@ -336,8 +336,14 @@ for lst in "$parts"/*.lst; do
   [ -f "$lst" ] || continue
   system=${lst##*/}
   system=${system%.lst}
-  set --
-  while IFS= read -r file; do set -- "$@" "$file"; done < "$lst"
+  set -f
+  old_ifs=$IFS
+  IFS='
+'
+  # shellcheck disable=SC2046 # split on newlines with globbing off
+  set -- $(cat "$lst")
+  IFS=$old_ifs
+  set +f
   cp "$@" "$out/$system/"
 done
 
