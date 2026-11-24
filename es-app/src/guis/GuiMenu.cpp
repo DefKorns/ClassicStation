@@ -1,5 +1,6 @@
 #include "MenuColors.h"
 #include "guis/GuiMenu.h"
+#include "I18n.h"
 
 #include "components/OptionListComponent.h"
 #include "components/SliderComponent.h"
@@ -166,7 +167,7 @@ void GuiMenu::addToggle(const char* name, const std::string& stateArguments, con
 	toggle->setChangedCallback([toggleArguments](bool) { ConsoleTools::run(toggleArguments); });
 
 	ComponentListRow row;
-	row.addElement(std::make_shared<TextComponent>(mWindow, name, Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+	row.addElement(std::make_shared<TextComponent>(mWindow, I18n::tr(name), Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 	row.addElement(toggle, false);
 	mMenu.addRow(row);
 }
@@ -188,7 +189,7 @@ void GuiMenu::addRomajiToggle()
 	});
 
 	ComponentListRow row;
-	row.addElement(std::make_shared<TextComponent>(mWindow, "ROMAJI TITLES", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+	row.addElement(std::make_shared<TextComponent>(mWindow, I18n::tr("ROMAJI TITLES"), Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 	row.addElement(toggle, false);
 	mMenu.addRow(row);
 }
@@ -204,7 +205,7 @@ void GuiMenu::openController()
 	};
 
 	ComponentListRow configureRow;
-	configureRow.addElement(std::make_shared<TextComponent>(mWindow, "CONFIGURE INPUT", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+	configureRow.addElement(std::make_shared<TextComponent>(mWindow, I18n::tr("CONFIGURE INPUT"), Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 	configureRow.addElement(makeArrow(mWindow), false);
 	configureRow.makeAcceptInputHandler([this] { openConfigInput(); });
 	s->addRow(configureRow);
@@ -438,7 +439,7 @@ void GuiMenu::openScraperSettings()
 	s->addWithLabel("SCRAPE FROM", scraper_list);
 	s->addSaveFunc([scraper_list] { Settings::getInstance()->setString("Scraper", scraper_list->getSelected()); });
 
-	auto apiKeyLabel = std::make_shared<TextComponent>(mWindow, "THEGAMESDB API KEY", Font::get(FONT_SIZE_MENU), MenuColors::Text);
+	auto apiKeyLabel = std::make_shared<TextComponent>(mWindow, I18n::tr("THEGAMESDB API KEY"), Font::get(FONT_SIZE_MENU), MenuColors::Text);
 	const auto apiKeyText = [](const std::string& key) { return key.empty() ? "DEFAULT KEY" : "CUSTOM KEY"; };
 	auto apiKeyValue = std::make_shared<TextComponent>(mWindow, apiKeyText(Settings::getInstance()->getString("TheGamesDBApiKey")), Font::get(FONT_SIZE_MENU), MenuColors::Dim, ALIGN_RIGHT);
 	auto apiKeyArrow = makeArrow(mWindow);
@@ -500,7 +501,7 @@ void GuiMenu::openScraperSettings()
 	openAndSave = [s, openAndSave] { s->save(); openAndSave(); };
 	row.makeAcceptInputHandler(openAndSave);
 
-	auto scrape_now = std::make_shared<TextComponent>(mWindow, "SCRAPE NOW", Font::get(FONT_SIZE_MENU), MenuColors::Text);
+	auto scrape_now = std::make_shared<TextComponent>(mWindow, I18n::tr("SCRAPE NOW"), Font::get(FONT_SIZE_MENU), MenuColors::Text);
 	auto bracket = makeArrow(mWindow);
 	row.addElement(scrape_now, true);
 	row.addElement(bracket, false);
@@ -952,7 +953,7 @@ void GuiMenu::openAppearanceSettings()
 	if (themeHasOptions)
 	{
 		ComponentListRow themeOptionsRow;
-		themeOptionsRow.addElement(std::make_shared<TextComponent>(mWindow, "THEME OPTIONS", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+		themeOptionsRow.addElement(std::make_shared<TextComponent>(mWindow, I18n::tr("THEME OPTIONS"), Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 		themeOptionsRow.addElement(makeArrow(mWindow), false);
 		themeOptionsRow.makeAcceptInputHandler([this, s] { openThemeOptions(s); });
 		s->addRow(themeOptionsRow);
@@ -1043,6 +1044,29 @@ void GuiMenu::openAppearanceSettings()
 void GuiMenu::openBehaviourSettings()
 {
 	auto s = new GuiSettings(mWindow, "BEHAVIOUR");
+
+	auto languageSelection = std::make_shared< OptionListComponent<std::string> >(mWindow, "LANGUAGE", false);
+	languageSelection->add("English", "en", I18n::language() == "en");
+	languageSelection->add("Deutsch", "de", I18n::language() == "de");
+	languageSelection->add("Español", "es", I18n::language() == "es");
+	languageSelection->add("Français", "fr", I18n::language() == "fr");
+	languageSelection->add("Italiano", "it", I18n::language() == "it");
+	languageSelection->add("Nederlands", "nl", I18n::language() == "nl");
+	languageSelection->add("Português", "pt", I18n::language() == "pt");
+	languageSelection->add("Русский", "ru", I18n::language() == "ru");
+	s->addWithLabel("LANGUAGE", languageSelection);
+	Window* languageWindow = mWindow;
+	s->addSaveFunc([languageSelection, languageWindow]
+	{
+		const std::string selected = languageSelection->getSelected();
+		if (selected == I18n::language())
+			return;
+		Settings::getInstance()->setString("Language", selected);
+		Settings::getInstance()->saveFile();
+		I18n::load(selected);
+		languageWindow->pushGui(new GuiMsgBox(languageWindow, "THE LANGUAGE CHANGES AFTER A RESTART.\nRESTART NOW?",
+			"YES", [] { quitES(QuitMode::RESTART); }, "NO", nullptr));
+	});
 
 	//UI mode
 	auto UImodeSelection = std::make_shared< OptionListComponent<std::string> >(mWindow, "UI MODE", false);
@@ -1216,7 +1240,7 @@ void GuiMenu::openQuitMenu()
 		} else {
 			row.makeAcceptInputHandler(restart_es_fx);
 		}
-		row.addElement(std::make_shared<TextComponent>(window, "RESTART CLASSICSTATION", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+		row.addElement(std::make_shared<TextComponent>(window, I18n::tr("RESTART CLASSICSTATION"), Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 		s->addRow(row);
 
 		if(Settings::getInstance()->getBool("ShowExit"))
@@ -1234,7 +1258,7 @@ void GuiMenu::openQuitMenu()
 			} else {
 				row.makeAcceptInputHandler(quit_es_fx);
 			}
-			row.addElement(std::make_shared<TextComponent>(window, "QUIT CLASSICSTATION", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+			row.addElement(std::make_shared<TextComponent>(window, I18n::tr("QUIT CLASSICSTATION"), Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 			s->addRow(row);
 		}
 	}
@@ -1255,7 +1279,7 @@ void GuiMenu::openQuitMenu()
 	} else {
 		row.makeAcceptInputHandler(reboot_sys_fx);
 	}
-	row.addElement(std::make_shared<TextComponent>(window, "RESTART SYSTEM", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+	row.addElement(std::make_shared<TextComponent>(window, I18n::tr("RESTART SYSTEM"), Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 	s->addRow(row);
 
 	auto static shutdown_sys_fx = [] {
@@ -1274,7 +1298,7 @@ void GuiMenu::openQuitMenu()
 	} else {
 		row.makeAcceptInputHandler(shutdown_sys_fx);
 	}
-	row.addElement(std::make_shared<TextComponent>(window, "SHUTDOWN SYSTEM", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+	row.addElement(std::make_shared<TextComponent>(window, I18n::tr("SHUTDOWN SYSTEM"), Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
 	s->addRow(row);
 	mWindow->pushGui(s);
 }
@@ -1310,7 +1334,7 @@ void GuiMenu::addEntry(const char* name, unsigned int color, bool add_arrow, con
 
 	// populate the list
 	ComponentListRow row;
-	row.addElement(std::make_shared<TextComponent>(mWindow, name, font, color), true);
+	row.addElement(std::make_shared<TextComponent>(mWindow, I18n::tr(name), font, color), true);
 
 	if(add_arrow)
 	{

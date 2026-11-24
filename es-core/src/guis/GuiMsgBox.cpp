@@ -2,6 +2,7 @@
 #include "guis/GuiMsgBox.h"
 
 #include "components/ButtonComponent.h"
+#include "I18n.h"
 #include "components/MenuComponent.h"
 
 #define HORIZONTAL_PADDING_PX 20
@@ -15,15 +16,15 @@ GuiMsgBox::GuiMsgBox(Window* window, const std::string& text,
 	float width = Renderer::getScreenWidth() * 0.6f; // max width
 	float minWidth = Renderer::getScreenWidth() * 0.3f; // minimum width
 
-	mMsg = std::make_shared<TextComponent>(mWindow, text, Font::get(FONT_SIZE_MENU), MenuColors::Text, ALIGN_CENTER);
+	mMsg = std::make_shared<TextComponent>(mWindow, I18n::tr(text), Font::get(FONT_SIZE_MENU), MenuColors::Text, ALIGN_CENTER);
 	mGrid.setEntry(mMsg, Vector2i(0, 0), false, false);
 
 	// create the buttons
-	mButtons.push_back(std::make_shared<ButtonComponent>(mWindow, name1, name1, std::bind(&GuiMsgBox::deleteMeAndCall, this, func1)));
+	mButtons.push_back(std::make_shared<ButtonComponent>(mWindow, I18n::tr(name1), I18n::tr(name1), std::bind(&GuiMsgBox::deleteMeAndCall, this, func1)));
 	if(!name2.empty())
-		mButtons.push_back(std::make_shared<ButtonComponent>(mWindow, name2, name3, std::bind(&GuiMsgBox::deleteMeAndCall, this, func2)));
+		mButtons.push_back(std::make_shared<ButtonComponent>(mWindow, I18n::tr(name2), I18n::tr(name3), std::bind(&GuiMsgBox::deleteMeAndCall, this, func2)));
 	if(!name3.empty())
-		mButtons.push_back(std::make_shared<ButtonComponent>(mWindow, name3, name3, std::bind(&GuiMsgBox::deleteMeAndCall, this, func3)));
+		mButtons.push_back(std::make_shared<ButtonComponent>(mWindow, I18n::tr(name3), I18n::tr(name3), std::bind(&GuiMsgBox::deleteMeAndCall, this, func3)));
 
 	// set accelerator automatically (button to press when "b" is pressed)
 	if(mButtons.size() == 1)

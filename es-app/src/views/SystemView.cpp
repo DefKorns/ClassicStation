@@ -1,6 +1,7 @@
 #include "views/SystemView.h"
 
 #include "animations/LambdaAnimation.h"
+#include "I18n.h"
 #include "guis/GuiMenu.h"
 #include "guis/GuiMsgBox.h"
 #include "views/ExtraButtons.h"
@@ -407,9 +408,9 @@ void SystemView::onCursorChanged(const CursorState& /*state*/)
 			ss << "CONFIGURATION";
 		else
 		{
-			ss << gameCount << " GAME" << (gameCount == 1 ? "" : "S");
+			ss << gameCount << " " << I18n::tr(gameCount == 1 ? "GAME" : "GAMES");
 			if(showFavorites && favoriteCount > 0)
-				ss << " (" << favoriteCount << " FAVORITE" << (favoriteCount == 1 ? "" : "S") << ")";
+				ss << " (" << favoriteCount << " " << I18n::tr(favoriteCount == 1 ? "FAVORITE" : "FAVORITES") << ")";
 		}
 
 		if(mHasSystemCount && getSelected()->isGameSystem())

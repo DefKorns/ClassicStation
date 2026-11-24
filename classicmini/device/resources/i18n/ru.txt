@@ -1,0 +1,366 @@
+# Russian. Format: English text, a tab, the translation. \n is a line break.
+ABOUT	О ПРОГРАММЕ
+ADD TO FAVORITES	ДОБАВИТЬ В ИЗБРАННОЕ
+ADD TO KID GAMES	ДОБАВИТЬ В ДЕТСКИЕ ИГРЫ
+ADD/REMOVE GAMES TO THIS GAME COLLECTION	ДОБАВИТЬ/УДАЛИТЬ ИГРЫ В ЭТОЙ КОЛЛЕКЦИИ
+ALL	ВСЕ
+APPEARANCE	ВНЕШНИЙ ВИД
+ASYNC FILE IO	АСИНХРОННЫЙ ВВОД-ВЫВОД ФАЙЛОВ
+AUDIO CARD	ЗВУКОВАЯ КАРТА
+AUDIO DEVICE	АУДИОУСТРОЙСТВО
+AUTOFIRE SPEED	СКОРОСТЬ АВТОСТРЕЛЬБЫ
+AUTOMATIC GAME COLLECTIONS	АВТОМАТИЧЕСКИЕ КОЛЛЕКЦИИ ИГР
+BACK UP	СОХРАНИТЬ КОПИЮ
+BACK	НАЗАД
+BACKGROUND ANIMATION	ФОНОВАЯ АНИМАЦИЯ
+BACKGROUND AUDIO	ФОНОВЫЙ ЗВУК
+BACKGROUND MUSIC	ФОНОВАЯ МУЗЫКА
+BEHAVIOUR	ПОВЕДЕНИЕ
+BEZEL	РАМКА
+CANCEL	ОТМЕНА
+CAROUSEL TRANSITIONS	ПЕРЕХОДЫ КАРУСЕЛИ
+CLEAR CACHE	ОЧИСТИТЬ КЭШ
+COLOR SCHEME	ЦВЕТОВАЯ СХЕМА
+COMPOSITE	КОМПОЗИТНЫЙ
+CONFIGURATION	КОНФИГУРАЦИЯ
+CONFIGURE INPUT	НАСТРОИТЬ УПРАВЛЕНИЕ
+CONNECT TO NETWORK	ПОДКЛЮЧИТЬСЯ К СЕТИ
+CONNECT	ПОДКЛЮЧИТЬ
+CONNECTED	ПОДКЛЮЧЕНО
+CONTROLLER	КОНТРОЛЛЕР
+COPY RESOURCES TO USB	КОПИРОВАТЬ РЕСУРСЫ НА USB
+CREATE NEW CUSTOM COLLECTION FROM THEME	СОЗДАТЬ СВОЮ КОЛЛЕКЦИЮ ИЗ ТЕМЫ
+CREATE NEW CUSTOM COLLECTION	СОЗДАТЬ НОВУЮ СВОЮ КОЛЛЕКЦИЮ
+CRT FILTER	ФИЛЬТР ЭЛТ
+CRT SIZE	РАЗМЕР ЭЛТ
+CRT SMOOTHING	СГЛАЖИВАНИЕ ЭЛТ
+CURRENT NETWORK	ТЕКУЩАЯ СЕТЬ
+CUSTOM GAME COLLECTIONS	СВОИ КОЛЛЕКЦИИ ИГР
+CUSTOM IMAGE FILTER	СВОЙ ФИЛЬТР ИЗОБРАЖЕНИЯ
+CUSTOM KEY	СВОЙ КЛЮЧ
+CUSTOM MEDIA DIR RECURSIVE	СВОЯ ПАПКА МЕДИА (РЕКУРСИВНО)
+CUSTOM MEDIA DIR	СВОЯ ПАПКА МЕДИА
+CUSTOM VIDEO FILTER	СВОЙ ВИДЕОФИЛЬТР
+DARK	ТЁМНАЯ
+DEBUG MODE	РЕЖИМ ОТЛАДКИ
+DEFAULT KEY	КЛЮЧ ПО УМОЛЧАНИЮ
+DELETE THE BACKUP OF %s?	УДАЛИТЬ КОПИЮ СЕТИ %s?
+DELETE THIS SUSPEND POINT?	УДАЛИТЬ ЭТУ ТОЧКУ ПРИОСТАНОВКИ?
+DELETE	УДАЛИТЬ
+DEMO MODE	ДЕМО-РЕЖИМ
+DEVELOPER	РАЗРАБОТЧИК
+DISABLE START MENU IN KID MODE	ОТКЛЮЧИТЬ МЕНЮ START В ДЕТСКОМ РЕЖИМЕ
+DISCARD THE UNSAVED SUSPEND POINT?	ОТБРОСИТЬ НЕСОХРАНЁННУЮ ТОЧКУ ПРИОСТАНОВКИ?
+DISCARD UNSAVED SUSPEND POINT	ОТБРОСИТЬ НЕСОХРАНЁННУЮ ТОЧКУ ПРИОСТАНОВКИ
+DISCONNECT	ОТКЛЮЧИТЬ
+DISPLAY	ЭКРАН
+EDIT METADATA	ИЗМЕНИТЬ МЕТАДАННЫЕ
+ENABLE FILTERS	ВКЛЮЧИТЬ ФИЛЬТРЫ
+ENABLE NAVIGATION SOUNDS	ВКЛЮЧИТЬ ЗВУКИ НАВИГАЦИИ
+ENABLE OVERCLOCK IN HEAVY GAMES?	ВКЛЮЧИТЬ РАЗГОН В ТЯЖЁЛЫХ ИГРАХ?
+ENABLE OVERCLOCK?	ВКЛЮЧИТЬ РАЗГОН?
+ENABLE SWAP FILE?	ВКЛЮЧИТЬ ФАЙЛ ПОДКАЧКИ?
+EPILEPSY PROTECTION	ЗАЩИТА ОТ ЭПИЛЕПСИИ
+EXCLUDE GAMES FROM	ИСКЛЮЧИТЬ ИГРЫ ИЗ
+FAST	БЫСТРО
+FILTER GAMELIST BY	ФИЛЬТРОВАТЬ СПИСОК ИГР ПО
+FILTER GAMELIST	ФИЛЬТР СПИСКА ИГР
+FILTER	ФИЛЬТР
+FINISH	ГОТОВО
+FOLDER	ПАПКА
+FORGET	ЗАБЫТЬ
+GAME COLLECTION SETTINGS	НАСТРОЙКИ КОЛЛЕКЦИЙ ИГР
+GAMELIST VIEW STYLE	СТИЛЬ СПИСКА ИГР
+GENRE:	ЖАНР:
+GET NEW RANDOM GAMES	ПОЛУЧИТЬ НОВЫЕ СЛУЧАЙНЫЕ ИГРЫ
+GROUP UNTHEMED CUSTOM COLLECTIONS	ГРУППИРОВАТЬ СВОИ КОЛЛЕКЦИИ БЕЗ ТЕМЫ
+HEADER ANIMATIONS	АНИМАЦИЯ ЗАГОЛОВКА
+HOLD ANY BUTTON TO SKIP	УДЕРЖИВАЙТЕ ЛЮБУЮ КНОПКУ, ЧТОБЫ ПРОПУСТИТЬ
+HOLD TO OVERWRITE	УДЕРЖИВАЙТЕ ДЛЯ ПЕРЕЗАПИСИ
+HOLD TO SKIP	УДЕРЖИВАЙТЕ, ЧТОБЫ ПРОПУСТИТЬ
+HORIZONTAL LINEAR	ГОРИЗОНТАЛЬНАЯ ЛИНЕЙНАЯ
+IGNORE ARTICLES (NAME SORT ONLY)	ИГНОРИРОВАТЬ АРТИКЛИ (ТОЛЬКО ПРИ СОРТИРОВКЕ ПО ИМЕНИ)
+INCLUDE AUTO COLLECTIONS	ВКЛЮЧИТЬ АВТОМАТИЧЕСКИЕ КОЛЛЕКЦИИ
+INCLUDE CUSTOM COLLECTIONS	ВКЛЮЧИТЬ СВОИ КОЛЛЕКЦИИ
+INCLUDE GAMES FROM	ВКЛЮЧИТЬ ИГРЫ ИЗ
+INCLUDE SYSTEMS	ВКЛЮЧИТЬ СИСТЕМЫ
+INPUT	УПРАВЛЕНИЕ
+JUMP TO ...	ПЕРЕЙТИ К ...
+KEYBOARD	КЛАВИАТУРА
+LANGUAGE	ЯЗЫК
+LAUNCH SYSTEM SCREENSAVER	ЗАПУСТИТЬ ЗАСТАВКУ СИСТЕМЫ
+LIBRARY	БИБЛИОТЕКА
+LIGHT	СВЕТЛАЯ
+LINEAR	ЛИНЕЙНАЯ
+MAX GAMES	МАКС. ИГР
+MEDIUM	СРЕДНЕ
+MEMORY	ПАМЯТЬ
+MUSIC VOLUME	ГРОМКОСТЬ МУЗЫКИ
+MUTE SCREENSAVER AUDIO	ОТКЛЮЧИТЬ ЗВУК ЗАСТАВКИ
+NEAREST	БЛИЖАЙШИЙ СОСЕД
+NES AND SNES CLASSIC PORT BY DEFKORNS	ПОРТ ДЛЯ NES И SNES CLASSIC ОТ DEFKORNS
+NETWORK NAME	НАЗВАНИЕ СЕТИ
+NETWORK	СЕТЬ
+NETWORKS	СЕТИ
+NEW COLLECTION NAME	НАЗВАНИЕ НОВОЙ КОЛЛЕКЦИИ
+NO BACKUPS FOUND	КОПИИ НЕ НАЙДЕНЫ
+NO GAMEPADS DETECTED	ГЕЙМПАДЫ НЕ ОБНАРУЖЕНЫ
+NO GAMES FIT THAT CRITERIA.	НЕТ ИГР, ПОДХОДЯЩИХ ПОД ЭТИ КРИТЕРИИ.
+NO GAMES FOUND - SKIP	ИГРЫ НЕ НАЙДЕНЫ - ПРОПУСТИТЬ
+NO GAMES WERE SCRAPED.	ДАННЫЕ НИ ДЛЯ ОДНОЙ ИГРЫ НЕ ПОЛУЧЕНЫ.
+NO NEED, YOU'RE ALREADY A DEVELOPER	НЕ НУЖНО, ВЫ УЖЕ РАЗРАБОТЧИК
+NO SAVED NETWORKS	НЕТ СОХРАНЁННЫХ СЕТЕЙ
+NO	НЕТ
+NONE	НЕТ
+NORMAL	ОБЫЧНЫЙ
+NOTHING TO SAVE	НЕЧЕГО СОХРАНЯТЬ
+OK	OK
+ON-SCREEN HELP	СПРАВКА НА ЭКРАНЕ
+OPEN	ОТКРЫТЬ
+OPTIONS	ПАРАМЕТРЫ
+ORIGINAL	ОРИГИНАЛ
+OTHER NETWORK...	ДРУГАЯ СЕТЬ...
+OVERCLOCK IN HEAVY GAMES	РАЗГОН В ТЯЖЁЛЫХ ИГРАХ
+OVERCLOCK	РАЗГОН
+OVERWRITE EXISTING DATA	ПЕРЕЗАПИСАТЬ СУЩЕСТВУЮЩИЕ ДАННЫЕ
+OVERWRITE THIS SUSPEND POINT?	ПЕРЕЗАПИСАТЬ ЭТУ ТОЧКУ ПРИОСТАНОВКИ?
+PASSWORD	ПАРОЛЬ
+PHOSPHOR	ЛЮМИНОФОР
+PIXEL PERFECT	ТОЧНЫЙ ПИКСЕЛЬ
+PIXEL	ПИКСЕЛЬ
+PLAYERS:	ИГРОКОВ:
+POWER SAVER MODES	РЕЖИМЫ ЭНЕРГОСБЕРЕЖЕНИЯ
+PRESS (Y) TWICE TO REMOVE FROM FAVS./COLL.	НАЖМИТЕ (Y) ДВАЖДЫ, ЧТОБЫ УБРАТЬ ИЗ ИЗБР./КОЛЛ.
+PRESS ANYTHING	НАЖМИТЕ ЛЮБУЮ КНОПКУ
+PUBLISHER:	ИЗДАТЕЛЬ:
+QUICK SYSTEM SELECT	БЫСТРЫЙ ВЫБОР СИСТЕМЫ
+QUIT CLASSICSTATION	ВЫЙТИ ИЗ CLASSICSTATION
+QUIT	ВЫХОД
+RANDOM COLLECTION	СЛУЧАЙНАЯ КОЛЛЕКЦИЯ
+RANDOM GAME COLLECTION SETTINGS	НАСТРОЙКИ КОЛЛЕКЦИИ СЛУЧАЙНЫХ ИГР
+RANDOM GAME	СЛУЧАЙНАЯ ИГРА
+RATING:	РЕЙТИНГ:
+REALLY QUIT?	ДЕЙСТВИТЕЛЬНО ВЫЙТИ?
+REALLY RESTART?	ДЕЙСТВИТЕЛЬНО ПЕРЕЗАГРУЗИТЬ?
+REALLY SHUTDOWN?	ДЕЙСТВИТЕЛЬНО ВЫКЛЮЧИТЬ?
+RELEASED:	ВЫПУСК:
+REMOVE FROM FAVORITES	УБРАТЬ ИЗ ИЗБРАННОГО
+REMOVE FROM KID GAMES	УБРАТЬ ИЗ ДЕТСКИХ ИГР
+RESET ALL FILTERS	СБРОСИТЬ ВСЕ ФИЛЬТРЫ
+RESTART CLASSICSTATION	ПЕРЕЗАПУСТИТЬ CLASSICSTATION
+RESTART SYSTEM	ПЕРЕЗАГРУЗИТЬ СИСТЕМУ
+RESTORE NETWORKS	ВОССТАНОВИТЬ СЕТИ
+RETRY	ПОВТОРИТЬ
+ROMAJI TITLES	НАЗВАНИЯ РОМАДЗИ
+SAVE CHANGES?	СОХРАНИТЬ ИЗМЕНЕНИЯ?
+SAVE KERNEL LOG TO USB	СОХРАНИТЬ ЖУРНАЛ ЯДРА НА USB
+SAVE METADATA	СОХРАНИТЬ МЕТАДАННЫЕ
+SAVE	СОХРАНИТЬ
+SAVED NETWORKS	СОХРАНЁННЫЕ СЕТИ
+SAVED	СОХРАНЕНО
+SCANLINES	СТРОКИ РАЗВЁРТКИ
+SCRAPE COVER IMAGE	ПОЛУЧИТЬ ОБЛОЖКУ
+SCRAPE DESCRIPTION	ПОЛУЧИТЬ ОПИСАНИЕ
+SCRAPE DETAILS	ПОЛУЧИТЬ ПОДРОБНОСТИ
+SCRAPE FROM	ПОЛУЧИТЬ ИЗ
+SCRAPE LOGO	ПОЛУЧИТЬ ЛОГОТИП
+SCRAPE NAME	ПОЛУЧИТЬ НАЗВАНИЕ
+SCRAPE NOW	ПОЛУЧИТЬ СЕЙЧАС
+SCRAPE RATINGS	ПОЛУЧИТЬ РЕЙТИНГИ
+SCRAPE THESE GAMES	ПОЛУЧИТЬ ДАННЫЕ ДЛЯ ЭТИХ ИГР
+SCRAPE THESE SYSTEMS	ПОЛУЧИТЬ ДАННЫЕ ДЛЯ ЭТИХ СИСТЕМ
+SCRAPE	ПОЛУЧИТЬ ДАННЫЕ
+SCRAPER	СКРЕЙПЕР
+SCRAPING IN PROGRESS	ИДЁТ ПОЛУЧЕНИЕ ДАННЫХ
+SCREENSAVER AFTER	ЗАСТАВКА ЧЕРЕЗ
+SCREENSAVER BEHAVIOR	ПОВЕДЕНИЕ ЗАСТАВКИ
+SCREENSAVER CONTROLS	УПРАВЛЕНИЕ ЗАСТАВКОЙ
+SCREENSAVER SETTINGS	НАСТРОЙКИ ЗАСТАВКИ
+SD CARD	КАРТА SD
+SEARCH FOR	ПОИСК
+SELECT COLLECTIONS	ВЫБРАТЬ КОЛЛЕКЦИИ
+SELECT THEME FOLDER	ВЫБРАТЬ ПАПКУ ТЕМЫ
+SELECT	ВЫБРАТЬ
+SHARP	ЧЁТКИЙ
+SHOW FAVORITES	ПОКАЗЫВАТЬ ИЗБРАННОЕ
+SHOW FRAMERATE	ПОКАЗЫВАТЬ ЧАСТОТУ КАДРОВ
+SHOW GAME INFO ON SCREENSAVER	ПОКАЗЫВАТЬ ИНФО ОБ ИГРЕ В ЗАСТАВКЕ
+SHOW GAME INFO	ПОКАЗЫВАТЬ ИНФО ОБ ИГРЕ
+SHOW SYSTEM NAME IN COLLECTIONS	ПОКАЗЫВАТЬ НАЗВАНИЕ СИСТЕМЫ В КОЛЛЕКЦИЯХ
+SHUTDOWN SYSTEM	ВЫКЛЮЧИТЬ СИСТЕМУ
+SKIP	ПРОПУСТИТЬ
+SLIDESHOW SCREENSAVER SETTINGS	НАСТРОЙКИ ЗАСТАВКИ-СЛАЙДШОУ
+SLIDESHOW SCREENSAVER	ЗАСТАВКА-СЛАЙДШОУ
+SLOT IS LOCKED	СЛОТ ЗАБЛОКИРОВАН
+SLOW	МЕДЛЕННО
+SOFT	МЯГКИЙ
+SORT CUSTOM COLLECTIONS AND SYSTEMS	СОРТИРОВАТЬ СВОИ КОЛЛЕКЦИИ И СИСТЕМЫ
+SORT GAMES BY	СОРТИРОВАТЬ ИГРЫ ПО
+SOUND SETTINGS	НАСТРОЙКИ ЗВУКА
+SOUND	ЗВУК
+START ON 2ND CONTROLLER	START НА 2-М КОНТРОЛЛЕРЕ
+START ON SYSTEM	ЗАПУСК В СИСТЕМЕ
+STOCK	СТАНДАРТНЫЙ
+STOP	СТОП
+STRETCH MEDIA	РАСТЯГИВАТЬ МЕДИА
+STRETCH VIDEO ON SCREENSAVER	РАСТЯГИВАТЬ ВИДЕО В ЗАСТАВКЕ
+STRONG	СИЛЬНЫЙ
+SUSPEND POINT ANIMATIONS	АНИМАЦИЯ ТОЧЕК ПРИОСТАНОВКИ
+SUSPEND POINTS	ТОЧКИ ПРИОСТАНОВКИ
+SWAP FILE	ФАЙЛ ПОДКАЧКИ
+SWAP MEDIA AFTER (SECS)	СМЕНА МЕДИА ЧЕРЕЗ (С)
+SWAP SIZE	РАЗМЕР ПОДКАЧКИ
+SWAP VIDEO AFTER (SECS)	СМЕНА ВИДЕО ЧЕРЕЗ (С)
+SYSTEM INFO	ИНФО О СИСТЕМЕ
+SYSTEM INFORMATION	СВЕДЕНИЯ О СИСТЕМЕ
+SYSTEM VOLUME	ГРОМКОСТЬ СИСТЕМЫ
+TEMPERATURE	ТЕМПЕРАТУРА
+THE CURRENT THEME HAS NO OPTIONS.	У ТЕКУЩЕЙ ТЕМЫ НЕТ ПАРАМЕТРОВ.
+THE PASSWORD MUST HAVE AT LEAST 8 CHARACTERS	ПАРОЛЬ ДОЛЖЕН СОДЕРЖАТЬ НЕ МЕНЕЕ 8 СИМВОЛОВ
+THEGAMESDB API KEY	КЛЮЧ API THEGAMESDB
+THEME OPTIONS	ПАРАМЕТРЫ ТЕМЫ
+THEME SET	НАБОР ТЕМ
+TOOLS	ИНСТРУМЕНТЫ
+TRANSITION STYLE	СТИЛЬ ПЕРЕХОДА
+UI MODE	РЕЖИМ ИНТЕРФЕЙСА
+USE CUSTOM MEDIA	ИСПОЛЬЗОВАТЬ СВОИ МЕДИА
+USE FULL SCREEN PAGING FOR LB/RB	ПОСТРАНИЧНАЯ ПРОКРУТКА НА ВЕСЬ ЭКРАН КНОПКАМИ LB/RB
+VIDEO DEBUG LOG	ЖУРНАЛ ОТЛАДКИ ВИДЕО
+VIDEO MODE AND BEZEL	ВИДЕОРЕЖИМ И РАМКА
+VIDEO MODE	ВИДЕОРЕЖИМ
+VIDEO RESOLUTION	РАЗРЕШЕНИЕ ВИДЕО
+VLC: SCREENSAVER VIDEO RESOLUTION	VLC: РАЗРЕШЕНИЕ ВИДЕО ЗАСТАВКИ
+VRAM LIMIT	ЛИМИТ VRAM
+WELCOME	ДОБРО ПОЖАЛОВАТЬ
+WORKING...	ВЫПОЛНЯЕТСЯ...
+X/Y AS TURBO A/B	X/Y КАК ТУРБО A/B
+YES	ДА
+YOU ARE NOW A DEVELOPER, DEBUG MODE IS IN THE HELP MENU	ТЕПЕРЬ ВЫ РАЗРАБОТЧИК, РЕЖИМ ОТЛАДКИ НАХОДИТСЯ В МЕНЮ СПРАВКИ
+YOUR THEGAMESDB API KEY (EMPTY: DEFAULT KEY)	ВАШ КЛЮЧ API THEGAMESDB (ПУСТО: КЛЮЧ ПО УМОЛЧАНИЮ)
+ARE YOU SURE YOU WANT TO CONFIGURE INPUT?	ВЫ УВЕРЕНЫ, ЧТО ХОТИТЕ НАСТРОИТЬ УПРАВЛЕНИЕ?
+SHOW GAME TITLES IN ROMAJI?\nCLASSICSTATION WILL RESTART.	ПОКАЗЫВАТЬ НАЗВАНИЯ ИГР РОМАДЗИ?\nCLASSICSTATION БУДЕТ ПЕРЕЗАПУЩЕН.
+SHOW THE ORIGINAL GAME TITLES?\nCLASSICSTATION WILL RESTART.	ПОКАЗЫВАТЬ ОРИГИНАЛЬНЫЕ НАЗВАНИЯ ИГР?\nCLASSICSTATION БУДЕТ ПЕРЕЗАПУЩЕН.
+THE LANGUAGE CHANGES AFTER A RESTART.\nRESTART NOW?	ЯЗЫК ИЗМЕНИТСЯ ПОСЛЕ ПЕРЕЗАПУСКА.\nПЕРЕЗАПУСТИТЬ СЕЙЧАС?
+AUTOMATIC	АВТОМАТИЧЕСКИ
+BASIC	БАЗОВЫЙ
+DETAILED	ПОДРОБНЫЙ
+GRID	СЕТКА
+FADE	ЗАТУХАНИЕ
+SLIDE	СДВИГ
+INSTANT	МГНОВЕННО
+ON EXIT	ПРИ ВЫХОДЕ
+ALWAYS	ВСЕГДА
+NEVER	НИКОГДА
+DISABLED	ОТКЛЮЧЕНО
+DEFAULT	ПО УМОЛЧАНИЮ
+<DEFAULT>	<ПО УМОЛЧАНИЮ>
+<NONE>	<НЕТ>
+ENHANCED	УЛУЧШЕННЫЙ
+FULL	ПОЛНЫЙ
+KID	ДЕТСКИЙ
+KIOSK	КИОСК
+DIM	ПРИГЛУШЕНО
+BLACK	ЧЁРНЫЙ
+SLIDESHOW	СЛАЙДШОУ
+RANDOM VIDEO	СЛУЧАЙНОЕ ВИДЕО
+LOW	НИЗКОЕ
+HIGH	ВЫСОКОЕ
+MAX	МАКС
+ALL GAMES	ВСЕ ИГРЫ
+ONLY MISSING IMAGE	ТОЛЬКО ОТСУТСТВУЮЩИЕ ИЗОБРАЖЕНИЯ
+FAVORITES	ИЗБРАННОЕ
+SELECTED	ВЫБРАНО
+NAME, ASCENDING	ИМЯ, ПО ВОЗРАСТАНИЮ
+NAME, DESCENDING	ИМЯ, ПО УБЫВАНИЮ
+RATING, ASCENDING	РЕЙТИНГ, ПО ВОЗРАСТАНИЮ
+RATING, DESCENDING	РЕЙТИНГ, ПО УБЫВАНИЮ
+TIMES PLAYED, ASCENDING	КОЛИЧЕСТВО ЗАПУСКОВ, ПО ВОЗРАСТАНИЮ
+TIMES PLAYED, DESCENDING	КОЛИЧЕСТВО ЗАПУСКОВ, ПО УБЫВАНИЮ
+LAST PLAYED, ASCENDING	ПОСЛЕДНИЙ ЗАПУСК, ПО ВОЗРАСТАНИЮ
+LAST PLAYED, DESCENDING	ПОСЛЕДНИЙ ЗАПУСК, ПО УБЫВАНИЮ
+NUMBER PLAYERS, ASCENDING	ЧИСЛО ИГРОКОВ, ПО ВОЗРАСТАНИЮ
+NUMBER PLAYERS, DESCENDING	ЧИСЛО ИГРОКОВ, ПО УБЫВАНИЮ
+RELEASE DATE, ASCENDING	ДАТА ВЫПУСКА, ПО ВОЗРАСТАНИЮ
+RELEASE DATE, DESCENDING	ДАТА ВЫПУСКА, ПО УБЫВАНИЮ
+GENRE, ASCENDING	ЖАНР, ПО ВОЗРАСТАНИЮ
+GENRE, DESCENDING	ЖАНР, ПО УБЫВАНИЮ
+DEVELOPER, ASCENDING	РАЗРАБОТЧИК, ПО ВОЗРАСТАНИЮ
+DEVELOPER, DESCENDING	РАЗРАБОТЧИК, ПО УБЫВАНИЮ
+PUBLISHER, ASCENDING	ИЗДАТЕЛЬ, ПО ВОЗРАСТАНИЮ
+PUBLISHER, DESCENDING	ИЗДАТЕЛЬ, ПО УБЫВАНИЮ
+SYSTEM, ASCENDING	СИСТЕМА, ПО ВОЗРАСТАНИЮ
+SYSTEM, DESCENDING	СИСТЕМА, ПО УБЫВАНИЮ
+GAME	ИГРА
+GAMES	ИГР
+FAVORITE	ИЗБРАННОЕ
+1 SELECTED	ВЫБРАНА 1
+ORIGINAL GAMES	ОРИГИНАЛЬНЫЕ ИГРЫ
+LAST PLAYED	НЕДАВНИЕ
+RANDOM	СЛУЧАЙНО
+SYSTEM	СИСТЕМА
+SELECT ALL	ВЫБРАТЬ ВСЁ
+SELECT NONE	СНЯТЬ ВЫБОР
+ADD/REMOVE GAMES WHILE SCREENSAVER TO	ДОБАВЛЯТЬ/УДАЛЯТЬ ИГРЫ ВО ВРЕМЯ ЗАСТАВКИ В
+go back	назад
+accept	принять
+select all	выбрать всё
+select none	снять выбор
+Display	Экран
+Sound	Звук
+Library	Библиотека
+Network	Сеть
+Tools	Инструменты
+System	Система
+accept result	принять результат
+add star	добавить звезду
+back	назад
+cancel	отмена
+category	категория
+change	изменить
+choose	выбрать
+close	закрыть
+cursor	курсор
+delete	удалить
+edit	изменить
+favorite	избранное
+go to last saved game	к последней сохранённой игре
+launch	запустить
+launch screensaver	запустить заставку
+lock/unlock	блокировать/разблокировать
+menu	меню
+move cursor	переместить курсор
+move/delete	переместить/удалить
+Move/Delete	переместить/удалить
+ok	ok
+open	открыть
+options	параметры
+random	случайно
+save	сохранить
+select	выбрать
+settings	настройки
+start game	запустить игру
+stop editing	закончить изменение
+suspend point list	список точек приостановки
+system	система
+type	ввести
+
+# Wi-Fi messages from es-tools.sh. A %s stands for the network name or a count; the longest matching entry wins.
+Connected to %s.	Подключено к %s.
+Connected to %s, but there is no internet.	Подключено к %s, но нет интернета.
+Connected.	Подключено.
+Connected, but there is no internet.	Подключено, но нет интернета.
+Connection failed. Check the Wi-Fi adapter.	Не удалось подключиться. Проверьте адаптер Wi-Fi.
+Wrong password for %s.	Неверный пароль для %s.
+Could not connect to %s.	Не удалось подключиться к %s.
+Could not connect to %s. Check the password.	Не удалось подключиться к %s. Проверьте пароль.
+Could not find %s. Move closer and try again.	Сеть %s не найдена. Подойдите ближе и повторите попытку.
+Disconnected.	Отключено.
+Forgot %s.	Сеть %s забыта.
+%s is not saved.	Сеть %s не сохранена.
+Backed up %s to the SD card.	Копия сети %s сохранена на карте SD.
+Could not write the backup. Check the SD card.	Не удалось записать копию. Проверьте карту SD.
+Deleted the backup of %s.	Копия сети %s удалена.
+Could not delete the backup. Check the SD card.	Не удалось удалить копию. Проверьте карту SD.
+No backup found on the SD card.	На карте SD копий не найдено.
+Restored %s network(s).	Восстановлено сетей: %s.
+Every network in the backup is already saved.	Все сети из копии уже сохранены.

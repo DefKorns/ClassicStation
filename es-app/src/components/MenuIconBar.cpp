@@ -7,6 +7,7 @@
   * (at your option) any later version.
   */
 #include "components/MenuIconBar.h"
+#include "I18n.h"
 
 #include "renderers/Renderer.h"
 #include "resources/Font.h"
@@ -352,7 +353,7 @@ void MenuIconBar::render(const Transform4x4f& parentTrans)
 		mCaptionIndex = mSelected;
 		mCaptionPx = captionPx;
 		mCaptionLabel.setFont(Font::get(captionPx));
-		mCaptionLabel.setText(name);
+		mCaptionLabel.setText(I18n::tr(name));
 	}
 	const float labelWidth = mCaptionLabel.getFont()->sizeText(name).x();
 	const float total = std::max(CaptionMinWidth, labelWidth) + CaptionEdges;

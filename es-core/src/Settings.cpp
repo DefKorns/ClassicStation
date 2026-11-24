@@ -137,6 +137,7 @@ void Settings::setDefaults()
 	mStringMap["ScreenSaverGameInfo"] = "never";
 	mBoolMap["StretchVideoOnScreenSaver"] = false;
 	mStringMap["PowerSaverMode"] = "disabled";
+	mStringMap["Language"] = "en";
 
 	mIntMap["ScreenSaverSwapMediaTimeout"] = 10000;
 	mBoolMap["SlideshowScreenSaverStretch"] = false;
