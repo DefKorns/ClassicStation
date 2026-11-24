@@ -25,10 +25,8 @@ autofireForUi() {
 }
 
 autofireForGames() {
-  local name value
-  for name in autofire autofire_xy; do
-    value=$(sed -n "s/^cfg_clovercon_$name='\([^']*\)'.*/\1/p" /etc/preinit.d/p0000_config 2>/dev/null | head -n 1)
-    [ -n "$value" ] && cloverconParam "$name" "$value"
-  done
+  [ -r /etc/preinit.d/p0000_config ] && source /etc/preinit.d/p0000_config
+  [ -n "${cfg_clovercon_autofire:-}" ] && cloverconParam autofire "$cfg_clovercon_autofire"
+  [ -n "${cfg_clovercon_autofire_xy:-}" ] && cloverconParam autofire_xy "$cfg_clovercon_autofire_xy"
   return 0
 }

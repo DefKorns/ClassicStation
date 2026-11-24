@@ -90,12 +90,17 @@ for cfg in es_settings.cfg es_input.cfg; do
   [ -f "$es_dir/home/.emulationstation/$cfg" ] || cp "$es_dir/defaults/$cfg" "$es_dir/home/.emulationstation/"
 done
 sh "$es_dir/es-theme.sh" "$sftype"
+librarySignature() {
+  find "$games_dir" /media/data/emulationstation/covers "$es_dir/es-library.sh" "$es_dir/es_romaji.txt" \( -name '*.desktop' -o -name '*.png' -o -name 'aliases.txt' -o -name 'es-library.sh' -o -name 'es_romaji.txt' \) ! -path '*/CLV-Z-ESRET/*' -exec ls -ln --full-time {} + 2>/dev/null | md5sum
+}
 buildLibrary() {
 library_stamp=$es_dir/library.stamp
 games_dir=$(findGameStorage)
+export ES_STORE="$games_dir"
 games_count=0
 [ -n "$games_dir" ] && games_count=$(find "$games_dir" -name '*.desktop' ! -path '*/CLV-Z-ESRET/*' | wc -l)
-if [ -d "$es_dir/library" ] && [ "$(cat "$library_stamp.count" 2>/dev/null)" = "$games_count" ]   && [ -z "$(find "$games_dir" /media/data/emulationstation/covers "$es_dir/es-library.sh" "$es_dir/es_romaji.txt" \( -name '*.desktop' -o -name '*.png' -o -name 'aliases.txt' -o -name 'es-library.sh' -o -name 'es_romaji.txt' \)! -path '*/CLV-Z-ESRET/*' -newer "$library_stamp" 2>/dev/null | head -n 1)" ]; then
+library_sig=$(librarySignature)
+if [ -d "$es_dir/library" ] && [ "$(cat "$library_stamp.count" 2>/dev/null)" = "$games_count" ] && [ "$(cat "$library_stamp.sig" 2>/dev/null)" = "$library_sig" ]; then
   rm -rf /tmp/es-library
   cp -a "$es_dir/library" /tmp/es-library
 else
@@ -103,7 +108,7 @@ else
   rm -rf "$es_dir/library"
   cp -a /tmp/es-library "$es_dir/library"
   echo "$games_count" > "$library_stamp.count"
-  touch "$library_stamp"
+  echo "$library_sig" > "$library_stamp.sig"
 fi
 sh "$es_dir/es-favorites.sh" /tmp/es-library "$es_dir/favorites.txt"
 settings_file=$es_dir/home/.emulationstation/es_settings.cfg

@@ -19,58 +19,70 @@ shim=/tmp/es-shim
 profile=/var/lib/clover/profiles/0
 volatile=/var/cache/clover/volatile
 cpu_freq_dir=/sys/devices/system/cpu/cpu0/cpufreq
-settings_file=$(dirname "$0")/home/.emulationstation/es_settings.cfg
+es_dir=$(dirname "$0")
+settings_file=$es_dir/home/.emulationstation/es_settings.cfg
 # shellcheck source=es-autofire.sh
-source "$(dirname "$0")/es-autofire.sh"
+source "$es_dir/es-autofire.sh"
 
 no_suspend_cores="mupen64*|parallel_n64*|glupen64*|ludicrousn64*"
 heavy_cores="mupen64*|parallel_n64*|glupen64*|ludicrousn64*|pcsx*|mednafen_psx*|mame*|fbalpha*|fbneo*|desmume*|melonds*|drastic*|ppsspp*|mgba*|gpsp*"
 
-esSetting() {
-  sed -n "s|^<[a-z]* name=\"$1\" value=\"\([^\"]*\)\" */>.*|\1|p" "$settings_file" 2>/dev/null | head -n 1
+loadSettings() {
+  local key value
+  # shellcheck disable=SC2034 # value is read by the eval
+  while IFS='=' read -r key value; do
+    [ -n "$key" ] || continue
+    eval "[ -n \"\${es_$key+x}\" ] || es_$key=\$value"
+  done <<EOF
+$(sed -n 's|^<[a-z]* name="\(Display[A-Za-z]*\)" value="\([^"]*\)" */>.*|\1=\2|p' "$settings_file" 2>/dev/null)
+EOF
 }
 
-framePath() {
-  local mode frame suffix
-  mode=$(esSetting DisplayMode)
-  frame=$(esSetting DisplayFrame)
-  [ -n "$frame" ] || return 0
-  suffix=4_3
-  [ "$mode" = pixel-perfect ] && suffix=pixel_perfect
-  [ -f "/usr/share/backgrounds/$frame/${frame}_$suffix.png" ] && printf '/usr/share/backgrounds/%s/%s_%s' "$frame" "$frame" "$suffix"
+deriveDisplay() {
+  local suffix
+  case $es_DisplayScanlineLevel in
+    1|2|3|4) scanline_level=$es_DisplayScanlineLevel ;;
+    *)
+      scanline_level=0
+      [ "$es_DisplayCrtScanlines" = true ] && scanline_level=1
+      ;;
+  esac
+  scanlines_on=false
+  [ "$scanline_level" -ge 1 ] && scanlines_on=true
+
+  filter_name=
+  case $es_DisplayFilter in
+    nearest|linear|hlinear|sharp|composite|phosphor) filter_name=$es_DisplayFilter ;;
+    *)
+      if [ "$es_DisplayMode" = composite ]; then
+        filter_name=composite
+      else
+        case $es_DisplaySmoothness in
+          1) filter_name=nearest ;;
+          3) filter_name=linear ;;
+          *) [ "$es_DisplayCrtSmooth" = true ] && filter_name=linear ;;
+        esac
+      fi
+      ;;
+  esac
+  smooth_on=false
+  case $filter_name in linear|hlinear) smooth_on=true ;; esac
+
+  frame_path=
+  if [ -n "$es_DisplayFrame" ]; then
+    suffix=4_3
+    [ "$es_DisplayMode" = pixel-perfect ] && suffix=pixel_perfect
+    [ -f "/usr/share/backgrounds/$es_DisplayFrame/${es_DisplayFrame}_$suffix.png" ] && frame_path=/usr/share/backgrounds/$es_DisplayFrame/${es_DisplayFrame}_$suffix
+  fi
 }
 
-scanlineLevel() {
-  local level
-  level=$(esSetting DisplayScanlineLevel)
-  case $level in 1|2|3|4) printf '%s' "$level"; return ;; esac
-  [ "$(esSetting DisplayCrtScanlines)" = true ] && printf 1 || printf 0
-}
-
-filterName() {
-  local name
-  name=$(esSetting DisplayFilter)
-  case $name in nearest|linear|hlinear|sharp|composite|phosphor) printf '%s' "$name"; return ;; esac
-  [ "$(esSetting DisplayMode)" = composite ] && { printf composite; return; }
-  case $(esSetting DisplaySmoothness) in 1) printf nearest; return ;; 3) printf linear; return ;; esac
-  [ "$(esSetting DisplayCrtSmooth)" = true ] && printf linear
-}
-
-scanlinesOn() {
-  [ "$(scanlineLevel)" -ge 1 ] && printf true || printf false
-}
-
-smoothOn() {
-  case $(filterName) in linear|hlinear) printf true ;; *) printf false ;; esac
-}
+loadSettings
+deriveDisplay
 
 displayArgs() {
-  local mode smooth scanlines frame_path
-  mode=$(esSetting DisplayMode)
-  smooth=$(smoothOn)
-  scanlines=$(scanlinesOn)
+  local mode="$es_DisplayMode" smooth="$smooth_on" scanlines="$scanlines_on"
   case $mode in pixel-perfect|crt-filter) ;; *) mode=keep-aspect-ratio ;; esac
-  case $(filterName) in composite|phosphor) smooth=false; scanlines=true ;; esac
+  case $filter_name in composite|phosphor) smooth=false; scanlines=true ;; esac
   printf ' --video-mode %s' "$mode"
   if [ "$mode" = crt-filter ]; then
     :
@@ -81,34 +93,37 @@ displayArgs() {
   elif [ "$smooth" = true ]; then
     printf ' --enable-smooth'
   fi
-  frame_path=$(framePath)
-  [ -n "$frame_path" ] && printf ' --decorative-frame-path %s' "$frame_path"
+  [ -z "$frame_path" ] || printf ' --decorative-frame-path %s' "$frame_path"
 }
 
 clearOverlayFrame() {
-  local file="$1" key="$2"
-  grep -q "^$key = \"[^\"]" "$file" 2>/dev/null || return 0
+  local file="$1" key="$2" line found=
+  [ -r "$file" ] || return 0
+  while IFS= read -r line || [ -n "$line" ]; do
+    case $line in "$key = \""[!\"]*) found=1; break ;; esac
+  done < "$file"
+  [ -n "$found" ] || return 0
   sed "s|^$key = .*|$key = \"\"|" "$file" > /tmp/es-overlay.tmp && cat /tmp/es-overlay.tmp > "$file"
   rm -f /tmp/es-overlay.tmp
 }
 
 clearRetroarchFrame() {
-  [ -z "$(framePath)" ] || return 0
+  [ -z "$frame_path" ] || return 0
   clearOverlayFrame /etc/libretro/overlay/border.cfg overlay0_overlay
   clearOverlayFrame /etc/libretro/overlay/border_with_scanlines.cfg overlay0_desc0_overlay
 }
 
 nesDisplayArgs() {
-  case $(esSetting DisplayMode) in
+  case $es_DisplayMode in
     pixel-perfect) printf ' --graphic-filter ppu' ;;
     crt-filter) printf ' --graphic-filter crt720 --enable-crt-scanlines'; return ;;
     *) printf ' --graphic-filter gpu720' ;;
   esac
-  [ "$(scanlinesOn)" = true ] && printf ' --enable-crt-scanlines'
+  [ "$scanlines_on" = true ] && printf ' --enable-crt-scanlines'
 }
 
 overclockShimLine() {
-  [ -f "$(dirname "$0")/overclock_auto" ] || return 0
+  [ -f "$es_dir/overclock_auto" ] || return 0
   # shellcheck disable=SC2016 # the expansion belongs to the generated shim
   printf 'case "${1#km_}" in %s) set -- "$@" --overclock ;; esac' "$heavy_cores"
 }
@@ -119,20 +134,16 @@ noSuspendShimLine() {
 }
 
 noFrameArg() {
-  [ -z "$(framePath)" ] || return 0
+  [ -z "$frame_path" ] || return 0
   # shellcheck disable=SC2016 # the pattern is the literal text of the child script
   grep -q 'n "\$frame"' /bin/retroarch-clover-child 2>/dev/null && return 0
-  printf ' --decorative-frame-path %s' "$(dirname "$0")/resources/frame_none"
+  printf ' --decorative-frame-path %s' "$es_dir/resources/frame_none"
 }
 
 retroarchArgs() {
-  local mode smooth scanlines
-  mode=$(esSetting DisplayMode)
-  smooth=$(smoothOn)
-  scanlines=$(scanlinesOn)
-  if [ -n "$(framePath)" ]; then
+  if [ -n "$frame_path" ]; then
     printf ' --bezel-mode'
-  elif [ "$mode" != crt-filter ] && [ "$(filterName)" != composite ] && [ "$(filterName)" != phosphor ] && { [ "$smooth" = true ] || [ "$scanlines" = true ]; }; then
+  elif [ "$es_DisplayMode" != crt-filter ] && [ "$filter_name" != composite ] && [ "$filter_name" != phosphor ] && { [ "$smooth_on" = true ] || [ "$scanlines_on" = true ]; }; then
     printf ' --bezel-mode'
   fi
 }
@@ -146,8 +157,8 @@ scanlineGains() {
 }
 
 canoeMagfilter() {
-  [ "$(esSetting DisplayMode)" != crt-filter ] || return 0
-  case $(filterName) in
+  [ "$es_DisplayMode" != crt-filter ] || return 0
+  case $filter_name in
     nearest) printf 0 ;;
     linear) printf 1 ;;
     hlinear) printf 2 ;;
@@ -156,14 +167,13 @@ canoeMagfilter() {
 }
 
 crtfxJournalEnv() {
-  [ -f "$(dirname "$0")/crtfx_journal" ] || return 0
+  [ -f "$es_dir/crtfx_journal" ] || return 0
   CRTFX_JOURNAL=/media/data/log/crtfx/journal.log
   export CRTFX_JOURNAL
 }
 
 crtfxEnv() {
-  local es_dir level gains canoe
-  es_dir=$(dirname "$0")
+  local level gains canoe
   case "$cmd" in
     *clover-canoe-shvc*) canoe=1 ;;
     *clover-kachikachi*)
@@ -172,14 +182,14 @@ crtfxEnv() {
     *) return 0 ;;
   esac
   crtfxJournalEnv
-  if [ "$(esSetting DisplayMode)" = crt-filter ]; then
+  if [ "$es_DisplayMode" = crt-filter ]; then
     local sharp square
     [ -z "$canoe" ] && [ -f "$es_dir/libcrtfx.so" ] || return 0
-    sharp=$(esSetting DisplayCrtSharp)
+    sharp=$es_DisplayCrtSharp
     case $sharp in 1|2|3) ;; *) sharp= ;; esac
-    level=$(scanlineLevel)
+    level=$scanline_level
     [ "$level" -ge 2 ] && gains=$(scanlineGains "$level")
-    [ "$(esSetting DisplayCrtSquare)" = 1 ] && square=1
+    [ "$es_DisplayCrtSquare" = 1 ] && square=1
     [ -n "$sharp" ] || [ -n "$gains" ] || [ -n "$square" ] || return 0
     export LD_PRELOAD="$es_dir/libcrtfx.so"
     [ -z "$gains" ] || export CRTFX_GAINS="$gains"
@@ -187,18 +197,18 @@ crtfxEnv() {
     [ -z "$square" ] || export CRTFX_SQUARE=1
     return 0
   fi
-  case "$canoe$(filterName)" in
+  case "$canoe$filter_name" in
     1composite|1phosphor)
       [ -f "$es_dir/libcrtfx.so" ] || return 0
       export LD_PRELOAD="$es_dir/libcrtfx.so"
       gains=$(scanlineGains 3)
       export CRTFX_GAINS="$gains"
       export CRTFX_FILTER=1
-      [ "$(filterName)" = phosphor ] && export CRTFX_MASK=60
+      [ "$filter_name" = phosphor ] && export CRTFX_MASK=60
       return 0
       ;;
   esac
-  level=$(scanlineLevel)
+  level=$scanline_level
   [ "$level" -ge 2 ] || return 0
   gains=$(scanlineGains "$level")
   [ -f "$es_dir/libcrtfx.so" ] && [ -n "$gains" ] || return 0
@@ -233,9 +243,18 @@ SHIM
 }
 
 openborOverclock() {
-  [ -f "$(dirname "$0")/overclock_auto" ] || return 0
-  [ "$(cat "$cpu_freq_dir/scaling_max_freq")" = "$(cat "$cpu_freq_dir/cpuinfo_max_freq")" ] && return 0
-  cat "$cpu_freq_dir/cpuinfo_max_freq" > "$cpu_freq_dir/scaling_max_freq" && openbor_oc=1
+  local current max
+  [ -f "$es_dir/overclock_auto" ] || return 0
+  read -r current < "$cpu_freq_dir/scaling_max_freq"
+  read -r max < "$cpu_freq_dir/cpuinfo_max_freq"
+  [ "$current" = "$max" ] && return 0
+  printf '%s\n' "$max" > "$cpu_freq_dir/scaling_max_freq" && openbor_oc=1
+}
+
+openborRestoreClock() {
+  local boot
+  read -r boot < "$cpu_freq_dir/cpuinfo_boot_freq"
+  printf '%s\n' "$boot" > "$cpu_freq_dir/scaling_max_freq"
 }
 
 openborShim() {
@@ -254,9 +273,19 @@ isRetroarchState() {
 }
 
 desktop=$1
-cmd=$(tr -d '\r' < "$desktop" | sed -n 's/^Exec=//p' | head -n 1)
-path=$(tr -d '\r' < "$desktop" | sed -n 's/^Path=//p' | head -n 1)
-code=$(tr -d '\r' < "$desktop" | sed -n 's/^Code=//p' | head -n 1)
+cr=$(printf '\r')
+cmd=
+path=
+code=
+seen_keys=
+while IFS= read -r line || [ -n "$line" ]; do
+  line=${line%"$cr"}
+  case $line in
+    Exec=*) case $seen_keys in *E*) ;; *) cmd=${line#Exec=}; seen_keys=${seen_keys}E ;; esac ;;
+    Path=*) case $seen_keys in *P*) ;; *) path=${line#Path=}; seen_keys=${seen_keys}P ;; esac ;;
+    Code=*) case $seen_keys in *C*) ;; *) code=${line#Code=}; seen_keys=${seen_keys}C ;; esac ;;
+  esac
+done < "$desktop"
 resume=$2
 [ -n "$cmd" ] || exit 1
 if [ -d "$path" ]; then cd "$path" || exit 1; fi
@@ -283,7 +312,8 @@ if [ -n "$code" ]; then
       resumed=$volatile/$code.resume.state
       cp "$floating.state" "$resumed"
       [ -f "$floating.state.png" ] && cp "$floating.state.png" "$resumed.png"
-      resumed_time=$(cat "$floating.state_time.txt" 2>/dev/null)
+      resumed_time=
+      { read -r resumed_time < "$floating.state_time.txt"; } 2>/dev/null
       case $resumed_time in ''|*[!0-9]*) resumed_time=0 ;; esac
     elif [ -z "$native" ] && [ -d "$out" ]; then
       resume_dir=$volatile/$code.resume.dir
@@ -340,10 +370,11 @@ canoeShim
 openborShim
 crtfxEnv
 autofireForGames
-launched=$(cut -d. -f1 /proc/uptime)
+read -r launched _ < /proc/uptime
+launched=${launched%.*}
 PATH="$shim:$PATH" sh -c "$cmd"
 status=$?
-[ -z "${openbor_oc:-}" ] || cat "$cpu_freq_dir/cpuinfo_boot_freq" > "$cpu_freq_dir/scaling_max_freq"
+[ -z "${openbor_oc:-}" ] || openborRestoreClock
 if [ -n "${resumed:-}" ]; then
   if [ ! -f "$floating.state" ]; then
     cp "$resumed" "$floating.state"
@@ -363,12 +394,14 @@ if [ -n "${resume_dir:-}" ]; then
 fi
 autofireForUi
 if [ -n "$native" ] && [ -f "$floating.state" ] && [ -z "${restored:-}" ]; then
-  played=$(($(cut -d. -f1 /proc/uptime) - launched))
+  read -r now _ < /proc/uptime
+  played=$((${now%.*} - launched))
   if [ -n "$resume" ]; then
+    previous=
     if [ -f "$saved.state" ]; then
-      previous=$(cat "$saved.state_time.txt" 2>/dev/null)
+      { read -r previous < "$saved.state_time.txt"; } 2>/dev/null
     else
-      previous=$(cat "$suspend_dir/state.time" 2>/dev/null)
+      { read -r previous < "$suspend_dir/state.time"; } 2>/dev/null
     fi
     case $previous in ''|*[!0-9]*) previous=0 ;; esac
     played=$((played + previous))

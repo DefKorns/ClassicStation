@@ -14,11 +14,14 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-source /etc/preinit
-script_init
-
 code=${1:?game code}
-store=$(findGameStorage) || exit 1
+if [ -n "${ES_STORE:-}" ] && [ -d "$ES_STORE" ]; then
+  store=$ES_STORE
+else
+  source /etc/preinit
+  script_init
+  store=$(findGameStorage) || exit 1
+fi
 backup=/media/data/emulationstation/desktop_pre_scrape
 mkdir -p "$backup"
 
