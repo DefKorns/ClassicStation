@@ -12,8 +12,10 @@ hakchi grouped by system, with covers, descriptions, favorites and themes, and s
 It comes as a hakchi mod, `emulationstation_classicmini`.
 
 > [!CAUTION]
-> **DO NOT INSTALL ON THE NAND.** Only the firmware swap method has been tested. The mod is large, so only its core
-> (the program and its scripts) is kept on the NAND; themes and the rest go to the SD card or USB stick.
+> **It needs an SD card or USB stick, and it is not meant to run from the NAND.** The themes, the covers and the images
+> the scraper downloads are far too large for the console's internal storage, so they live on the card; only the program
+> and its scripts stay on the NAND, and the install stops if there is no card. Do not install it on the NAND: only the
+> firmware swap method has been tested.
 
 This is an alpha and it is not affiliated with Nintendo. Download the latest build from the
 [releases page](https://github.com/DefKorns/ClassicStation/releases) and read its known issues before you install it.
