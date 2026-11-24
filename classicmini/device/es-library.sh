@@ -302,7 +302,19 @@ readGames | while IFS=$us read -r menu code exe ext icon name desc year players 
     *" $system "*) ;;
     *) mkdir -p "$out/$system"; seen="$seen$system " ;;
   esac
-  echo "$game_dir/$code.desktop" >> "$parts/$system.lst"
+  chd_tool=
+  if [ "$exe" = chd ]; then
+    case $system in
+      psp) chd_tool=ppsspp ;;
+      psx) chd_tool=psx ;;
+      segacd) chd_tool=segacd ;;
+    esac
+  fi
+  if [ -n "$chd_tool" ]; then
+    sed "s|^Exec=/bin/chd |Exec=/bin/$chd_tool |" "$game_dir/$code.desktop" > "$out/$system/$code.desktop"
+  else
+    echo "$game_dir/$code.desktop" >> "$parts/$system.lst"
+  fi
 
   [ -n "$cover" ] && [ -f "${covers}_small/${cover##*/}" ] && cover=${covers}_small/${cover##*/}
   case $icon in /var/games/*) icon=$store/$menu/${icon#/var/games/} ;; esac
