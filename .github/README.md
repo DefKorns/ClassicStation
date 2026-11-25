@@ -12,8 +12,10 @@ hakchi grouped by system, with covers, descriptions, favorites and themes, and s
 It comes as a hakchi mod, `emulationstation_classicmini`.
 
 > [!CAUTION]
-> **DO NOT INSTALL ON THE NAND.** Only the firmware swap method has been tested. The mod is large, so only its core
-> (the program and its scripts) is kept on the NAND; themes and the rest go to the SD card or USB stick.
+> **It needs an SD card or USB stick, and it is not meant to run from the NAND.** The themes, the covers and the images
+> the scraper downloads are far too large for the console's internal storage, so they live on the card; only the program
+> and its scripts stay on the NAND, and the install stops if there is no card. Do not install it on the NAND: only the
+> firmware swap method has been tested.
 
 This is an alpha and it is not affiliated with Nintendo. Download the latest build from the
 [releases page](https://github.com/DefKorns/ClassicStation/releases) and read its known issues before you install it.
@@ -41,7 +43,7 @@ Not supported: video playback, and anything that needs more than the console's 2
 ## Requirements
 
 - A NES Classic or SNES Classic (or their Famicom and Super Famicom versions) running hakchi.
-- A RetroArch mod for the games that run on RetroArch: **RetroArch (S)NESCE** v1.22.2-beta.13 or newer, or the
+- A RetroArch mod for the games that run on RetroArch: **RetroArch (S)NESCE** v1.22.2-beta.15 or newer, or the
   RetroArch 1.9.10 from KMFDManic.
 - **An SD card or USB stick.** The install stops without one.
 
