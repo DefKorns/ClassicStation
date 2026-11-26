@@ -26,6 +26,7 @@ source "$es_dir/es-autofire.sh"
 
 no_suspend_cores="mupen64*|parallel_n64*|glupen64*|ludicrousn64*"
 heavy_cores="mupen64*|parallel_n64*|glupen64*|ludicrousn64*|pcsx*|mednafen_psx*|mame*|fbalpha*|fbneo*|desmume*|melonds*|drastic*|ppsspp*|mgba*|gpsp*"
+video_cores="nestopia*|fceumm*|fceux*|quicknes*|mesen*|snes9x*|bsnes*|chimerasnes*|*supafaust*|mednafen_snes*"
 
 loadSettings() {
   local key value
@@ -154,6 +155,11 @@ scanlineGains() {
     3) printf '195,-95,75,15' ;;
     4) printf '195,-95,65,10' ;;
   esac
+}
+
+videoShimLine() {
+  # shellcheck disable=SC2016 # the expansion belongs to the generated shim
+  printf 'case "${1#km_}" in %s) set -- "$@"%s ;; esac' "$video_cores" "$ra_display_args$(retroarchArgs)$(noFrameArg)"
 }
 
 canoeMagfilter() {
@@ -291,6 +297,7 @@ resume=$2
 if [ -d "$path" ]; then cd "$path" || exit 1; fi
 
 native=
+ra_display_args=
 saved=
 if [ -n "$code" ]; then
   case "$cmd" in
@@ -346,7 +353,11 @@ if [ -n "$code" ]; then
     fi
   else
     mkdir -p "$out/rollback"
-    cmd="$cmd --save-data-backing-file $profile/$code/cartridge.sram --title-code $code$(displayArgs)"
+    cmd="$cmd --save-data-backing-file $profile/$code/cartridge.sram --title-code $code"
+    case "$cmd" in
+      *clover-canoe-shvc*|*kachikachi*) cmd="$cmd$(displayArgs)" ;;
+      *) ra_display_args=$(displayArgs) ;;
+    esac
     cmd="$cmd --save-time-path $out/state.time --save-screenshot-on-quit $out/state.png"
     case "$cmd" in
       *kachikachi*)
@@ -363,7 +374,7 @@ fi
 
 clearRetroarchFrame
 mkdir -p "$shim"
-printf '#!/bin/sh\n%s\n%s\nexec retroarch-clover-child "$@"%s\n' "$(overclockShimLine)" "$(noSuspendShimLine)" "$(retroarchArgs)$(noFrameArg)" > "$shim/retroarch-clover"
+printf '#!/bin/sh\n%s\n%s\n%s\nexec retroarch-clover-child "$@"\n' "$(overclockShimLine)" "$(noSuspendShimLine)" "$(videoShimLine)" > "$shim/retroarch-clover"
 chmod +x "$shim/retroarch-clover"
 
 canoeShim
