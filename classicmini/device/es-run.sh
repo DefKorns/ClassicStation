@@ -91,7 +91,7 @@ for cfg in es_settings.cfg es_input.cfg; do
 done
 sh "$es_dir/es-theme.sh" "$sftype"
 librarySignature() {
-  find "$games_dir" /media/data/emulationstation/covers "$es_dir/es-library.sh" "$es_dir/es_romaji.txt" \( -name '*.desktop' -o -name '*.png' -o -name 'aliases.txt' -o -name 'es-library.sh' -o -name 'es_romaji.txt' \) ! -path '*/CLV-Z-ESRET/*' -exec ls -ln --full-time {} + 2>/dev/null | md5sum
+  find "$games_dir" /media/data/emulationstation/covers "$es_dir/es-library" "$es_dir/es_romaji.txt" \( -name '*.desktop' -o -name '*.png' -o -name 'aliases.txt' -o -name 'es-library' -o -name 'es_romaji.txt' \) ! -path '*/CLV-Z-ESRET/*' -exec ls -ln --full-time {} + 2>/dev/null | md5sum
 }
 buildLibrary() {
 library_stamp=$es_dir/library.stamp
@@ -104,7 +104,7 @@ if [ -d "$es_dir/library" ] && [ "$(cat "$library_stamp.count" 2>/dev/null)" = "
   rm -rf /tmp/es-library
   cp -a "$es_dir/library" /tmp/es-library
 else
-  sh "$es_dir/es-library.sh" /tmp/es-library
+  "$es_dir/es-library" /tmp/es-library
   rm -rf "$es_dir/library"
   cp -a /tmp/es-library "$es_dir/library"
   echo "$games_count" > "$library_stamp.count"

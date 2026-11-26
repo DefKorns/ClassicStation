@@ -27,7 +27,7 @@ All licensed under the [SIL Open Font License 1.1](https://openfontlicense.org).
   (<https://github.com/TheOtherGuys-Hakchi-Projects/Hakchi-Memory-Booster>), GPL-3.0. No code was copied.
 - The OVERCLOCK switch of the DEVELOPER menu uses the method of Easy OC by bslenul: it writes the maximum frequency
   to `scaling_max_freq` and nothing is written to flash.
-- The single `awk` pass that resolves covers in `device/es-library.sh` comes from code shared by DNA64
+- The single `awk` pass that resolves covers in `tools/es_library.cpp` comes from code shared by DNA64
   (<https://github.com/dna64>).
 
 ## Trademarks

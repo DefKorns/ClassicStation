@@ -6,9 +6,9 @@ in `es-app` and `es-core`. The last part is upstream's own notes on EmulationSta
 ## Layout of `classicmini/`
 
 - `device/`: everything that runs on the console. `es-*.sh` are the scripts (`es-run.sh` starts ES, `es-game.sh`
-  launches games, `es-library.sh` builds the library, `es-theme.sh` generates the classicstation theme, `es-tools.sh`
-  is what the menus call), `S8100es` is the init script, `preinit/` the preinit hook, `resources/` and `themes/` what
-  ships on the card.
+  launches games, `es-theme.sh` generates the classicstation theme, `es-tools.sh` is what the menus call), `es-library`
+  is the native scanner that builds the library (`classicmini/tools/es_library.cpp`), `S8100es` is the init script,
+  `preinit/` the preinit hook, `resources/` and `themes/` what ships on the card.
 - `hmod/`: the hakchi mod. `stage.sh` collects the files into `mod/`, `files/install` and `files/uninstall` run under
   hakchi, and `docker-make.sh` (from `vendor/hmod-build`) packs the `.hmod` into `hmod/out/`.
 - `tools/`: C++ built for the console (`padstate`, `theme_layers`, `crtfx`) and the Python and shell scripts that
