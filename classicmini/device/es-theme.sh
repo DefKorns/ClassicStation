@@ -106,7 +106,8 @@ if "$es_dir/theme_layers" layers "$sprites_dir/$atlas.json" "$sprites_dir/$atlas
   fi
   case $layout in
     nes) original_card=nes ;;
-    hvc | hvcj) original_card=hvc ;;
+    hvc) original_card=hvc ;;
+    hvcj) original_card=hvcj ;;
     snes_*) original_card=$layout ;;
     *) original_card= ;;
   esac
