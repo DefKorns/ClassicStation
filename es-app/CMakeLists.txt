@@ -47,6 +47,8 @@ set(ES_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiScraperStart.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiSuspendPoints.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiToolRunner.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiLaunchOptions.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiLaunchScreen.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiAbout.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiFramePicker.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiSystemInfo.h
@@ -125,6 +127,8 @@ set(ES_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiScraperStart.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiSuspendPoints.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiToolRunner.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiLaunchOptions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiLaunchScreen.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiAbout.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiFramePicker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiSystemInfo.cpp

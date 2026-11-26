@@ -1101,6 +1101,16 @@ void GuiMenu::openBehaviourSettings()
 	s->addWithLabel("QUICK SYSTEM SELECT", quick_sys_select);
 	s->addSaveFunc([quick_sys_select] { Settings::getInstance()->setBool("QuickSystemSelect", quick_sys_select->getState()); });
 
+	auto launchScreen = std::make_shared<SwitchComponent>(mWindow);
+	launchScreen->setState(Settings::getInstance()->getBool("LaunchScreen"));
+	s->addWithLabel("LAUNCH SCREEN", launchScreen);
+	s->addSaveFunc([launchScreen] { Settings::getInstance()->setBool("LaunchScreen", launchScreen->getState()); });
+
+	auto launchDelay = std::make_shared<SliderComponent>(mWindow, 1.f, 10.f, 1.f, "s");
+	launchDelay->setValue(static_cast<float>(Settings::getInstance()->getInt("LaunchScreenDelay")));
+	s->addWithLabel("LAUNCH SCREEN DELAY", launchDelay);
+	s->addSaveFunc([launchDelay] { Settings::getInstance()->setInt("LaunchScreenDelay", static_cast<int>(Math::round(launchDelay->getValue()))); });
+
 	// Optionally ignore leading articles when sorting game titles
 	auto ignore_articles = std::make_shared<SwitchComponent>(mWindow);
 	ignore_articles->setState(Settings::getInstance()->getBool("IgnoreLeadingArticles"));

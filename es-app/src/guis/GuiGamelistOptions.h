@@ -3,6 +3,7 @@
 #define ES_APP_GUIS_GUI_GAME_LIST_OPTIONS_H
 
 #include "components/MenuComponent.h"
+#include "guis/GuiLaunchOptions.h"
 #include "components/OptionListComponent.h"
 #include "FileData.h"
 #include "GuiComponent.h"
@@ -23,6 +24,7 @@ public:
 private:
 	void openGamelistFilter();
 	void openSuspendPoints();
+	void openLaunchWith();
 	void toggleFavorite();
 	void toggleKidGame();
 	void pickRandomGame();
@@ -47,6 +49,7 @@ private:
 	bool mFiltersChanged;
 	bool mJumpToSelected;
 	bool mMetadataChanged;
+	LaunchChoices mLaunchChoices;
 };
 
 #endif // ES_APP_GUIS_GUI_GAME_LIST_OPTIONS_H

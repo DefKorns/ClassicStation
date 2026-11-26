@@ -15,7 +15,7 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 case "$1" in
-  overclock | swap | temperature | developer) ;;
+  overclock | swap | temperature | developer | launch) ;;
   *)
     source /etc/preinit
     script_init
@@ -508,6 +508,7 @@ case "$1" in
         ;;
     esac
     ;;
+  launch) sh "$(dirname "$0")/es-launch-options.sh" "$2" "$3" "$4" ;;
   developer)
     printf 'overclock_available=%s
 ' "$(printState overclockAvailable)"

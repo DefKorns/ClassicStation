@@ -109,6 +109,7 @@ void Settings::setDefaults()
 	mBoolMap["DebugImage"] = false;
 
 	mIntMap["ScreenSaverTime"] = 5 * Settings::ONE_MINUTE_IN_MS;
+	mIntMap["LaunchScreenDelay"] = 2;
 	mIntMap["SystemSleepTime"] = 0 * Settings::ONE_MINUTE_IN_MS;
 	mBoolMap["SystemSleepTimeHintDisplayed"] = false;
 	mIntMap["ScraperResizeWidth"] = 400;
@@ -134,6 +135,7 @@ void Settings::setDefaults()
 	mStringMap["SaveGamelistsMode"] = "on exit";
 
 	mBoolMap["ScreenSaverControls"] = true;
+	mBoolMap["LaunchScreen"] = false;
 	mStringMap["ScreenSaverGameInfo"] = "never";
 	mBoolMap["StretchVideoOnScreenSaver"] = false;
 	mStringMap["PowerSaverMode"] = "disabled";

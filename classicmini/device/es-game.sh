@@ -268,6 +268,19 @@ openborShim() {
   openborOverclock
 }
 
+launchCore() {
+  local file="/media/data/emulationstation/launch/$code.cfg" core
+  [ -n "$code" ] && [ -f "$file" ] || return 0
+  core=$(sed -n 's/^core=//p' "$file" | head -n 1)
+  case $core in "" | *[!A-Za-z0-9_]*) return 0 ;; esac
+  [ -f "/etc/libretro/core/${core}_libretro.so" ] || return 0
+  case " $cmd " in *" --retroarch "* | *" --core "*) return 0 ;; esac
+  case $cmd in
+    *kachikachi* | *canoe-shvc*) cmd="$cmd --retroarch --core $core" ;;
+    *) grep -q retroarch-clover "${cmd%% *}" 2>/dev/null && cmd="retroarch-clover $core ${cmd#* }" ;;
+  esac
+}
+
 isRetroarchState() {
   [ -f "$1" ] && [ "$(head -c 9 "$1")" != HANASTATE ]
 }
@@ -288,6 +301,7 @@ while IFS= read -r line || [ -n "$line" ]; do
 done < "$desktop"
 resume=$2
 [ -n "$cmd" ] || exit 1
+launchCore
 if [ -d "$path" ]; then cd "$path" || exit 1; fi
 
 native=

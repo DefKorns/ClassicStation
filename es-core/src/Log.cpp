@@ -35,6 +35,8 @@ void Log::init()
 void Log::open()
 {
 	file = fopen(getLogPath().c_str(), "w");
+	if(file != NULL)
+		setvbuf(file, NULL, _IOLBF, 0);
 }
 
 std::ostringstream& Log::get(LogLevel level)

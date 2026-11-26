@@ -364,3 +364,18 @@ Could not delete the backup. Check the SD card.	Impossible de supprimer la sauve
 No backup found on the SD card.	Aucune sauvegarde trouvée sur la carte SD.
 Restored %s network(s).	Réseaux restaurés : %s.
 Every network in the backup is already saved.	Tous les réseaux de la sauvegarde sont déjà enregistrés.
+# Launch options screen, shown by GuiLaunchScreen. A %s stands for the game or emulator name.
+LAUNCH OPTIONS	OPTIONS DE LANCEMENT
+LAUNCH SCREEN DELAY	DURÉE DE L'ÉCRAN DE LANCEMENT
+LAUNCHING %s	LANCEMENT DE %s
+PRESS A BUTTON TO CONFIGURE	APPUYEZ SUR UN BOUTON POUR CONFIGURER
+B: CANCEL	B : ANNULER
+EMULATOR NOT INSTALLED	ÉMULATEUR NON INSTALLÉ
+PRESS A OR B TO GO BACK	APPUYEZ SUR A OU B POUR REVENIR
+A: USE ANOTHER EMULATOR   B: BACK	A : UTILISER UN AUTRE ÉMULATEUR   B : RETOUR
+LAUNCH SCREEN	ÉCRAN DE LANCEMENT
+LAUNCH WITH...	LANCER AVEC...
+CURRENT	ACTUEL
+NATIVE	NATIF
+SUSPEND POINTS ARE NOT COMPATIBLE BETWEEN EMULATORS	LES POINTS DE SUSPENSION NE SONT PAS COMPATIBLES ENTRE ÉMULATEURS
+THIS GAME NEEDS %s - INSTALL IT WITH HAKCHI	CE JEU NÉCESSITE %s - INSTALLEZ-LE AVEC HAKCHI

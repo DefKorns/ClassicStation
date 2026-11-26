@@ -38,6 +38,7 @@ cp "$classicmini_dir/device/S8100es" "$mod_dir/etc/init.d/"
 cp "$classicmini_dir/device/preinit/b8030_es" "$mod_dir/etc/preinit.d/"
 cp "$classicmini_dir/out/emulationstation" "$classicmini_dir/out/libfreetype.so.6" "$classicmini_dir/out/padstate" "$classicmini_dir/out/es-library" "$classicmini_dir/out/theme_layers" "$classicmini_dir/out/libcrtfx.so" "$es_payload/"
 cp "$classicmini_dir"/device/es-*.sh "$classicmini_dir/device/es_systems.cfg" "$classicmini_dir/device/es_romaji.txt" "$es_payload/"
+cp -R "$classicmini_dir/device/launch_splash" "$es_payload/launch_splash"
 cp -R "$classicmini_dir"/../resources/. "$es_payload/resources/"
 rm -f "$es_payload"/resources/*.py "$es_payload"/resources/splash.svg
 cp -R "$classicmini_dir"/device/resources/. "$es_payload/resources/"

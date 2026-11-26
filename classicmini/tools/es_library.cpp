@@ -961,6 +961,14 @@ int main(int argc, char** argv)
         return 2;
     }
 
+    if (std::string(argv[1]) == "--system-of") {
+        Game game;
+        game.exe = argc > 2 ? argv[2] : "";
+        game.ext = argc > 3 ? argv[3] : "";
+        std::cout << systemOf(Context(), game, std::string()) << "\n";
+        return 0;
+    }
+
     Context ctx;
     ctx.out = argv[1];
     if (const char* store = getenv("ES_STORE"))

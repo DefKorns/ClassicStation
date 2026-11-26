@@ -4,6 +4,10 @@
 #include "animations/LambdaAnimation.h"
 #include "animations/LaunchAnimation.h"
 #include "animations/MoveCameraAnimation.h"
+#include "guis/GuiLaunchScreen.h"
+#include <fstream>
+#include <sstream>
+#include <unistd.h>
 #include "guis/GuiMenu.h"
 #include "views/gamelist/DetailedGameListView.h"
 #include "views/gamelist/IGameListView.h"
@@ -266,6 +270,43 @@ void ViewController::onFileChanged(FileData* file, FileChangeType change)
 		it->second->onFileChanged(file, change);
 }
 
+namespace
+{
+	std::string execProgram(const FileData* game)
+	{
+		std::ifstream desktop(game->getPath().c_str());
+		for(std::string line; std::getline(desktop, line);)
+		{
+			if(line.compare(0, 5, "Exec=") != 0)
+				continue;
+			std::istringstream words(line.substr(5));
+			std::string program;
+			words >> program;
+			return program;
+		}
+		return std::string();
+	}
+
+	std::string missingEmulator(const FileData* game)
+	{
+		const std::string program = execProgram(game);
+		return !program.empty() && program[0] == '/' && access(program.c_str(), X_OK) != 0 ? program : std::string();
+	}
+
+	bool usesRetroarch(const FileData* game)
+	{
+		const std::string program = execProgram(game);
+		const size_t slash = program.rfind('/');
+		const std::string name = slash == std::string::npos ? program : program.substr(slash + 1);
+		if(program.empty() || name.compare(0, 6, "clover") == 0)
+			return false;
+		std::ifstream script(program.c_str());
+		char head[4096] = {};
+		script.read(head, sizeof head - 1);
+		return head[0] == '#' && head[1] == '!' && std::string(head).find("retroarch-clover") != std::string::npos;
+	}
+}
+
 void ViewController::launch(FileData* game, Vector3f center)
 {
 	if(game->getType() != GAME)
@@ -274,6 +315,19 @@ void ViewController::launch(FileData* game, Vector3f center)
 		return;
 	}
 
+	const bool configurable = UIModeController::getInstance()->isUIModeFull() && !game->getSourceFileData()->metadata.get("code").empty();
+	const bool asked = configurable && Settings::getInstance()->getBool("LaunchScreen") && getenv("ES_RESUME") == nullptr && usesRetroarch(game);
+	const std::string missing = missingEmulator(game);
+	if(missing.empty() && !asked)
+	{
+		launchNow(game, center);
+		return;
+	}
+	mWindow->pushGui(new GuiLaunchScreen(mWindow, game, missing, [this, game, center] { launchNow(game, center, true); }));
+}
+
+void ViewController::launchNow(FileData* game, Vector3f center, bool immediate)
+{
 	// Hide the current view
 	if (mCurrentView)
 		mCurrentView->onHide();
@@ -285,6 +339,19 @@ void ViewController::launch(FileData* game, Vector3f center)
 	stopAnimation(1); // make sure the fade in isn't still playing
 	mWindow->stopInfoPopup(); // make sure we disable any existing info popup
 	mLockInput = true;
+
+	if(immediate)
+	{
+		game->launchGame(mWindow);
+		mLockInput = false;
+		onFileChanged(game, FILE_METADATA_CHANGED);
+		if(mCurrentView)
+		{
+			getGameListView(game->getSystem())->setCursor(game, true);
+			mCurrentView->onShow();
+		}
+		return;
+	}
 
 	std::string transition_style = Settings::getInstance()->getString("TransitionStyle");
 	if(transition_style == "fade")

@@ -364,3 +364,18 @@ Could not delete the backup. Check the SD card.	Kan de back-up niet verwijderen.
 No backup found on the SD card.	Geen back-up gevonden op de SD-kaart.
 Restored %s network(s).	Hersteld aantal netwerken: %s.
 Every network in the backup is already saved.	Alle netwerken in de back-up zijn al opgeslagen.
+# Launch options screen, shown by GuiLaunchScreen. A %s stands for the game or emulator name.
+LAUNCH OPTIONS	STARTOPTIES
+LAUNCH SCREEN DELAY	DUUR STARTSCHERM
+LAUNCHING %s	%s STARTEN
+PRESS A BUTTON TO CONFIGURE	DRUK OP EEN KNOP OM IN TE STELLEN
+B: CANCEL	B: ANNULEREN
+EMULATOR NOT INSTALLED	EMULATOR NIET GEÏNSTALLEERD
+PRESS A OR B TO GO BACK	DRUK OP A OF B OM TERUG TE GAAN
+A: USE ANOTHER EMULATOR   B: BACK	A: ANDERE EMULATOR GEBRUIKEN   B: TERUG
+LAUNCH SCREEN	STARTSCHERM
+LAUNCH WITH...	STARTEN MET...
+CURRENT	HUIDIG
+NATIVE	NATIEF
+SUSPEND POINTS ARE NOT COMPATIBLE BETWEEN EMULATORS	SUSPEND POINTS ZIJN NIET COMPATIBEL TUSSEN EMULATORS
+THIS GAME NEEDS %s - INSTALL IT WITH HAKCHI	DIT SPEL VEREIST %s - INSTALLEER HET MET HAKCHI

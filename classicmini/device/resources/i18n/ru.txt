@@ -364,3 +364,18 @@ Could not delete the backup. Check the SD card.	Не удалось удалит
 No backup found on the SD card.	На карте SD копий не найдено.
 Restored %s network(s).	Восстановлено сетей: %s.
 Every network in the backup is already saved.	Все сети из копии уже сохранены.
+# Launch options screen, shown by GuiLaunchScreen. A %s stands for the game or emulator name.
+LAUNCH OPTIONS	ПАРАМЕТРЫ ЗАПУСКА
+LAUNCH SCREEN DELAY	ВРЕМЯ ЭКРАНА ЗАПУСКА
+LAUNCHING %s	ЗАПУСК %s
+PRESS A BUTTON TO CONFIGURE	НАЖМИТЕ КНОПКУ ДЛЯ НАСТРОЙКИ
+B: CANCEL	B: ОТМЕНА
+EMULATOR NOT INSTALLED	ЭМУЛЯТОР НЕ УСТАНОВЛЕН
+PRESS A OR B TO GO BACK	НАЖМИТЕ A ИЛИ B, ЧТОБЫ ВЕРНУТЬСЯ
+A: USE ANOTHER EMULATOR   B: BACK	A: ДРУГОЙ ЭМУЛЯТОР   B: НАЗАД
+LAUNCH SCREEN	ЭКРАН ЗАПУСКА
+LAUNCH WITH...	ЗАПУСТИТЬ С...
+CURRENT	ТЕКУЩИЙ
+NATIVE	ВСТРОЕННЫЙ
+SUSPEND POINTS ARE NOT COMPATIBLE BETWEEN EMULATORS	ТОЧКИ ПРИОСТАНОВКИ НЕСОВМЕСТИМЫ МЕЖДУ ЭМУЛЯТОРАМИ
+THIS GAME NEEDS %s - INSTALL IT WITH HAKCHI	ИГРЕ НУЖЕН %s - УСТАНОВИТЕ ЕГО ЧЕРЕЗ HAKCHI

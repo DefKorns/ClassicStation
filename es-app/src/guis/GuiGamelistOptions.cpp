@@ -3,12 +3,15 @@
 
 #include "guis/GuiGamelistFilter.h"
 #include "guis/GuiInfoPopup.h"
+#include "guis/GuiLaunchOptions.h"
 #include "guis/GuiMsgBox.h"
 #include "scrapers/Scraper.h"
 #include "views/gamelist/IGameListView.h"
 #include "views/UIModeController.h"
 #include "views/ViewController.h"
 #include "CollectionSystemManager.h"
+#include "ConsoleTools.h"
+#include "I18n.h"
 #include "FileFilterIndex.h"
 #include "FileSorts.h"
 #include "Gamelist.h"
@@ -34,6 +37,21 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system) : Gui
 		row.addElement(makeArrow(mWindow), false);
 		row.makeAcceptInputHandler(std::bind(&GuiGamelistOptions::openSuspendPoints, this));
 		mMenu.addRow(row);
+	}
+
+	if(!mFromPlaceholder && file->getType() == GAME && UIModeController::getInstance()->isUIModeFull())
+	{
+		const std::string command = GuiLaunchOptions::listCommand(file);
+		if(!command.empty())
+			mLaunchChoices = GuiLaunchOptions::parse(ConsoleTools::run(command));
+		if(!mLaunchChoices.cores.empty() && !mLaunchChoices.nativeDefault)
+		{
+			row.elements.clear();
+			row.addElement(std::make_shared<TextComponent>(mWindow, "LAUNCH WITH...", Font::get(FONT_SIZE_MENU), MenuColors::Text), true);
+			row.addElement(makeArrow(mWindow), false);
+			row.makeAcceptInputHandler(std::bind(&GuiGamelistOptions::openLaunchWith, this));
+			mMenu.addRow(row);
+		}
 	}
 
 	if(!mFromPlaceholder && file->getType() == GAME && getGamelist()->floatingAvailable())
@@ -251,6 +269,21 @@ void GuiGamelistOptions::pickRandomGame()
 	delete this;
 	if(randomGame)
 		gamelist->setCursor(randomGame);
+}
+
+void GuiGamelistOptions::openLaunchWith()
+{
+	FileData* game = getGamelist()->getCursor();
+	const std::string code = game->getSourceFileData()->metadata.get("code");
+	const LaunchChoices choices = mLaunchChoices;
+	GuiGamelistOptions* options = this;
+	Window* window = mWindow;
+	window->pushGui(new GuiLaunchOptions(window, choices, true, [options, game, code, choices](const std::string& id) {
+		GuiLaunchOptions::save(code, choices, id);
+		delete options;
+		const Vector3f center(Renderer::getScreenWidth() / 2.0f, Renderer::getScreenHeight() / 2.0f, 0);
+		ViewController::get()->launchNow(game, center, true);
+	}, nullptr));
 }
 
 void GuiGamelistOptions::toggleFavorite()
