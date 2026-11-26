@@ -207,6 +207,9 @@ bool TextureResource::updateTextureSize()
 
 		case TextureData::LoadStatus::LOADING:
 		default:
+			// Released before its size was read: nothing else queues it again
+			if (mTextureData == nullptr)
+				sTextureDataManager.get(this);
 			return false;
 	}
 }
