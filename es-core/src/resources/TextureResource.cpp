@@ -257,6 +257,7 @@ bool TextureResource::unload()
 
 	if (data != nullptr && data->loadStatus() == TextureData::LoadStatus::LOADED)
 	{
+		mWasOnScreen = data->bindGeneration() + 1 >= sTextureDataManager.currentBindGeneration();
 		data->releaseVRAM();
 		data->releaseRAM();
 
@@ -272,10 +273,11 @@ void TextureResource::reload()
 	// For manually loaded textures we have to reload them here
 	if (mTextureData && mTextureData->loadStatus() == TextureData::LoadStatus::LOADING)
 		mTextureData->load();
-
-	// Uncomment this 2 lines in future release in order to reload texture VRAM exactly as it was before
-	// This is commented because it needs true images async loading, or it will be very long
-
-	// else if (mTextureData == nullptr)
-	//	 sTextureDataManager.get(this);
+	else if (mTextureData == nullptr && mWasOnScreen)
+	{
+		// Blocking, so the first frame after a game is complete
+		std::shared_ptr<TextureData> data = sTextureDataManager.get(this, false);
+		if (data != nullptr)
+			data->load();
+	}
 }
